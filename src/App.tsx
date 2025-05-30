@@ -22,6 +22,7 @@ import MobileArticleDetail from './mobile/ArticleDetail';
 import ArticleCommentsMobile from './mobile/ArticleComments';
 import AudioStreamingPage, { AlbumDetailMobile } from './mobile/AudioStreaming';
 import ArticleCommentsWeb from './pages/ArticleCommentsWeb';
+import Streaming from './pages/Streaming';
 // @ts-ignore - Tempo routes
 import routes from "tempo-routes";
 import './lib/i18n';
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/streaming" element={<Streaming />} />
             {/* Add this before the catchall route for Tempo */}
             {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
             <Route path="*" element={<NotFound />} />
