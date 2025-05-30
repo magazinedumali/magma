@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { articles } from '@/data/articles';
 import { supabase } from '@/lib/supabaseClient';
 import { useTranslation } from 'react-i18next';
 import MainNavigation from './header/MainNavigation';
@@ -50,32 +49,49 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const { t, i18n } = useTranslation();
   
-  const titles = [
-    "Police Supports Peaceful Protestors...",
-    "It Possible to Re-Open...",
-    "COVID19 Restrictions in Large...",
-    "A Possible Moratorium..."
-  ];
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
 
   useEffect(() => {
+    async function fetchArticles() {
+      setLoadingRecent(true);
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('statut', 'publie')
+        .order('date_publication', { ascending: false })
+        .limit(10);
+      setRecentArticles(data || []);
+      setLoadingRecent(false);
+    }
+    fetchArticles();
+  }, []);
+
+  const mappedArticles = (recentArticles || []).map((a: any) => ({
+    id: a.id,
+    slug: a.slug || a.id,
+    title: a.titre ?? a.title ?? '',
+    excerpt: a.meta_description ?? a.excerpt ?? '',
+    image: a.image_url ?? a.image ?? '',
+    category: a.categorie ?? a.category ?? '',
+    date: a.date_publication ?? a.date ?? '',
+    author: a.auteur ?? a.author ?? '',
+  }));
+
+  useEffect(() => {
+    if (!mappedArticles.length) return;
     let currentIndex = 0;
-    
     const interval = setInterval(() => {
       setShowTitle(false);
-      
       setTimeout(() => {
-        currentIndex = (currentIndex + 1) % titles.length;
-        setCurrentArticleTitle(titles[currentIndex]);
+        currentIndex = (currentIndex + 1) % mappedArticles.length;
+        setCurrentArticleTitle(mappedArticles[currentIndex].title);
         setShowTitle(true);
-      }, 500); // Wait for fade-out animation to complete
-      
-    }, 4000); // Change title every 4 seconds
-    
-    // Set initial title
-    setCurrentArticleTitle(titles[0]);
-    
+      }, 500);
+    }, 4000);
+    setCurrentArticleTitle(mappedArticles[0].title);
     return () => clearInterval(interval);
-  }, []);
+  }, [mappedArticles]);
 
   useEffect(() => {
     const session = supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
@@ -123,7 +139,7 @@ const Header = () => {
     const value = e.target.value;
     setSearchQuery(value);
     if (value.trim()) {
-      const filtered = articles.filter(article =>
+      const filtered = mappedArticles.filter(article =>
         article.title.toLowerCase().includes(value.toLowerCase())
       );
       setSearchResults(filtered);
@@ -246,18 +262,13 @@ const Header = () => {
         <div className="md:hidden bg-white border-t border-b">
           <div className="container mx-auto px-4">
             <ul className="flex flex-col space-y-2 py-4 text-sm font-medium">
-              {mainCategories.map((item) => (
+              {categories.map((item) => (
                 <li key={item.name}>
                   <Link 
                     to={item.path} 
                     className="nav-link block py-1 flex items-center"
                   >
                     {t(item.name)}
-                    {item.hot && (
-                      <span className="ml-2 bg-[#ff184e] text-white text-xs px-1 rounded">
-                        Populaire
-                      </span>
-                    )}
                   </Link>
                 </li>
               ))}
@@ -409,19 +420,25 @@ const Header = () => {
             </DropdownMenu>
           </div>
           
-          {/* Sliding Article Titles */}
+          {/* Sliding Article Titles dynamique et cliquable */}
           <div className="hidden md:flex flex-1 items-center justify-center max-w-[700px]">
             <div className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 flex items-center overflow-hidden min-w-0" style={{height: '38px'}}>
               <div
                 className="whitespace-nowrap animate-marquee text-sm font-roboto font-medium text-black flex items-center h-8"
                 style={{ display: 'inline-block', minWidth: '100%' }}
               >
-                {titles.concat(titles).map((title, idx) => (
-                  <span key={idx} className="mx-4 inline-flex items-center">
-                    <span className="w-2 h-2 rounded-full bg-[#ff184e] inline-block mr-2"></span>
-                    {title}
-                  </span>
-                ))}
+                {loadingRecent ? (
+                  <span className="mx-4 text-gray-400">Chargement...</span>
+                ) : (
+                  mappedArticles.concat(mappedArticles).map((article, idx) => (
+                    <span key={idx} className="mx-4 inline-flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-[#ff184e] inline-block mr-2"></span>
+                      <Link to={`/article/${article.slug}`} className="hover:underline font-semibold" style={{maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                        {article.title.length > 32 ? article.title.slice(0, 29) + '...' : article.title}
+                      </Link>
+                    </span>
+                  ))
+                )}
               </div>
             </div>
           </div>

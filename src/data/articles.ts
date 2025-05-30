@@ -196,6 +196,19 @@ export const articles: Article[] = [
     date: 'May 1, 2025',
     author: 'William Jones',
     featured: false
+  },
+  {
+    id: '99',
+    title: '🚀 ARTICLE TEST CLIQUABLE 🚀',
+    excerpt: 'Ceci est un article de test pour la barre dynamique.',
+    content: '<p>Contenu de test pour vérifier la barre dynamique cliquable.</p>',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+    category: 'Test',
+    date: 'June 1, 2025',
+    author: 'Testeur',
+    featured: true,
+    slug: 'article-test-cliquable',
+    tags: ['test', 'demo']
   }
 ];
 
