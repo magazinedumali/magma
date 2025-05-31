@@ -21,6 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/lib/supabaseClient';
 import { useTranslation } from 'react-i18next';
 import MainNavigation from './header/MainNavigation';
+import HeaderLogo from './header/HeaderLogo';
 
 export const categories = [
   { name: 'Actualités', path: '/category/actualites' },
@@ -160,17 +161,7 @@ const Header = () => {
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            
-            <Link to="/" className="flex items-center">
-              <div className="bg-[#ff184e] h-10 w-10 flex items-center justify-center rounded-md mr-2">
-                <span className="text-white font-bold text-2xl">M</span>
-              </div>
-              <h1 className="text-2xl font-jost font-bold">
-                <span className="text-black">Mag</span>
-                <span className="text-[#ff184e]">e</span>
-                <span className="text-black">zix</span>
-              </h1>
-            </Link>
+            <HeaderLogo />
           </div>
           
           {/* Main Navigation - Desktop */}
