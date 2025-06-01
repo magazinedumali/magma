@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import './admin.css';
+import './login-glass.css';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -31,33 +31,33 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="admin-login-container">
-      <div className="admin-login-box">
-        <h1>Connexion Admin</h1>
-        {error && <div className="admin-error">{error}</div>}
-        <form onSubmit={handleLogin}>
-          <div className="admin-form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="admin-form-group">
-            <label htmlFor="password">Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" disabled={loading} className="admin-submit-button">
-            {loading ? 'Connexion...' : 'Se connecter'}
+    <div className="login-bg-glass">
+      <div className="login-glass-card">
+        <h2 className="login-glass-title">Administrateur</h2>
+        <form onSubmit={handleLogin} className="login-glass-form">
+          <input
+            type="email"
+            required
+            placeholder="Adresse e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="login-glass-input"
+          />
+          <input
+            type="password"
+            required
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="login-glass-input"
+          />
+          {error && <div className="login-glass-error">{error}</div>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="login-glass-btn"
+          >
+            {loading ? 'Connexion...' : 'SE CONNECTER'}
           </button>
         </form>
       </div>

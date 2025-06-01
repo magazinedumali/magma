@@ -1,0 +1,114 @@
+/* Fond d'écran avec overlay sombre */
+.login-bg-glass {
+  min-height: 100vh;
+  width: 100vw;
+  background: url('/poula.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 0;
+}
+
+/* Carte glassmorphism */
+.login-glass-card {
+  background: rgba(40, 40, 60, 0.35);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border-radius: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  padding: 40px 32px 32px 32px;
+  min-width: 340px;
+  max-width: 94vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 7vw;
+}
+
+.login-glass-title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 32px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.login-glass-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-glass-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 32px;
+  border: none;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 1.08rem;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 0;
+  box-shadow: 0 1px 4px #0001;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.login-glass-input:focus {
+  background: rgba(255,255,255,0.28);
+  box-shadow: 0 2px 8px #0002;
+}
+
+.login-glass-btn {
+  width: 100%;
+  padding: 14px 0;
+  background: #ff184e;
+  color: #fff;
+  border: none;
+  border-radius: 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px #ff184e33;
+  transition: background 0.18s, color 0.18s;
+}
+.login-glass-btn:disabled {
+  background: #b48a9a;
+  cursor: not-allowed;
+}
+
+.login-glass-error {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 10px 16px;
+  border-radius: 12px;
+  margin-bottom: 0;
+  font-size: 15px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .login-bg-glass {
+    justify-content: center;
+  }
+  .login-glass-card {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .login-glass-card {
+    min-width: 90vw;
+    padding: 24px 8vw 18px 8vw;
+  }
+  .login-glass-title {
+    font-size: 1.3rem;
+  }
+} 
