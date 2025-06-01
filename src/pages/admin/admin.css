@@ -1,0 +1,84 @@
+.admin-login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f5f7fa;
+  font-family: 'Jost', sans-serif;
+}
+
+.admin-login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.admin-login-box h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #23272f;
+  text-align: center;
+}
+
+.admin-form-group {
+  margin-bottom: 20px;
+}
+
+.admin-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #23272f;
+}
+
+.admin-form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e9f2;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'Jost', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.admin-form-group input:focus {
+  outline: none;
+  border-color: #4f8cff;
+}
+
+.admin-submit-button {
+  width: 100%;
+  padding: 14px;
+  background: #4f8cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: 'Jost', sans-serif;
+}
+
+.admin-submit-button:hover {
+  background: #3d7bff;
+}
+
+.admin-submit-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.admin-error {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+} 
