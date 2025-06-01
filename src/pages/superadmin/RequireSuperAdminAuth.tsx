@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
-export default function RequireSuperAdminAuth({ children }: { children: React.ReactNode | React.ReactNode[] }) {
+export default function RequireSuperAdminAuth({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
   const navigate = useNavigate();
@@ -11,16 +11,10 @@ export default function RequireSuperAdminAuth({ children }: { children: React.Re
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.user_metadata?.role === "superadmin") {
-          setAuthed(true);
-        } else {
-          setAuthed(false);
-          navigate("/admin/login", { replace: true });
-        }
+        setAuthed(true);
       } else {
         setAuthed(false);
-        navigate("/admin/login", { replace: true });
+        navigate("/superadmin/login", { replace: true });
       }
       setChecking(false);
     };
@@ -29,16 +23,9 @@ export default function RequireSuperAdminAuth({ children }: { children: React.Re
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setAuthed(false);
-        navigate("/admin/login", { replace: true });
+        navigate("/superadmin/login", { replace: true });
       } else {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-          if (user && user.user_metadata?.role === "superadmin") {
-            setAuthed(true);
-          } else {
-            setAuthed(false);
-            navigate("/admin/login", { replace: true });
-          }
-        });
+        setAuthed(true);
       }
     });
     return () => { listener?.subscription.unsubscribe(); };

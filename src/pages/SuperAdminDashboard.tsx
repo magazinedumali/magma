@@ -40,33 +40,29 @@ const SuperAdminDashboard = () => {
     <Routes>
       <Route path="login" element={<LoginPage />} />
       <Route path="register" element={<RegisterPage />} />
-      <Route element={
-        <RequireSuperAdminAuth>
-          <DashboardLayout>
-            <Outlet />
-          </DashboardLayout>
-        </RequireSuperAdminAuth>
-      }>
-        <Route index element={<SuperAdminHome />} />
-        <Route path="medias" element={<MediasPage />} />
-        <Route path="utilisateurs" element={<UsersPage />} />
-        <Route path="administrateurs" element={<AdminsPage />} />
-        <Route path="commentaires" element={<CommentsPage />} />
-        <Route path="apparence" element={<ApparencePage />} />
-        <Route path="banniere/:position" element={<EditBannerPage />} />
-        <Route path="parametres" element={<Placeholder title="Paramètres" />} />
-        <Route path="albums" element={<AlbumsPage />} />
-        <Route path="albums/add" element={<AddAlbumPage />} />
-        <Route path="albums/edit/:id" element={<EditAlbumPage />} />
-        <Route path="stories" element={<StoriesPage />} />
-        <Route path="articles" element={<ArticleList />} />
-        <Route path="articles/nouveau" element={<ArticleCreatePage />} />
-        <Route path="articles/edit/:id" element={<ArticleFormWrapper />} />
-        <Route path="polls" element={<PollsPage />} />
-        <Route path="categories" element={<CategoriesPage />} />
-        <Route path="menu" element={<MainMenuPage />} />
-        <Route path="pages" element={<PagesAdminPage />} />
-        <Route path="videos" element={<VideosPage />} />
+      <Route element={<DashboardLayout><Outlet /></DashboardLayout>}>
+        <Route element={<RequireSuperAdminAuth><Outlet /></RequireSuperAdminAuth>}>
+          <Route index element={<SuperAdminHome />} />
+          <Route path="medias" element={<MediasPage />} />
+          <Route path="utilisateurs" element={<UsersPage />} />
+          <Route path="administrateurs" element={<AdminsPage />} />
+          <Route path="commentaires" element={<CommentsPage />} />
+          <Route path="apparence" element={<ApparencePage />} />
+          <Route path="banniere/:position" element={<EditBannerPage />} />
+          <Route path="parametres" element={<Placeholder title="Paramètres" />} />
+          <Route path="albums" element={<AlbumsPage />} />
+          <Route path="albums/add" element={<AddAlbumPage />} />
+          <Route path="albums/edit/:id" element={<EditAlbumPage />} />
+          <Route path="stories" element={<StoriesPage />} />
+          <Route path="articles" element={<ArticleList />} />
+          <Route path="articles/nouveau" element={<ArticleCreatePage />} />
+          <Route path="articles/edit/:id" element={<ArticleFormWrapper />} />
+          <Route path="polls" element={<PollsPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="menu" element={<MainMenuPage />} />
+          <Route path="pages" element={<PagesAdminPage />} />
+          <Route path="videos" element={<VideosPage />} />
+        </Route>
       </Route>
     </Routes>
   );
