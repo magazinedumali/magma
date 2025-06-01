@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-export function useRecentArticles(limit = 5) {
+export function useRecentArticles(limit = 10) {
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -10,7 +10,8 @@ export function useRecentArticles(limit = 5) {
       setLoading(true);
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, titre, slug, image_url, categorie, auteur, date_publication')
+        .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(limit);
       setArticles(data || []);

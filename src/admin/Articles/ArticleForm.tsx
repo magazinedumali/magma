@@ -147,8 +147,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     let valuesWithSlug = { ...values, slug };
     let res;
     if (articleId && articleId !== 'new') {
-      // Forcer le statut à 'publie' lors de l'édition
-      valuesWithSlug = { ...valuesWithSlug, statut: 'publie' };
+      // Ne pas forcer le statut, utiliser la valeur du formulaire
       res = await supabase.from('articles').update(valuesWithSlug).eq('id', articleId);
     } else {
       res = await supabase.from('articles').insert([valuesWithSlug]);

@@ -27,7 +27,7 @@ export default function LoginPage() {
       <h2 style={{ fontWeight: 600, fontSize: 22, marginBottom: 24, textAlign: 'center' }}>Connexion Super Admin</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <input type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: 10, borderRadius: 6, border: '1px solid #e5e9f2' }} />
-        <input type="password" required placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: 10, borderRadius: 6, border: '1px solid #e5e9f2' }} />
+        <input type="password" required placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: 10, borderRadius: 6, border: '1px solid #e5e9f2' }} autoComplete="current-password" />
         {error && <div style={{ color: 'red', fontSize: 14 }}>{error}</div>}
         <button type="submit" disabled={loading} style={{ background: '#4f8cff', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>{loading ? 'Connexion...' : 'Se connecter'}</button>
       </form>

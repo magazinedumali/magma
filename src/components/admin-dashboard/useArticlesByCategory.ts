@@ -10,7 +10,9 @@ export function useArticlesByCategory() {
       setLoading(true);
       const { data: articles, error } = await supabase
         .from('articles')
-        .select('categorie');
+        .select('categorie')
+        .eq('statut', 'publie')
+        .limit(1000);
       if (articles) {
         const counts = {};
         articles.forEach(a => {

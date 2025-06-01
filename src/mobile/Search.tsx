@@ -24,10 +24,11 @@ export default function MobileSearch() {
       // Search in title and content
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, titre, slug, image_url, categorie, auteur, date_publication')
+        .eq('statut', 'publie')
         .ilike('titre', `%${query}%`)
         .order('date_publication', { ascending: false })
-        .limit(30);
+        .limit(20);
       setArticles(data || []);
       setLoading(false);
     };

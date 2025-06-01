@@ -26,6 +26,7 @@ export interface Article {
   auteur?: string;
   statut?: string;
   slug?: string;
+  gallery?: string[];
 }
 
 const ArticleList: React.FC = () => {
@@ -87,35 +88,48 @@ const ArticleList: React.FC = () => {
   const handleConfirmDelete = async () => {
     if (!articleToDelete) return;
     setLoadingDelete(true);
+    // Suppression locale immédiate (optimiste)
+    setArticles(prev => prev.filter(a => a.id !== articleToDelete.id));
+    setSelected(selected.filter(id => id !== articleToDelete.id));
     // Suppression des fichiers du Storage
     try {
-      // Supprimer l'image
+      // Supprimer l'image principale
       if (articleToDelete.image_url) {
         const path = articleToDelete.image_url.split('/storage/v1/object/public/')[1];
         if (path) {
           await supabase.storage.from('article-images').remove([path]);
         }
       }
-      // Supprimer l'audio
+      // Supprimer l'audio principal
       if (articleToDelete.audio_url) {
         const path = articleToDelete.audio_url.split('/storage/v1/object/public/')[1];
         if (path) {
           await supabase.storage.from('article-audios').remove([path]);
         }
       }
+      // Supprimer les images de la galerie
+      if (Array.isArray(articleToDelete.gallery)) {
+        const galleryPaths = articleToDelete.gallery
+          .map((url) => url.split('/storage/v1/object/public/')[1])
+          .filter(Boolean);
+        if (galleryPaths.length > 0) {
+          await supabase.storage.from('article-images').remove(galleryPaths);
+        }
+      }
     } catch (e) {
-      // Optionnel : afficher une erreur mais continuer la suppression de l'article
       toast.error("Erreur lors de la suppression d'un fichier associé");
     }
-    // Suppression de l'article
-    const { error } = await supabase.from('articles').delete().eq('id', articleToDelete.id);
+    // Suppression de l'article en base
+    const { error, count } = await supabase.from('articles').delete({ count: 'exact' }).eq('id', articleToDelete.id);
     setLoadingDelete(false);
-    if (error) {
-      toast.error("Erreur lors de la suppression");
+    if (error || count === 0) {
+      toast.error("Erreur lors de la suppression en base. L'article n'a pas été supprimé.");
+      // Recharge la liste pour être sûr
+      fetchArticles();
     } else {
       toast.success("Article supprimé");
+      // Recharge la liste pour être sûr
       fetchArticles();
-      setSelected(selected.filter(id => id !== articleToDelete.id));
     }
     setArticleToDelete(null);
   };
