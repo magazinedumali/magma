@@ -10,6 +10,7 @@ import CommentForm from '@/components/CommentForm';
 import Banner from '@/components/Banner';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabaseClient';
+import { Helmet } from 'react-helmet';
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -108,6 +109,19 @@ const ArticleDetail = () => {
   
   return (
     <>
+      <Helmet>
+        <title>{article.titre}</title>
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={article.titre} />
+        <meta property="og:description" content={article.meta_description || article.excerpt || ''} />
+        <meta property="og:image" content={article.image_url} />
+        <meta property="og:url" content={window.location.href} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.titre} />
+        <meta name="twitter:description" content={article.meta_description || article.excerpt || ''} />
+        <meta name="twitter:image" content={article.image_url} />
+        <meta name="twitter:url" content={window.location.href} />
+      </Helmet>
       <Header />
       
       <main className="py-8">

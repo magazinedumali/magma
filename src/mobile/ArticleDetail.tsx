@@ -181,15 +181,17 @@ const MobileArticleDetail = () => {
   return (
     <div className="min-h-screen bg-[#f9fafd] flex flex-col transition-colors duration-300">
       <Helmet>
+        <title>{article.titre}</title>
         <meta property="og:type" content="article" />
-        <meta property="og:title" content={article.title} />
-        <meta property="og:description" content={article.excerpt} />
-        <meta property="og:image" content={article.image} />
+        <meta property="og:title" content={article.titre} />
+        <meta property="og:description" content={article.meta_description || article.excerpt || ''} />
+        <meta property="og:image" content={article.image_url} />
         <meta property="og:url" content={window.location.href} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.title} />
-        <meta name="twitter:description" content={article.excerpt} />
-        <meta name="twitter:image" content={article.image} />
+        <meta name="twitter:title" content={article.titre} />
+        <meta name="twitter:description" content={article.meta_description || article.excerpt || ''} />
+        <meta name="twitter:image" content={article.image_url} />
+        <meta name="twitter:url" content={window.location.href} />
       </Helmet>
       {/* Header sur image */}
       <div className="relative w-full h-80 overflow-hidden">
