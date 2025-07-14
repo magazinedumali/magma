@@ -178,6 +178,7 @@ const MobileArticleDetail = () => {
       ? article.tags.split(',').map(t => t.trim())
       : [];
   
+  const canonicalUrl = `https://www.lemagazinedumali.com/article/${article.slug}`;
   return (
     <div className="min-h-screen bg-[#f9fafd] flex flex-col transition-colors duration-300">
       <Helmet>
@@ -186,12 +187,12 @@ const MobileArticleDetail = () => {
         <meta property="og:title" content={article.titre} />
         <meta property="og:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
         <meta property="og:image" content={article.share_image_url || article.image_url} />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.titre} />
         <meta name="twitter:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
         <meta name="twitter:image" content={article.share_image_url || article.image_url} />
-        <meta name="twitter:url" content={window.location.href} />
+        <meta name="twitter:url" content={canonicalUrl} />
       </Helmet>
       {/* Header sur image */}
       <div className="relative w-full h-80 overflow-hidden">
