@@ -43,6 +43,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       gallery: initialValues.gallery || [],
       meta_title: initialValues.meta_title || '',
       meta_description: initialValues.meta_description || '',
+      share_image_url: initialValues.share_image_url || '',
+      share_description: initialValues.share_description || '',
       statut: initialValues.statut || 'brouillon',
       date_publication: (initialValues.date_publication || new Date().toISOString().slice(0, 10)).slice(0, 10),
     }
@@ -410,9 +412,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             <span>SEO</span>
             <span className={`transition-transform ${openBlock.seo ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.seo ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.seo ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}> 
             <input {...register('meta_title')} className="input input-bordered w-full" placeholder="Meta Title (SEO)" maxLength={60} />
             <textarea {...register('meta_description')} className="input input-bordered w-full min-h-[60px]" placeholder="Meta Description (SEO)" maxLength={160} />
+            <input {...register('share_image_url')} className="input input-bordered w-full mt-4" placeholder="Image de partage (URL)" />
+            <textarea {...register('share_description')} className="input input-bordered w-full min-h-[60px] mt-2" placeholder="Description de partage (pour réseaux sociaux)" maxLength={200} />
           </div>
         </div>
         {/* Bloc catégorie et auteur */}

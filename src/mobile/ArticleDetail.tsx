@@ -184,13 +184,13 @@ const MobileArticleDetail = () => {
         <title>{article.titre}</title>
         <meta property="og:type" content="article" />
         <meta property="og:title" content={article.titre} />
-        <meta property="og:description" content={article.meta_description || article.excerpt || ''} />
-        <meta property="og:image" content={article.image_url} />
+        <meta property="og:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
+        <meta property="og:image" content={article.share_image_url || article.image_url} />
         <meta property="og:url" content={window.location.href} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.titre} />
-        <meta name="twitter:description" content={article.meta_description || article.excerpt || ''} />
-        <meta name="twitter:image" content={article.image_url} />
+        <meta name="twitter:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
+        <meta name="twitter:image" content={article.share_image_url || article.image_url} />
         <meta name="twitter:url" content={window.location.href} />
       </Helmet>
       {/* Header sur image */}
