@@ -41,6 +41,10 @@ const ArticleCard = ({
           src={image} 
           alt={title} 
           className="w-full h-48 object-cover"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
+          loading="lazy"
         />
         <span className="article-category absolute top-4 left-4">
           {category}

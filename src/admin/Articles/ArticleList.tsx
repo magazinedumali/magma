@@ -14,6 +14,7 @@ import ConfirmBulkCategoryModal from './ConfirmBulkCategoryModal';
 import ConfirmBulkTagModal from './ConfirmBulkTagModal';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import ArticleImageDebug from '@/components/ArticleImageDebug';
 
 export interface Article {
   id: string;
@@ -55,6 +56,7 @@ const ArticleList: React.FC = () => {
   const [bulkTag, setBulkTag] = useState('');
   const [bulkTagAction, setBulkTagAction] = useState<'add' | 'remove'>('add');
   const [loadingBulkTag, setLoadingBulkTag] = useState(false);
+  const [showImageDebug, setShowImageDebug] = useState(false);
   const navigate = useNavigate();
 
   // Charger les articles depuis Supabase
@@ -362,9 +364,25 @@ const ArticleList: React.FC = () => {
           <button onClick={handleBulkTag} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition">Ajouter/Retirer un tag</button>
           <button onClick={() => exportArticles('csv')} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">Exporter CSV</button>
           <button onClick={() => exportArticles('json')} className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 transition">Exporter JSON</button>
+          <button onClick={() => setShowImageDebug(!showImageDebug)} className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition">
+            {showImageDebug ? 'Hide' : 'Debug'} Images
+          </button>
           <button onClick={() => setSelected([])} className="ml-auto text-blue-600 underline">Tout désélectionner</button>
         </div>
       )}
+      
+      {/* Image Debug Section */}
+      {showImageDebug && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+          <h3 className="text-lg font-bold mb-4">Image Debug - Articles avec problèmes d'images</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredArticles.slice(0, 6).map(article => (
+              <ArticleImageDebug key={article.id} article={article} />
+            ))}
+          </div>
+        </div>
+      )}
+      
       {loading ? (
         <div className="flex flex-col items-center justify-center text-gray-500 py-12">
           <svg className="animate-spin h-8 w-8 mb-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>

@@ -31,6 +31,10 @@ const SmallArticleCard = ({
             src={image} 
             alt={title} 
             className="w-20 h-20 object-cover"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg';
+            }}
+            loading="lazy"
           />
         </Link>
       )}

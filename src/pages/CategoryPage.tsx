@@ -6,6 +6,7 @@ import { getArticlesByCategory, getTrendingArticles } from '@/data/articles';
 import { Search, Facebook, Twitter, Instagram, Youtube, Globe } from 'lucide-react';
 import Banner from '@/components/Banner';
 import { supabase } from '@/lib/supabaseClient';
+import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 
 const socialLinks = [
   { name: 'Facebook', action: 'Follow', icon: Facebook },
@@ -70,18 +71,7 @@ const CategoryPage = () => {
       });
   }, [category]);
 
-  const mappedArticles = (articles || []).map((a: any) => ({
-    id: a.id,
-    slug: a.slug || a.id,
-    title: a.titre ?? a.title ?? '',
-    excerpt: a.meta_description ?? a.excerpt ?? '',
-    image: a.image_url ?? a.image ?? '',
-    category: a.categorie ?? a.category ?? '',
-    date: a.date_publication ?? a.date ?? '',
-    author: a.auteur ?? a.author ?? '',
-    views: a.views ?? 0,
-    comments_count: a.comments_count ?? 0,
-  }));
+  const mappedArticles = mapArticlesFromSupabase(articles || []);
 
   const trendingArticles = getTrendingArticles(4);
   const categoryTitle = category ? category.charAt(0).toUpperCase() + category.slice(1) : '';
@@ -113,6 +103,10 @@ const CategoryPage = () => {
                       src={article.image}
                       alt={article.title}
                       className="w-full h-72 object-cover rounded-2xl"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                      loading="lazy"
                     />
                     <div className="flex justify-between items-center px-6 py-4">
                       <div>

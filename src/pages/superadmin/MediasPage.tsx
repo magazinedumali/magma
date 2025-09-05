@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 import MediaModal from "./MediaModal";
 import { X, Edit2, Trash2, UploadCloud, Image as ImgIcon, Video, Music, List as ListIcon, LayoutGrid as GridIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import SupabaseStorageTest from '@/components/SupabaseStorageTest';
+import ImageUrlTest from '@/components/ImageUrlTest';
 
 const DUMMY_MEDIAS = [
   { id: 1, title: "Image de couverture", type: "image", url: "https://via.placeholder.com/400x250?text=IMG", size: 120000 },
@@ -38,6 +40,8 @@ function formatSize(bytes) {
 
 const MediasPage = () => {
   const [search, setSearch] = useState("");
+  const [showStorageTest, setShowStorageTest] = useState(false);
+  const [showImageTests, setShowImageTests] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
   const [medias, setMedias] = useState<any[]>([]);
   const [folders, setFolders] = useState<any[]>([]);
@@ -215,6 +219,7 @@ const MediasPage = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#f9fafd] to-[#e6eaff] flex flex-row font-jost">
+      {showStorageTest && <SupabaseStorageTest />}
       {/* Sidebar sticky */}
       <div className="w-56 min-w-[180px] bg-[#18191c] text-white py-8 px-4 flex flex-col gap-2 border-r border-[#232b46]/10" style={{ position: 'sticky', top: 0, height: '100vh' }}>
         <div className="uppercase text-xs text-gray-400 mb-2 tracking-widest">All Buckets</div>
@@ -251,6 +256,14 @@ const MediasPage = () => {
               </select>
               <button onClick={() => { if (inputRef.current) inputRef.current.click(); }} className="px-5 py-2 rounded-xl bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition flex items-center gap-2"><UploadCloud className="w-5 h-5" /> Upload</button>
               <input ref={inputRef} type="file" multiple className="hidden" onChange={handleFileInput} accept="image/*,video/*,audio/*" />
+              {/* Test Storage Button */}
+              <button onClick={() => setShowStorageTest(!showStorageTest)} className="px-4 py-2 rounded-xl bg-orange-500 text-white font-bold shadow hover:bg-orange-600 transition">
+                {showStorageTest ? 'Hide' : 'Test'} Storage
+              </button>
+              {/* Test Images Button */}
+              <button onClick={() => setShowImageTests(!showImageTests)} className="px-4 py-2 rounded-xl bg-purple-500 text-white font-bold shadow hover:bg-purple-600 transition">
+                {showImageTests ? 'Hide' : 'Test'} Images
+              </button>
               {/* Toggle grille/liste */}
               <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="ml-2 p-2 rounded-xl border border-gray-200 bg-white shadow hover:bg-gray-100 transition flex items-center" title={viewMode === 'grid' ? 'Affichage liste' : 'Affichage grille'}>
                 {viewMode === 'grid' ? <ListIcon className="w-5 h-5" /> : <GridIcon className="w-5 h-5" />}
@@ -286,6 +299,28 @@ const MediasPage = () => {
               </div>
             ))}
           </div>
+          
+          {/* Image Tests Section */}
+          {showImageTests && (
+            <div className="w-full mb-8 p-4 bg-white rounded-xl shadow">
+              <h3 className="text-lg font-bold mb-4">Image URL Tests</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {medias.filter(m => m.type === 'image').slice(0, 4).map(media => (
+                  <ImageUrlTest 
+                    key={media.id} 
+                    url={media.url} 
+                    title={media.title}
+                  />
+                ))}
+                {medias.filter(m => m.type === 'image').length === 0 && (
+                  <div className="col-span-full text-center text-gray-500">
+                    No images found to test
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Zone drag & drop */}
           <div
             className={`w-full max-w-5xl mx-auto mb-8 border-2 border-dashed rounded-2xl transition-all duration-200 flex flex-col items-center justify-center py-12 ${dragActive ? 'border-[#4f8cff] bg-blue-50' : 'border-gray-200 bg-white/70'}`}

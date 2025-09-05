@@ -11,6 +11,9 @@ import Banner from '@/components/Banner';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabaseClient';
 import { Helmet } from 'react-helmet';
+import { mapArticleFromSupabase } from '@/lib/articleMapper';
+import ArticleDebug from '@/components/ArticleDebug';
+import ImageTest from '@/components/ImageTest';
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -57,7 +60,15 @@ const ArticleDetail = () => {
         .eq('slug', slug)
         .single();
       console.log('Supabase fetch result:', { data, error });
-      setArticle(data);
+      console.log('Article image_url:', data?.image_url);
+      console.log('Article image field:', data?.image);
+      if (data) {
+        const mappedArticle = mapArticleFromSupabase(data);
+        console.log('Mapped article image:', mappedArticle.image);
+        setArticle(mappedArticle);
+      } else {
+        setArticle(data);
+      }
       setLoading(false);
     };
     if (slug) fetchArticle();
@@ -110,17 +121,18 @@ const ArticleDetail = () => {
   const canonicalUrl = `https://www.lemagazinedumali.com/article/${article.slug}`;
   return (
     <>
+      <ArticleDebug article={article} />
       <Helmet>
-        <title>{article.titre}</title>
+        <title>{article.title || article.titre}</title>
         <meta property="og:type" content="article" />
-        <meta property="og:title" content={article.titre} />
+        <meta property="og:title" content={article.title || article.titre} />
         <meta property="og:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta property="og:image" content={article.share_image_url || article.image_url} />
+        <meta property="og:image" content={article.share_image_url || article.image_url || article.image} />
         <meta property="og:url" content={canonicalUrl} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.titre} />
+        <meta name="twitter:title" content={article.title || article.titre} />
         <meta name="twitter:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta name="twitter:image" content={article.share_image_url || article.image_url} />
+        <meta name="twitter:image" content={article.share_image_url || article.image_url || article.image} />
         <meta name="twitter:url" content={canonicalUrl} />
       </Helmet>
       <Header />
@@ -132,31 +144,38 @@ const ArticleDetail = () => {
             <div className="lg:col-span-2">
               <article>
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                  {article.titre}
+                  {article.title || article.titre}
                 </h1>
                 
                 <div className="flex items-center text-news-gray mb-6">
-                  <span className="mr-4">{article.auteur}</span>
+                  <span className="mr-4">{article.author || article.auteur}</span>
                   <span className="flex items-center">
                     <Clock size={16} className="mr-1" />
-                    {article.date_publication ? new Date(article.date_publication).toLocaleDateString() : ''}
+                    {article.date ? new Date(article.date).toLocaleDateString() : (article.date_publication ? new Date(article.date_publication).toLocaleDateString() : '')}
                   </span>
                 </div>
                 
                 <div className="mb-6">
                   <span className="article-category">
-                    {article.categorie}
+                    {article.category || article.categorie}
                   </span>
                 </div>
                 
-                {article.image_url && (
-                  <img 
-                    src={article.image_url} 
-                    alt={article.titre} 
-                    width="991"
-                    height="564"
-                    className="w-full h-auto object-cover mb-6 rounded"
-                  />
+                {article.image && article.image !== '/placeholder.svg' && (
+                  <>
+                    <ImageTest src={article.image} alt={article.title || article.titre} />
+                    <img 
+                      src={article.image} 
+                      alt={article.title || article.titre} 
+                      width="991"
+                      height="564"
+                      className="w-full h-auto object-cover mb-6 rounded"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                      loading="lazy"
+                    />
+                  </>
                 )}
                 
                 <div className="mb-6">
@@ -168,7 +187,7 @@ const ArticleDetail = () => {
                     {article.excerpt}
                   </p>
                   
-                  <div dangerouslySetInnerHTML={{ __html: article.contenu }} />
+                  <div dangerouslySetInnerHTML={{ __html: article.content || article.contenu }} />
                 </div>
                 
                 {/* Bannière sous l'article, avant les commentaires */}

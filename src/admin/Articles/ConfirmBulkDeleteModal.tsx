@@ -31,7 +31,17 @@ const ConfirmBulkDeleteModal: React.FC<ConfirmBulkDeleteModalProps> = ({ article
             <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto w-full mb-2">
               {articles.slice(0, 8).map(article => (
                 <div key={article.id} className="flex items-center gap-2 bg-gray-50 rounded p-1">
-                  {article.image_url && <img src={article.image_url} alt={article.titre} className="w-10 h-8 object-cover rounded" />}
+                  {article.image_url && (
+                    <img 
+                      src={article.image_url} 
+                      alt={article.titre} 
+                      className="w-10 h-8 object-cover rounded"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                      loading="lazy"
+                    />
+                  )}
                   <span className="text-xs truncate" title={article.titre}>{article.titre}</span>
                 </div>
               ))}

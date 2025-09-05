@@ -55,7 +55,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         />
       )}
       {image_url && (
-        <img src={image_url} alt={titre} className="w-full h-40 object-cover rounded-lg mb-2" />
+        <img 
+          src={image_url} 
+          alt={titre} 
+          className="w-full h-40 object-cover rounded-lg mb-2"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
+          loading="lazy"
+        />
       )}
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">

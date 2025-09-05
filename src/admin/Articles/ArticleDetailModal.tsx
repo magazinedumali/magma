@@ -32,7 +32,15 @@ const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({ article, onClos
           </div>
           <div className="px-6 py-4 flex flex-col gap-4">
             {article.image_url && (
-              <img src={article.image_url} alt={article.titre} className="w-full max-h-64 object-cover rounded-lg" />
+              <img 
+                src={article.image_url} 
+                alt={article.titre} 
+                className="w-full max-h-64 object-cover rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+                loading="lazy"
+              />
             )}
             <div className="flex flex-wrap gap-2 items-center text-xs">
               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">{article.categorie || 'Sans catégorie'}</span>
@@ -59,7 +67,16 @@ const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({ article, onClos
                 <h3 className="font-semibold mb-2">Galerie d'images</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {(article as any).gallery.map((url: string, idx: number) => (
-                    <img key={idx} src={url} alt={`galerie-${idx}`} className="w-full h-32 object-cover rounded" />
+                    <img 
+                      key={idx} 
+                      src={url} 
+                      alt={`galerie-${idx}`} 
+                      className="w-full h-32 object-cover rounded"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
+                      loading="lazy"
+                    />
                   ))}
                 </div>
               </div>

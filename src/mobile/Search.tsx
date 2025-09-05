@@ -59,7 +59,15 @@ export default function MobileSearch() {
         )}
         {articles.map(article => (
           <div key={article.id} className="flex bg-white rounded-2xl shadow-sm overflow-hidden h-28 transition-colors duration-300" onClick={() => navigate(`/mobile/article/${article.slug || article.id}`)}>
-            <img src={article.image_url} alt={article.titre} className="w-28 h-full object-cover flex-shrink-0 rounded-l-2xl" />
+            <img 
+              src={article.image_url} 
+              alt={article.titre} 
+              className="w-28 h-full object-cover flex-shrink-0 rounded-l-2xl"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
+              loading="lazy"
+            />
             <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
               <div>
                 <h3 className="font-bold text-lg text-[#1a2746] leading-tight mb-2 truncate">{article.titre}</h3>

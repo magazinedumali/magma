@@ -29,7 +29,15 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ article, open, 
             <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mb-2" />
             <div className="font-semibold text-red-700">Cette action est irréversible !</div>
             {article.image_url && (
-              <img src={article.image_url} alt={article.titre} className="w-32 h-20 object-cover rounded mx-auto" />
+              <img 
+                src={article.image_url} 
+                alt={article.titre} 
+                className="w-32 h-20 object-cover rounded mx-auto"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+                loading="lazy"
+              />
             )}
             <div className="text-lg font-bold">{article.titre}</div>
             {article.statut && (

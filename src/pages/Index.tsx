@@ -17,6 +17,7 @@ import Banner from '@/components/Banner';
 import { Button } from '@/components/ui/button';
 import Poll from '@/components/Poll';
 import { supabase } from '@/lib/supabaseClient';
+import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 
 // Titres de sections factorisés pour faciliter la traduction
 const SECTION_TITLES = {
@@ -210,16 +211,7 @@ const Index = () => {
     fetchRecentArticles();
   }, []);
 
-  const mappedRecentArticles = (recentArticles || []).map((a: any) => ({
-    id: a.id,
-    slug: a.slug || a.id,
-    title: a['titre'] ?? a['title'],
-    excerpt: a['meta_description'] ?? a['excerpt'] ?? '',
-    image: a['image_url'] ?? a['image'],
-    category: a['categorie'] ?? a['category'] ?? '',
-    date: a['date_publication'] ?? a['date'],
-    author: a['auteur'] ?? a['author'] ?? '',
-  }));
+  const mappedRecentArticles = mapArticlesFromSupabase(recentArticles || []);
   
   return (
     <div>
@@ -272,7 +264,15 @@ const Index = () => {
                   }].map((item, idx) => (
                     <div key={idx} className="flex gap-4 items-start">
                       <div className="relative min-w-[140px] w-[140px] h-[90px] rounded-lg overflow-hidden">
-                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.svg';
+                          }}
+                          loading="lazy"
+                        />
                         <span className={`absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold ${item.category === 'Fashion' ? 'bg-pink-600' : 'bg-red-600'}`}>{item.category}</span>
                       </div>
                       <div className="flex-1">
@@ -316,7 +316,15 @@ const Index = () => {
                   }].map((item, idx) => (
                     <div key={idx} className="flex gap-4 items-start">
                       <div className="relative min-w-[140px] w-[140px] h-[90px] rounded-lg overflow-hidden">
-                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.svg';
+                          }}
+                          loading="lazy"
+                        />
                         <span className="absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold bg-lime-600">{item.category}</span>
                       </div>
                       <div className="flex-1">

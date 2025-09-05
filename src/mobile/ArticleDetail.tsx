@@ -11,6 +11,7 @@ import Banner from '@/components/Banner';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import { supabase } from '@/lib/supabaseClient';
+import { mapArticleFromSupabase } from '@/lib/articleMapper';
 
 function stripHtml(html: string): string {
   if (!html) return '';
@@ -156,7 +157,13 @@ const MobileArticleDetail = () => {
         .eq('slug', slug)
         .single();
       console.log('Fetched article:', data, 'Error:', error);
-      setArticle(data);
+      if (data) {
+        const mappedArticle = mapArticleFromSupabase(data);
+        console.log('Mapped article image:', mappedArticle.image);
+        setArticle(mappedArticle);
+      } else {
+        setArticle(data);
+      }
       setLoading(false);
     };
     if (slug) fetchArticle();
@@ -182,21 +189,21 @@ const MobileArticleDetail = () => {
   return (
     <div className="min-h-screen bg-[#f9fafd] flex flex-col transition-colors duration-300">
       <Helmet>
-        <title>{article.titre}</title>
+        <title>{article.title || article.titre}</title>
         <meta property="og:type" content="article" />
-        <meta property="og:title" content={article.titre} />
+        <meta property="og:title" content={article.title || article.titre} />
         <meta property="og:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta property="og:image" content={article.share_image_url || article.image_url} />
+        <meta property="og:image" content={article.share_image_url || article.image_url || article.image} />
         <meta property="og:url" content={canonicalUrl} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.titre} />
+        <meta name="twitter:title" content={article.title || article.titre} />
         <meta name="twitter:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta name="twitter:image" content={article.share_image_url || article.image_url} />
+        <meta name="twitter:image" content={article.share_image_url || article.image_url || article.image} />
         <meta name="twitter:url" content={canonicalUrl} />
       </Helmet>
       {/* Header sur image */}
       <div className="relative w-full h-80 overflow-hidden">
-        <img src={article.image_url} alt={article.titre} className="w-full h-80 object-cover" onError={e => { e.currentTarget.src = '/logo.png'; }} loading="lazy" />
+        <img src={article.image || article.image_url} alt={article.title || article.titre} className="w-full h-80 object-cover" onError={e => { e.currentTarget.src = '/placeholder.svg'; }} loading="lazy" />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-8">
           <button onClick={() => navigate(-1)} className="p-2">
@@ -217,17 +224,17 @@ const MobileArticleDetail = () => {
         {/* Meta infos sur image */}
         <div className="absolute left-0 right-0 bottom-0 px-4 pb-6">
           <div className="flex items-center gap-3 mb-3">
-            <span className="bg-[#ff184e] text-white text-xs font-semibold px-3 py-1 rounded-full">{article.categorie}</span>
+            <span className="bg-[#ff184e] text-white text-xs font-semibold px-3 py-1 rounded-full">{article.category || article.categorie}</span>
             {/* <span className="text-white text-xs">5 min reads</span> */}
             <span className="text-white text-xs">{article.date_publication ? new Date(article.date_publication).toLocaleDateString() : ''}</span>
           </div>
           <h1 className="text-2xl font-bold text-white leading-tight mb-4 drop-shadow-lg">
-            {article.titre}
+            {article.title || article.titre}
           </h1>
           <div className="flex items-center gap-3 mt-6">
             <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-white" loading="lazy" />
             <div>
-              <div className="font-bold text-white text-base">{article.auteur}</div>
+              <div className="font-bold text-white text-base">{article.author || article.auteur}</div>
               <div className="text-gray-200 text-xs">auteur</div>
             </div>
           </div>
@@ -242,7 +249,7 @@ const MobileArticleDetail = () => {
       </div>
       {/* Contenu de l'article */}
       <div className="px-4 py-8 bg-white">
-        <div dangerouslySetInnerHTML={{ __html: article.contenu }} />
+        <div dangerouslySetInnerHTML={{ __html: article.content || article.contenu }} />
       </div>
       {safeTags.length > 0 && (
         <div className="flex flex-wrap gap-3 mt-2 mb-4 px-4">
