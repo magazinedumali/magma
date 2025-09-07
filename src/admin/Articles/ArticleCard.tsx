@@ -32,6 +32,27 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onShowDetail,
   slug,
 }) => {
+  // Debug: Log the image URL for this card
+  console.log(`ArticleCard for "${titre}":`, {
+    id,
+    image_url,
+    hasImageUrl: !!image_url,
+    imageUrlType: typeof image_url
+  });
+
+  // Process image URL to handle different formats
+  const processedImageUrl = image_url ? (() => {
+    // If it's already a full URL, use it as is
+    if (image_url.startsWith('http')) {
+      return image_url;
+    }
+    // If it's a Supabase storage path, construct the full URL
+    if (image_url.startsWith('public/') || image_url.includes('/storage/')) {
+      return image_url;
+    }
+    // Otherwise, assume it's a relative path and prepend the base URL
+    return image_url;
+  })() : null;
   // Gestion du clic sur la carte (hors actions)
   const handleCardClick = (e: React.MouseEvent) => {
     // On ne déclenche pas si clic sur bouton ou checkbox
@@ -54,16 +75,28 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           onClick={e => e.stopPropagation()}
         />
       )}
-      {image_url && (
+      {processedImageUrl && (
         <img 
-          src={image_url} 
+          src={processedImageUrl} 
           alt={titre} 
           className="w-full h-40 object-cover rounded-lg mb-2"
           onError={(e) => {
+            console.log('Image failed to load:', processedImageUrl, 'for article:', titre);
             e.currentTarget.src = '/placeholder.svg';
+          }}
+          onLoad={() => {
+            console.log('Image loaded successfully:', processedImageUrl, 'for article:', titre);
           }}
           loading="lazy"
         />
+      )}
+      {!processedImageUrl && (
+        <div className="w-full h-40 bg-gray-200 rounded-lg mb-2 flex items-center justify-center text-gray-500 text-sm">
+          <div className="text-center">
+            <div className="text-2xl mb-1">📷</div>
+            <div>No image</div>
+          </div>
+        </div>
       )}
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">

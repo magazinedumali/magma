@@ -20,6 +20,7 @@ export interface Article {
   id: string;
   titre: string;
   image_url?: string;
+  image?: string; // Alternative field name for backward compatibility
   categorie?: string;
   tags?: string[];
   audio_url?: string;
@@ -70,6 +71,19 @@ const ArticleList: React.FC = () => {
       setError(error.message);
       toast.error("Erreur lors du chargement des articles");
     } else {
+      console.log('Fetched articles:', data);
+      // Debug: Check image URLs
+      data?.forEach((article, index) => {
+        console.log(`Article ${index + 1}:`, {
+          id: article.id,
+          titre: article.titre,
+          image_url: article.image_url,
+          image: article.image,
+          hasImageUrl: !!article.image_url,
+          hasImage: !!article.image,
+          finalImageUrl: article.image_url || article.image
+        });
+      });
       setArticles(data || []);
       setError(null);
     }
@@ -413,7 +427,7 @@ const ArticleList: React.FC = () => {
                 key={article.id}
                 id={article.id}
                 titre={article.titre}
-                image_url={article.image_url}
+                image_url={article.image_url || article.image}
                 categorie={article.categorie}
                 tags={article.tags}
                 audio_url={article.audio_url}
