@@ -12,8 +12,6 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabaseClient';
 import { Helmet } from 'react-helmet';
 import { mapArticleFromSupabase } from '@/lib/articleMapper';
-import ArticleDebug from '@/components/ArticleDebug';
-import ImageTest from '@/components/ImageTest';
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -121,7 +119,6 @@ const ArticleDetail = () => {
   const canonicalUrl = `https://www.lemagazinedumali.com/article/${article.slug}`;
   return (
     <>
-      <ArticleDebug article={article} />
       <Helmet>
         <title>{article.title || article.titre}</title>
         <meta property="og:type" content="article" />
@@ -162,25 +159,24 @@ const ArticleDetail = () => {
                 </div>
                 
                 {article.image && article.image !== '/placeholder.svg' && (
-                  <>
-                    <ImageTest src={article.image} alt={article.title || article.titre} />
-                    <img 
-                      src={article.image} 
-                      alt={article.title || article.titre} 
-                      width="991"
-                      height="564"
-                      className="w-full h-auto object-cover mb-6 rounded"
-                      onError={(e) => {
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
-                      loading="lazy"
-                    />
-                  </>
+                  <img 
+                    src={article.image} 
+                    alt={article.title || article.titre} 
+                    width="991"
+                    height="564"
+                    className="w-full h-auto object-cover mb-6 rounded"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
+                    loading="lazy"
+                  />
                 )}
                 
-                <div className="mb-6">
-                  <AudioPlayer src={article.audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"} />
-                </div>
+                {article.audio_url && (
+                  <div className="mb-6">
+                    <AudioPlayer src={article.audio_url} />
+                  </div>
+                )}
                 
                 <div className="prose max-w-none">
                   <p className="text-lg leading-relaxed mb-4">
