@@ -71,17 +71,16 @@ const ArticleList: React.FC = () => {
       setError(error.message);
       toast.error("Erreur lors du chargement des articles");
     } else {
-      console.log('Fetched articles:', data);
-      // Debug: Check image URLs
-      data?.forEach((article, index) => {
-        console.log(`Article ${index + 1}:`, {
+      console.log('Fetched articles data:', data);
+      // Debug: Check image URLs for first few articles
+      data?.slice(0, 3).forEach((article, index) => {
+        console.log(`Article ${index + 1} image data:`, {
           id: article.id,
           titre: article.titre,
           image_url: article.image_url,
           image: article.image,
           hasImageUrl: !!article.image_url,
-          hasImage: !!article.image,
-          finalImageUrl: article.image_url || article.image
+          hasImage: !!article.image
         });
       });
       setArticles(data || []);
@@ -422,24 +421,31 @@ const ArticleList: React.FC = () => {
             <span className="text-sm text-gray-600">Tout sélectionner cette page</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {paginatedArticles.map(article => (
-              <ArticleCard
-                key={article.id}
-                id={article.id}
-                titre={article.titre}
-                image_url={article.image_url || article.image}
-                categorie={article.categorie}
-                tags={article.tags}
-                audio_url={article.audio_url}
-                statut={article.statut}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                selected={selected.includes(article.id)}
-                onSelect={() => handleSelect(article.id)}
-                onShowDetail={handleShowDetail}
-                slug={article.slug}
-              />
-            ))}
+            {paginatedArticles.map(article => {
+              const imageUrl = article.image_url || article.image;
+              console.log(`Passing to ArticleCard for "${article.titre}":`, {
+                image_url: imageUrl,
+                hasImageUrl: !!imageUrl
+              });
+              return (
+                <ArticleCard
+                  key={article.id}
+                  id={article.id}
+                  titre={article.titre}
+                  image_url={imageUrl}
+                  categorie={article.categorie}
+                  tags={article.tags}
+                  audio_url={article.audio_url}
+                  statut={article.statut}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  selected={selected.includes(article.id)}
+                  onSelect={() => handleSelect(article.id)}
+                  onShowDetail={handleShowDetail}
+                  slug={article.slug}
+                />
+              );
+            })}
           </div>
           {/* Pagination controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-2">

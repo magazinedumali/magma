@@ -158,9 +158,9 @@ const ArticleDetail = () => {
                   </span>
                 </div>
                 
-                {article.image && article.image !== '/placeholder.svg' && (
+                {(article.image || article.image_url) && (article.image !== '/placeholder.svg' && article.image_url !== '/placeholder.svg') && (
                   <img 
-                    src={article.image} 
+                    src={article.image || article.image_url} 
                     alt={article.title || article.titre} 
                     width="991"
                     height="564"

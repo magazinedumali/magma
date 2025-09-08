@@ -31,6 +31,7 @@ function slugify(text: string) {
 }
 
 const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId, onSuccess, onCancel }) => {
+  console.log('ArticleForm initialized with:', { initialValues, articleId });
   const { register, handleSubmit, control, setValue, watch, reset } = useForm({
     defaultValues: {
       titre: initialValues.titre || '',
@@ -71,17 +72,13 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     if (!acceptedFiles[0]) return;
     setUploading(true);
     const file = acceptedFiles[0];
-    console.log('Uploading image file:', file.name);
     const { data, error } = await supabase.storage.from('article-images').upload(`public/${Date.now()}-${file.name}`, file, { upsert: true });
     if (error) {
-      console.error('Upload error:', error);
       toast.error("Erreur upload image");
     } else {
       const { data: publicUrlData } = supabase.storage.from('article-images').getPublicUrl(data.path);
       const url = publicUrlData.publicUrl;
-      console.log('Image uploaded successfully, URL:', url);
       setValue('image_url', url);
-      console.log('Image URL set in form:', watch('image_url'));
       toast.success("Image uploadée");
     }
     setUploading(false);
@@ -148,12 +145,9 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   // Soumission du formulaire
   const onSubmit = async (values: any) => {
     setUploading(true);
-    console.log('Form submission values:', values);
-    console.log('Image URL in form:', values.image_url);
     // Génère le slug à partir du titre
     const slug = slugify(values.titre);
     let valuesWithSlug = { ...values, slug };
-    console.log('Values with slug:', valuesWithSlug);
     let res;
     if (articleId && articleId !== 'new') {
       // Ne pas forcer le statut, utiliser la valeur du formulaire
@@ -193,16 +187,20 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
         if (error) {
           toast.error("Erreur chargement article : " + error.message);
         } else if (data) {
-          console.log('Loaded article data:', data);
-          console.log('Image URL from database:', data.image_url);
-          reset({
+          console.log('Loading article data for edit:', data);
+          console.log('Article image_url:', data.image_url);
+          const formData = {
             ...data,
             date_publication: data.date_publication ? data.date_publication.slice(0, 10) : '',
             tags: Array.isArray(data.tags) ? data.tags : [],
             gallery: Array.isArray(data.gallery) ? data.gallery : [],
-          });
+          };
+          console.log('Resetting form with data:', formData);
+          console.log('Form image_url being set to:', formData.image_url);
+          reset(formData);
           // Expand image block if there's an existing image
           if (data.image_url) {
+            console.log('Expanding image block for existing image');
             setOpenBlock(prev => ({ ...prev, image: true }));
           }
         }
@@ -341,7 +339,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             <input type="hidden" {...register('image_url')} />
             <div {...getRootImageProps()} className={`border-2 border-dashed rounded p-4 text-center cursor-pointer ${isDragImageActive ? 'bg-blue-50' : ''}`}>
               <input {...getInputImageProps()} />
-              {watch('image_url') ? (
+              {(() => {
+                const imageUrl = watch('image_url');
+                console.log('Form image_url value:', imageUrl);
+                return imageUrl;
+              })() ? (
           <div className="relative inline-block mx-auto">
             <img src={watch('image_url')} alt="aperçu" className="h-32 object-contain rounded" />
             <button

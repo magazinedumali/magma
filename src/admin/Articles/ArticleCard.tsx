@@ -32,27 +32,30 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onShowDetail,
   slug,
 }) => {
-  // Debug: Log the image URL for this card
-  console.log(`ArticleCard for "${titre}":`, {
-    id,
-    image_url,
-    hasImageUrl: !!image_url,
-    imageUrlType: typeof image_url
-  });
-
   // Process image URL to handle different formats
   const processedImageUrl = image_url ? (() => {
+    console.log('Processing image URL:', image_url);
     // If it's already a full URL, use it as is
     if (image_url.startsWith('http')) {
+      console.log('Using full URL as is:', image_url);
       return image_url;
     }
     // If it's a Supabase storage path, construct the full URL
     if (image_url.startsWith('public/') || image_url.includes('/storage/')) {
+      console.log('Using Supabase storage path:', image_url);
       return image_url;
     }
+    // If it's empty or just a placeholder, return null
+    if (!image_url || image_url === '/placeholder.svg' || image_url.trim() === '') {
+      console.log('Empty or placeholder URL, returning null');
+      return null;
+    }
     // Otherwise, assume it's a relative path and prepend the base URL
+    console.log('Using relative path:', image_url);
     return image_url;
   })() : null;
+  
+  console.log('Final processed image URL:', processedImageUrl);
   // Gestion du clic sur la carte (hors actions)
   const handleCardClick = (e: React.MouseEvent) => {
     // On ne déclenche pas si clic sur bouton ou checkbox
