@@ -151,26 +151,123 @@ const MobileArticleDetail = () => {
     console.log('Detail page slug:', slug);
     const fetchArticle = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-      console.log('Fetched article:', data, 'Error:', error);
-      if (data) {
-        const mappedArticle = mapArticleFromSupabase(data);
-        console.log('Mapped article image:', mappedArticle.image);
-        setArticle(mappedArticle);
-      } else {
-        setArticle(data);
+      try {
+        // First try to fetch by slug (exact match)
+        let { data, error } = await supabase
+          .from('articles')
+          .select('*')
+          .eq('slug', slug)
+          .maybeSingle(); // Use maybeSingle instead of single to avoid error when no results
+        
+        console.log('Fetched article by slug:', data, 'Error:', error, 'Slug:', slug);
+        
+        // If exact slug match fails, try case-insensitive search
+        if (!data && slug) {
+          console.log('Trying case-insensitive slug search...');
+          const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
+            .from('articles')
+            .select('*')
+            .ilike('slug', slug)
+            .maybeSingle();
+          
+          console.log('Case-insensitive slug search result:', { data: caseInsensitiveData, error: caseInsensitiveError });
+          
+          if (caseInsensitiveData) {
+            data = caseInsensitiveData;
+            error = null;
+          }
+        }
+        
+        // If slug fails and slug looks like an ID, try fetching by ID
+        if (!data && slug && slug.length === 36) { // UUID length
+          console.log('Trying to fetch by ID as fallback...');
+          const { data: idData, error: idError } = await supabase
+            .from('articles')
+            .select('*')
+            .eq('id', slug)
+            .maybeSingle();
+          
+          console.log('Fetched article by ID:', idData, 'Error:', idError);
+          
+          if (idData) {
+            data = idData;
+            error = null;
+          }
+        }
+        
+        // If still no match, try to find similar slugs for debugging
+        if (!data && slug) {
+          console.log('Searching for similar slugs...');
+          const { data: similarSlugs, error: similarError } = await supabase
+            .from('articles')
+            .select('id, titre, slug, statut')
+            .ilike('slug', `%${slug}%`)
+            .limit(5);
+          
+          console.log('Similar slugs found:', similarSlugs);
+          
+          // Also try searching by title if slug contains meaningful words
+          if (similarSlugs && similarSlugs.length === 0) {
+            const words = slug.split('-').filter(w => w.length > 2);
+            if (words.length > 0) {
+              console.log('Searching by title keywords:', words);
+              const { data: titleMatches, error: titleError } = await supabase
+                .from('articles')
+                .select('id, titre, slug, statut')
+                .or(words.map(w => `titre.ilike.%${w}%`).join(','))
+                .limit(5);
+              
+              console.log('Title matches found:', titleMatches);
+            }
+          }
+        }
+        
+        if (error) {
+          console.error('Error fetching article:', error);
+          setArticle(null);
+        } else if (data) {
+          console.log('Article content fields:', {
+            contenu: data?.contenu,
+            content: data?.content,
+            contenuLength: data?.contenu?.length,
+            contentLength: data?.content?.length
+          });
+          const mappedArticle = mapArticleFromSupabase(data);
+          console.log('Mapped article:', {
+            image: mappedArticle.image,
+            content: mappedArticle.content,
+            contentLength: mappedArticle.content?.length
+          });
+          setArticle(mappedArticle);
+        } else {
+          console.log('No article found with slug:', slug);
+          setArticle(null);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setArticle(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     if (slug) fetchArticle();
   }, [slug]);
 
   if (loading) return <div className="py-12 text-center text-gray-400">Chargement...</div>;
-  if (!article) return <div className="py-12 text-center text-red-500">Article introuvable.</div>;
+  if (!article) return (
+    <div className="py-12 text-center px-4">
+      <div className="text-red-500 text-xl mb-4">Article introuvable</div>
+      <div className="text-gray-600 mb-4">L'article avec le slug "{slug}" n'a pas été trouvé.</div>
+      <div className="text-sm text-gray-500 mb-4">
+        Vérifiez que l'URL est correcte ou que l'article existe dans la base de données.
+      </div>
+      <div>
+        <Link to="/mobile" className="text-blue-600 hover:underline">
+          Retour à l'accueil
+        </Link>
+      </div>
+    </div>
+  );
   
   // Synchronise le contenu web et mobile
   const contentElements = [
@@ -249,7 +346,14 @@ const MobileArticleDetail = () => {
       </div>
       {/* Contenu de l'article */}
       <div className="px-4 py-8 bg-white">
-        <div dangerouslySetInnerHTML={{ __html: article.content || article.contenu }} />
+        {article.content ? (
+          <div dangerouslySetInnerHTML={{ __html: article.content }} />
+        ) : (
+          <div className="text-gray-500 italic text-center py-8">
+            <p>Le contenu de cet article n'est pas disponible.</p>
+            <p className="text-sm mt-2">Veuillez contacter l'administrateur si ce problème persiste.</p>
+          </div>
+        )}
       </div>
       {safeTags.length > 0 && (
         <div className="flex flex-wrap gap-3 mt-2 mb-4 px-4">

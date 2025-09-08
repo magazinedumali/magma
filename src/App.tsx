@@ -24,6 +24,9 @@ import AudioStreamingPage, { AlbumDetailMobile } from './mobile/AudioStreaming';
 import ArticleCommentsWeb from './pages/ArticleCommentsWeb';
 import Streaming from './pages/Streaming';
 import NousContacter from './pages/NousContacter';
+import TestArticle from './pages/TestArticle';
+import SlugDebugger from './pages/SlugDebugger';
+import SlugFixer from './pages/SlugFixer';
 // @ts-ignore - Tempo routes
 import routes from "tempo-routes";
 import './lib/i18n';
@@ -89,6 +92,9 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/streaming" element={<Streaming />} />
             <Route path="/nouscontacter" element={<NousContacter />} />
+            <Route path="/test-article" element={<TestArticle />} />
+            <Route path="/slug-debugger" element={<SlugDebugger />} />
+            <Route path="/slug-fixer" element={<SlugFixer />} />
             {/* Add this before the catchall route for Tempo */}
             {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
             <Route path="*" element={<NotFound />} />

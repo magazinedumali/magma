@@ -8,6 +8,7 @@ export interface MappedArticle {
   slug: string;
   title: string;
   excerpt: string;
+  content: string;
   image: string;
   category: string;
   date: string;
@@ -24,6 +25,7 @@ export const mapArticleFromSupabase = (article: any): MappedArticle => {
     slug: article.slug || article.id,
     title: article.titre ?? article.title ?? '',
     excerpt: article.meta_description ?? article.excerpt ?? '',
+    content: article.contenu ?? article.content ?? '',
     image: article.image_url ?? article.image ?? '/placeholder.svg',
     category: article.categorie ?? article.category ?? '',
     date: article.date_publication ?? article.date ?? '',
