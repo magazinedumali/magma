@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Outlet, useParams } from 'react-router-dom';
+import { Routes, Route, Outlet, useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/admin-dashboard/DashboardLayout';
 import MediasPage from './superadmin/MediasPage';
 import UsersPage from './superadmin/UsersPage';
@@ -23,16 +23,22 @@ import CategoriesPage from './superadmin/CategoriesPage';
 import MainMenuPage from './superadmin/MainMenuPage';
 import PagesAdminPage from './superadmin/PagesAdminPage';
 import VideosPage from './superadmin/VideosPage';
-
-const Placeholder = ({ title }: { title: string }) => (
-  <div style={{ padding: 32, fontFamily: 'Jost, sans-serif', fontSize: 24, fontWeight: 500 }}>
-    {title}
-  </div>
-);
+import SettingsPage from './superadmin/SettingsPage';
+import { useAdminContext } from '@/hooks/use-admin-context';
 
 const ArticleFormWrapper = (props: any) => {
   const { id } = useParams();
-  return <ArticleForm articleId={id} {...props} />;
+  const navigate = useNavigate();
+  const { getArticlesPath } = useAdminContext();
+  
+  return (
+    <ArticleForm
+      articleId={id}
+      onSuccess={() => navigate(getArticlesPath())}
+      onCancel={() => navigate(getArticlesPath())}
+      {...props}
+    />
+  );
 };
 
 const SuperAdminDashboard = () => {
@@ -49,7 +55,7 @@ const SuperAdminDashboard = () => {
           <Route path="commentaires" element={<CommentsPage />} />
           <Route path="apparence" element={<ApparencePage />} />
           <Route path="banniere/:position" element={<EditBannerPage />} />
-          <Route path="parametres" element={<Placeholder title="Paramètres" />} />
+          <Route path="parametres" element={<SettingsPage />} />
           <Route path="albums" element={<AlbumsPage />} />
           <Route path="albums/add" element={<AddAlbumPage />} />
           <Route path="albums/edit/:id" element={<EditAlbumPage />} />

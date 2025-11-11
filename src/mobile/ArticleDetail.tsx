@@ -44,85 +44,88 @@ const MobileArticleDetail = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  
-  // Utilisateur fictif (à remplacer par le vrai utilisateur connecté si besoin)
-  const user = {
-    name: 'Utilisateur',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
-  };
+  const [user, setUser] = useState<any>(null);
   
   // Central state for comments (most recent first)
-  const [comments, setComments] = useState([
-    {
-      name: 'Jane Doe',
-      time: '6:30pm',
-      avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-      text: 'Great article! Very informative.'
-    },
-    {
-      name: 'John Smith',
-      time: '6:32pm',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      text: 'Thanks for sharing this update.'
-    },
-    {
-      name: 'Alice Johnson',
-      time: '6:35pm',
-      avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
-      text: 'I learned a lot from this post. Keep up the good work!'
-    },
-    {
-      name: 'Michael Brown',
-      time: '6:37pm',
-      avatar: 'https://randomuser.me/api/portraits/men/54.jpg',
-      text: 'Looking forward to more articles like this.'
-    },
-    {
-      name: 'Emily Clark',
-      time: '6:40pm',
-      avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
-      text: 'Very well written and easy to understand.'
-    },
-    {
-      name: 'David Lee',
-      time: '6:42pm',
-      avatar: 'https://randomuser.me/api/portraits/men/77.jpg',
-      text: 'This was exactly what I was looking for, thank you!'
-    },
-    {
-      name: 'Sophia Martinez',
-      time: '6:45pm',
-      avatar: 'https://randomuser.me/api/portraits/women/12.jpg',
-      text: 'Can you write more about this topic?'
-    },
-    {
-      name: 'Chris Evans',
-      time: '6:48pm',
-      avatar: 'https://randomuser.me/api/portraits/men/23.jpg',
-      text: 'Awesome insights, really appreciate it.'
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+
+  // Fetch current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
+  // Fetch comments from Supabase
+  const fetchComments = async () => {
+    if (!article?.slug) return;
+    setCommentsLoading(true);
+    const { data } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('article_slug', article.slug)
+      .order('created_at', { ascending: false });
+    
+    if (data) {
+      const mappedComments = data.map(comment => {
+        const userInfo = getCommentUserInfo(comment);
+        return {
+          id: comment.id,
+          name: userInfo.name,
+          time: comment.created_at ? new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+          avatar: userInfo.avatar,
+          text: comment.content || '',
+          created_at: comment.created_at,
+          user_id: comment.user_id,
+        };
+      });
+      setComments(mappedComments);
     }
-  ]);
+    setCommentsLoading(false);
+  };
 
   // Add comment handler
   const handleAddComment = async (text: string) => {
     if (!article?.slug) return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const author = 'Utilisateur';
-    const avatar = 'https://randomuser.me/api/portraits/men/32.jpg';
+    
+    const currentUser = user || (await supabase.auth.getUser()).data.user;
+    if (!currentUser) {
+      navigate('/mobile/login');
+      return;
+    }
+    
+    const author = getUserDisplayName(currentUser);
+    const avatar = getUserAvatar(currentUser);
+    
     await supabase.from('comments').insert({
       article_slug: article.slug,
+      article_id: article.id,
       author,
       avatar,
       content: text,
+      user_id: currentUser.id,
       created_at: new Date().toISOString(),
     });
-    // Optionnel: toast de confirmation
+    
+    // Refresh comments
+    fetchComments();
   };
 
   const [startIdx, setStartIdx] = useState(0);
   const visibleCount = 4;
   const commentHeight = 104; // px, augmenté pour que tout soit bien contenu
+  
+  const [inputValue, setInputValue] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
+
+  // Fetch comments when article is loaded
+  useEffect(() => {
+    if (article?.slug) {
+      fetchComments();
+    }
+  }, [article?.slug]);
 
   useEffect(() => {
     if (comments.length <= visibleCount) return;
@@ -137,12 +140,6 @@ const MobileArticleDetail = () => {
   for (let i = 0; i < Math.min(visibleCount, comments.length); i++) {
     visibleComments.push(comments[(startIdx + i) % comments.length]);
   }
-  
-  const [inputValue, setInputValue] = useState('');
-  
-  const [showShareModal, setShowShareModal] = useState(false);
-  
-  const [showAllComments, setShowAllComments] = useState(false);
 
   // Limite le nombre de commentaires affichés
   const commentsToShow = showAllComments ? comments : comments.slice(0, 3);
@@ -379,26 +376,41 @@ const MobileArticleDetail = () => {
             }
           }}
         >
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-9 h-9 rounded-full object-cover border-2 border-gray-200 mr-3"
-          />
-          <input
-            type="text"
-            className="flex-1 border-none outline-none bg-transparent text-base"
-            placeholder="Écrire un commentaire..."
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            autoComplete="off"
-          />
-          <button
-            type="submit"
-            className="ml-2 bg-[#ff184e] hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow transition"
-            aria-label="Envoyer"
-          >
-            <Send size={22} />
-          </button>
+          {user ? (
+            <>
+              <img
+                src={getUserAvatar(user)}
+                alt={getUserDisplayName(user)}
+                className="w-9 h-9 rounded-full object-cover border-2 border-gray-200 mr-3"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+              />
+              <input
+                type="text"
+                className="flex-1 border-none outline-none bg-transparent text-base"
+                placeholder="Écrire un commentaire..."
+                value={inputValue}
+                onChange={e => setInputValue(e.target.value)}
+                autoComplete="off"
+              />
+              <button
+                type="submit"
+                className="ml-2 bg-[#ff184e] hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow transition"
+                aria-label="Envoyer"
+              >
+                <Send size={22} />
+              </button>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center gap-2 px-3">
+              <div className="text-gray-500 text-sm">Connectez-vous pour commenter</div>
+              <div className="flex gap-2 w-full">
+                <a href="/mobile/login" className="flex-1 px-3 py-2 rounded-full bg-[#4f8cff] text-white font-bold text-center text-sm shadow hover:bg-[#2563eb] transition">Se connecter</a>
+                <a href="/mobile/register" className="flex-1 px-3 py-2 rounded-full bg-[#ff184e] text-white font-bold text-center text-sm shadow hover:bg-red-600 transition">Créer un compte</a>
+              </div>
+            </div>
+          )}
         </form>
       </div>
       {/* Modal de partage personnalisé */}

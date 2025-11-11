@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import { useAdminContext } from '@/hooks/use-admin-context';
 
 const AddStoryPage = () => {
   const navigate = useNavigate();
+  const { getStoriesPath } = useAdminContext();
   const [title, setTitle] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,7 +49,7 @@ const AddStoryPage = () => {
 
       if (insertError) throw insertError;
 
-      navigate('/admin/stories');
+      navigate(getStoriesPath());
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -114,7 +116,7 @@ const AddStoryPage = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/admin/stories')}
+            onClick={() => navigate(getStoriesPath())}
             style={{
               background: '#e5e9f2',
               color: '#23272f',

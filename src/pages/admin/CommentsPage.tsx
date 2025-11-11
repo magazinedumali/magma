@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { getCommentUserInfo } from '../../lib/userHelper';
 
 interface Comment {
   id: string;
@@ -7,6 +8,9 @@ interface Comment {
   user_id: string;
   article_id: string;
   created_at: string;
+  author?: string;
+  avatar?: string;
+  article_slug?: string;
   user: {
     email: string;
   };

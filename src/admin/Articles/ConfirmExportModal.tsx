@@ -27,9 +27,9 @@ const ConfirmExportModal: React.FC<ConfirmExportModalProps> = ({ count, format, 
           <div className="px-6 py-6 flex flex-col gap-4 items-center text-center">
             <ArrowDownTrayIcon className="w-12 h-12 text-blue-500 mb-2" />
             <div className="font-semibold text-blue-700">Vous allez exporter {count} article(s)</div>
-            <div className="text-sm text-gray-500 mt-2">Format : <span className="font-semibold uppercase">{format}</span></div>
-            <div className="text-xs text-gray-400">Nom du fichier : <span className="font-mono">{filename}</span></div>
-            <div className="text-sm text-gray-500 mt-2">Confirmez-vous l'export ?</div>
+            <div className="text-sm text-gray-500 mt-2">Format : <span className="font-semibold uppercase">{format}</span></div>
+            <div className="text-xs text-gray-400">Nom du fichier : <span className="font-mono">{filename}</span></div>
+            <div className="text-sm text-gray-500 mt-2">Confirmez-vous l'export ?</div>
             <div className="flex gap-4 mt-4 justify-center">
               <button
                 onClick={onCancel}

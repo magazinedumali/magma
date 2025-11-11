@@ -101,7 +101,7 @@ const MediasPage = () => {
   const typeStats = ['image', 'video', 'audio'].map(type => ({ type, count: medias.filter(m => m.type === type).length }));
 
   // Filtrage
-  let filtered = medias.filter(m =>
+  const filtered = medias.filter(m =>
     (!search || m.title?.toLowerCase().includes(search.toLowerCase())) &&
     (!typeFilter || m.type === typeFilter)
   );

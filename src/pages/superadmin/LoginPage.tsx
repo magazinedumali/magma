@@ -32,7 +32,7 @@ export default function LoginPage() {
         <button type="submit" disabled={loading} style={{ background: '#4f8cff', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>{loading ? 'Connexion...' : 'Se connecter'}</button>
       </form>
       <div style={{ marginTop: 18, textAlign: 'center', fontSize: 15 }}>
-        Pas de compte ? <a href="/superadmin/register" style={{ color: '#4f8cff', textDecoration: 'underline' }}>Créer un compte</a>
+        Pas de compte ? <a href="/superadmin/register" style={{ color: '#4f8cff', textDecoration: 'underline' }}>Créer un compte</a>
       </div>
     </div>
   );

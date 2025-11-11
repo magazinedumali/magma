@@ -41,7 +41,7 @@ const CommentsPage = () => {
   const topAuthors = Object.entries(comments.reduce((acc: Record<string, number>, c) => { acc[c.author] = (acc[c.author] || 0) + 1; return acc; }, {})).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 2);
 
   // Filtrage
-  let filtered = comments.filter(c =>
+  const filtered = comments.filter(c =>
     (!search || c.author?.toLowerCase().includes(search.toLowerCase()) || c.content?.toLowerCase().includes(search.toLowerCase()) || c.article_titre?.toLowerCase().includes(search.toLowerCase()))
   );
   const pageCount = Math.ceil(filtered.length / PAGE_SIZE);

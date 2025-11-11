@@ -27,7 +27,7 @@ import NousContacter from './pages/NousContacter';
 import TestArticle from './pages/TestArticle';
 import SlugDebugger from './pages/SlugDebugger';
 import SlugFixer from './pages/SlugFixer';
-// @ts-ignore - Tempo routes
+import ErrorBoundary from './components/ErrorBoundary';
 import routes from "tempo-routes";
 import './lib/i18n';
 import { useEffect } from 'react';
@@ -37,10 +37,9 @@ const queryClient = new QueryClient();
 
 // Create a separate component for Tempo routes to ensure useRoutes is used within Router context
 const TempoRoutes = () => {
-  if (import.meta.env.VITE_TEMPO) {
-    return useRoutes(routes);
-  }
-  return null;
+  const shouldRenderTempo = Boolean(import.meta.env.VITE_TEMPO);
+  const tempoElements = useRoutes(shouldRenderTempo ? routes : []);
+  return shouldRenderTempo ? tempoElements : null;
 };
 
 function MobileRedirector({ children }: { children: React.ReactNode }) {
@@ -62,15 +61,16 @@ function MobileRedirector({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <MobileRedirector>
-          {/* Tempo routes component used inside Router context */}
-          <TempoRoutes />
-          <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <MobileRedirector>
+            {/* Tempo routes component used inside Router context */}
+            <TempoRoutes />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/mobile" element={<MobileHome />} />
             <Route path="/mobile/search" element={<MobileSearch />} />
@@ -98,11 +98,12 @@ const App = () => (
             {/* Add this before the catchall route for Tempo */}
             {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MobileRedirector>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            </Routes>
+          </MobileRedirector>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

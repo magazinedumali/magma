@@ -49,7 +49,7 @@ const PollsPage = () => {
   const totalVotesAll = polls.reduce((s, p) => s + totalVotes(p.options), 0);
 
   // Filtrage
-  let filtered = polls.filter(p => !search || p.question?.toLowerCase().includes(search.toLowerCase()));
+  const filtered = polls.filter(p => !search || p.question?.toLowerCase().includes(search.toLowerCase()));
   const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 

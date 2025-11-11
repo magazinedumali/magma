@@ -27,7 +27,7 @@ const ConfirmBulkDeleteModal: React.FC<ConfirmBulkDeleteModalProps> = ({ article
           </div>
           <div className="px-6 py-6 flex flex-col gap-4 items-center text-center">
             <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mb-2" />
-            <div className="font-semibold text-red-700">Cette action est irréversible !</div>
+            <div className="font-semibold text-red-700">Cette action est irréversible !</div>
             <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto w-full mb-2">
               {articles.slice(0, 8).map(article => (
                 <div key={article.id} className="flex items-center gap-2 bg-gray-50 rounded p-1">
@@ -49,7 +49,7 @@ const ConfirmBulkDeleteModal: React.FC<ConfirmBulkDeleteModalProps> = ({ article
                 <div className="col-span-2 text-xs text-gray-400">...et {articles.length - 8} autres</div>
               )}
             </div>
-            <div className="text-sm text-gray-500 mt-2">Voulez-vous vraiment supprimer ces {articles.length} articles ?</div>
+            <div className="text-sm text-gray-500 mt-2">Voulez-vous vraiment supprimer ces {articles.length} articles ?</div>
             <div className="flex gap-4 mt-4 justify-center">
               <button
                 onClick={onCancel}

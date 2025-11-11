@@ -6,6 +6,7 @@ import { useDropzone } from 'react-dropzone';
 import { Editor } from '@tinymce/tinymce-react';
 import { useNavigate } from 'react-router-dom';
 import { useCategories } from '@/components/admin-dashboard/useCategories';
+import { useAdminContext } from '@/hooks/use-admin-context';
 
 interface ArticleFormProps {
   initialValues?: any;
@@ -66,6 +67,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   const toggleBlock = (key: keyof typeof openBlock) => setOpenBlock(prev => ({ ...prev, [key]: !prev[key] }));
   const navigate = useNavigate();
   const { categories, loading: loadingCategories } = useCategories();
+  const { getArticlesPath } = useAdminContext();
 
   // Drag & drop pour image
   const onDropImage = async (acceptedFiles: File[]) => {
@@ -147,14 +149,17 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     setUploading(true);
     // Génère le slug à partir du titre
     const slug = slugify(values.titre);
-    let valuesWithSlug = { ...values, slug };
-    let res;
-    if (articleId && articleId !== 'new') {
-      // Ne pas forcer le statut, utiliser la valeur du formulaire
-      res = await supabase.from('articles').update(valuesWithSlug).eq('id', articleId);
-    } else {
-      res = await supabase.from('articles').insert([valuesWithSlug]);
-    }
+    
+    // Si l'article est publié et qu'il n'y a pas de date de publication, utiliser la date actuelle
+    const datePublication = values.statut === 'publie' && !values.date_publication
+      ? new Date().toISOString().slice(0, 10)
+      : values.date_publication;
+    
+    const valuesWithSlug = { ...values, slug, date_publication: datePublication };
+    const res =
+      articleId && articleId !== "new"
+        ? await supabase.from("articles").update(valuesWithSlug).eq("id", articleId)
+        : await supabase.from("articles").insert([valuesWithSlug]);
     setUploading(false);
     if (res.error) {
       console.error('Erreur Supabase:', res.error);
@@ -173,7 +178,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       setShowConfirmation(true);
       setTimeout(() => {
         setShowConfirmation(false);
-        navigate('/superadmin/articles');
+        navigate(getArticlesPath());
       }, 3000);
     }
   };
@@ -292,7 +297,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition" disabled={uploading || loadingArticle}>
             {uploading ? 'Enregistrement...' : (articleId ? 'Enregistrer' : 'Créer')}
           </button>
-          <button type="button" className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 transition" onClick={() => navigate('/admin/articles')} disabled={uploading || loadingArticle}>
+          <button type="button" className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 transition" onClick={() => navigate(getArticlesPath())} disabled={uploading || loadingArticle}>
             Annuler
           </button>
         </div>

@@ -52,7 +52,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, noCard }) => {
   };
 
   const increaseVolume = () => {
-    let newVolume = Math.min(1, Math.round((volume + 0.1) * 10) / 10);
+    const newVolume = Math.min(1, Math.round((volume + 0.1) * 10) / 10);
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
@@ -60,7 +60,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, noCard }) => {
   };
 
   const decreaseVolume = () => {
-    let newVolume = Math.max(0, Math.round((volume - 0.1) * 10) / 10);
+    const newVolume = Math.max(0, Math.round((volume - 0.1) * 10) / 10);
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;

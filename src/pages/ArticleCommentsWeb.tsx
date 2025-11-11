@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Send, Trash2 } from 'lucide-react';
+import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 
 const PAGE_SIZE = 10;
 
@@ -30,18 +31,45 @@ const ArticleCommentsWeb: React.FC = () => {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    supabase
+    fetchCommentsPage(0, PAGE_SIZE - 1, true);
+  }, [slug]);
+  
+  const fetchCommentsPage = async (from: number, to: number, reset: boolean = false) => {
+    if (!slug) return;
+    const { data } = await supabase
       .from('comments')
       .select('*')
       .eq('article_slug', slug)
       .order('created_at', { ascending: false })
-      .range(0, PAGE_SIZE - 1)
-      .then(({ data }) => {
-        setComments(data || []);
-        setHasMore((data?.length || 0) === PAGE_SIZE);
-        setLoading(false);
+      .range(from, to);
+    
+    if (data) {
+      const mappedComments = data.map(comment => {
+        const userInfo = getCommentUserInfo(comment);
+        return {
+          ...comment,
+          avatar: userInfo.avatar,
+          author: userInfo.name,
+        };
       });
-  }, [slug]);
+      
+      if (reset) {
+        setComments(mappedComments);
+        setHasMore((data.length || 0) === PAGE_SIZE);
+        setLoading(false);
+      } else {
+        setComments(prev => [...prev, ...mappedComments]);
+        setHasMore((data.length || 0) === PAGE_SIZE);
+        setLoadingMore(false);
+      }
+    } else {
+      if (reset) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
 
   // Infinite scroll
   useEffect(() => {
@@ -62,15 +90,7 @@ const ArticleCommentsWeb: React.FC = () => {
     setLoadingMore(true);
     const from = comments.length;
     const to = from + PAGE_SIZE - 1;
-    const { data } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('article_slug', slug)
-      .order('created_at', { ascending: false })
-      .range(from, to);
-    setComments(prev => [...prev, ...(data || [])]);
-    setHasMore((data?.length || 0) === PAGE_SIZE);
-    setLoadingMore(false);
+    await fetchCommentsPage(from, to, false);
   };
 
   // Realtime
@@ -78,23 +98,17 @@ const ArticleCommentsWeb: React.FC = () => {
     let subscription: any;
     const fetchFirstPage = async () => {
       if (!slug) return;
-      const { data } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('article_slug', slug)
-        .order('created_at', { ascending: false })
-        .range(0, comments.length ? comments.length - 1 : PAGE_SIZE - 1);
-      setComments(data || []);
+      await fetchCommentsPage(0, comments.length ? comments.length - 1 : PAGE_SIZE - 1, true);
+      // Update total count
+      supabase.from('comments').select('*', { count: 'exact', head: true }).eq('article_slug', slug).then(({ count }) => {
+        setTotal(count || 0);
+      });
     };
     if (slug) {
       subscription = supabase
         .channel('comments-realtime-web-' + slug)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `article_slug=eq.${slug}` }, payload => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: `article_slug=eq.${slug}` }, () => {
           fetchFirstPage();
-          // Update total count
-          supabase.from('comments').select('*', { count: 'exact', head: true }).eq('article_slug', slug).then(({ count }) => {
-            setTotal(count || 0);
-          });
         })
         .subscribe();
     }
@@ -115,29 +129,34 @@ const ArticleCommentsWeb: React.FC = () => {
     e.preventDefault();
     if (!inputValue.trim() || !slug || !user) return;
     setSending(true);
-    const author = user.user_metadata?.name || user.email || 'Utilisateur';
-    const avatar = user.user_metadata?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg';
+    const author = getUserDisplayName(user);
+    const avatar = getUserAvatar(user);
     const user_id = user.id;
+    const content = inputValue.trim();
+    const created_at = new Date().toISOString();
+    
     const optimisticComment = {
       id: 'optimistic-' + Date.now(),
       article_slug: slug,
       author,
       avatar,
       user_id,
-      content: inputValue.trim(),
-      created_at: new Date().toISOString(),
+      content,
+      created_at,
       optimistic: true,
     };
     setComments(prev => [optimisticComment, ...prev]);
     setInputValue('');
+    
     await supabase.from('comments').insert({
       article_slug: slug,
       author,
       avatar,
       user_id,
-      content: optimisticComment.content,
-      created_at: optimisticComment.created_at,
+      content,
+      created_at,
     });
+    
     setSending(false);
   };
 
@@ -156,28 +175,39 @@ const ArticleCommentsWeb: React.FC = () => {
           ) : comments.length === 0 ? (
             <div className="text-center text-red-500 mt-10 font-semibold">Aucun commentaire publié pour cet article</div>
           ) : (
-            comments.map((comment, idx) => (
-              <div key={comment.id || idx} className="flex items-start gap-3 bg-white rounded-2xl px-4 py-3 shadow relative group">
-                <img src={comment.avatar} alt={comment.author} className="w-12 h-12 rounded-full object-cover" loading="lazy" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-[#1a2746]">{comment.author}</span>
-                    <span className="text-xs text-gray-400">{new Date(comment.created_at).toLocaleString()}</span>
+            comments.map((comment, idx) => {
+              const userInfo = getCommentUserInfo(comment);
+              return (
+                <div key={comment.id || idx} className="flex items-start gap-3 bg-white rounded-2xl px-4 py-3 shadow relative group">
+                  <img 
+                    src={userInfo.avatar} 
+                    alt={userInfo.name} 
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" 
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-[#1a2746]">{userInfo.name}</span>
+                      <span className="text-xs text-gray-400">{comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}</span>
+                    </div>
+                    <div className="text-gray-700 text-base break-words">{comment.content}</div>
                   </div>
-                  <div className="text-gray-700 text-base break-words">{comment.content}</div>
+                  {/* Poubelle visible seulement pour l'auteur */}
+                  {user && comment.user_id === user.id && (
+                    <button
+                      className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
+                      title="Supprimer"
+                      onClick={() => handleDeleteComment(comment.id)}
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  )}
                 </div>
-                {/* Poubelle visible seulement pour l'auteur */}
-                {user && comment.user_id === user.id && (
-                  <button
-                    className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-opacity opacity-0 group-hover:opacity-100"
-                    title="Supprimer"
-                    onClick={() => handleDeleteComment(comment.id)}
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                )}
-              </div>
-            ))
+              );
+            })
           )}
           {loadingMore && (
             <div className="text-center text-gray-400 py-4">Chargement...</div>
@@ -187,9 +217,12 @@ const ArticleCommentsWeb: React.FC = () => {
       {/* Barre d'ajout de commentaire en bas */}
       <form onSubmit={handleAddComment} className="flex items-center bg-white rounded-xl px-4 py-4 shadow-lg mt-8 sticky bottom-0 z-10">
         <img
-          src={user?.user_metadata?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg'}
-          alt="Votre avatar"
+          src={user ? getUserAvatar(user) : '/placeholder.svg'}
+          alt={user ? getUserDisplayName(user) : 'Avatar'}
           className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 mr-4"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
         />
         {user ? (
           <>

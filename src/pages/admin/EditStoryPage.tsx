@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import { useAdminContext } from '@/hooks/use-admin-context';
 
 interface Story {
   id: string;
@@ -12,6 +13,7 @@ interface Story {
 const EditStoryPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { getStoriesPath } = useAdminContext();
   const [story, setStory] = useState<Story | null>(null);
   const [title, setTitle] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -80,7 +82,7 @@ const EditStoryPage = () => {
 
       if (updateError) throw updateError;
 
-      navigate('/admin/stories');
+      navigate(getStoriesPath());
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -169,7 +171,7 @@ const EditStoryPage = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/admin/stories')}
+            onClick={() => navigate(getStoriesPath())}
             style={{
               background: '#e5e9f2',
               color: '#23272f',

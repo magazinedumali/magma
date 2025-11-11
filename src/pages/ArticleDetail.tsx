@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabaseClient';
 import { Helmet } from 'react-helmet';
 import { mapArticleFromSupabase } from '@/lib/articleMapper';
+import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -20,28 +21,75 @@ const ArticleDetail = () => {
   const recentArticles = getRecentArticles(5);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [user, setUser] = useState<any>(null);
   
   // Central state for comments (most recent first)
   const [comments, setComments] = useState<any[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
 
+  // Fetch current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
   // Add comment handler
   const handleAddComment = async (text: string) => {
     if (!article?.slug) return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    // Optionnel: récupérer l'utilisateur connecté ici
-    const author = 'Utilisateur';
-    const avatar = 'https://randomuser.me/api/portraits/men/32.jpg';
+    
+    // Get user information
+    const currentUser = user || (await supabase.auth.getUser()).data.user;
+    if (!currentUser) {
+      // User not logged in - redirect to login
+      navigate('/login');
+      return;
+    }
+    
+    const author = getUserDisplayName(currentUser);
+    const avatar = getUserAvatar(currentUser);
+    
     // Envoi dans Supabase
     await supabase.from('comments').insert({
       article_slug: article.slug,
+      article_id: article.id,
       author,
       avatar,
       content: text,
+      user_id: currentUser.id,
       created_at: new Date().toISOString(),
     });
-    // Optionnel: toast de confirmation
+    
+    // Refresh comments
+    fetchComments();
+  };
+  
+  const fetchComments = async () => {
+    if (!article?.slug) return;
+    setCommentsLoading(true);
+    const { data } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('article_slug', article.slug)
+      .order('created_at', { ascending: false });
+    
+    if (data) {
+      // Map comments with real user info
+      const mappedComments = data.map(comment => {
+        const userInfo = getCommentUserInfo(comment);
+        return {
+          id: comment.id,
+          avatar: userInfo.avatar,
+          name: userInfo.name,
+          time: comment.created_at ? new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+          text: comment.content || '',
+          created_at: comment.created_at,
+          user_id: comment.user_id,
+        };
+      });
+      setComments(mappedComments);
+    }
+    setCommentsLoading(false);
   };
 
   const [startIdx, setStartIdx] = useState(0);
@@ -53,21 +101,23 @@ const ArticleDetail = () => {
     const fetchArticle = async () => {
       setLoading(true);
       try {
-        // First try to fetch by slug (exact match)
+        // First try to fetch by slug (exact match) - only published articles
         let { data, error } = await supabase
           .from('articles')
           .select('*')
           .eq('slug', slug)
+          .eq('statut', 'publie')
           .maybeSingle(); // Use maybeSingle instead of single to avoid error when no results
         
         console.log('Supabase fetch by slug result:', { data, error, slug });
         
-        // If exact slug match fails, try case-insensitive search
+        // If exact slug match fails, try case-insensitive search - only published articles
         if (!data && slug) {
           console.log('Trying case-insensitive slug search...');
           const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
             .from('articles')
             .select('*')
+            .eq('statut', 'publie')
             .ilike('slug', slug)
             .maybeSingle();
           
@@ -79,12 +129,13 @@ const ArticleDetail = () => {
           }
         }
         
-        // If slug fails and slug looks like an ID, try fetching by ID
+        // If slug fails and slug looks like an ID, try fetching by ID - only published articles
         if (!data && slug && slug.length === 36) { // UUID length
           console.log('Trying to fetch by ID as fallback...');
           const { data: idData, error: idError } = await supabase
             .from('articles')
             .select('*')
+            .eq('statut', 'publie')
             .eq('id', slug)
             .maybeSingle();
           
@@ -166,24 +217,9 @@ const ArticleDetail = () => {
 
   // Fetch real comments from Supabase
   useEffect(() => {
-    if (!article?.slug) return;
-    setCommentsLoading(true);
-    supabase
-      .from('comments')
-      .select('*')
-      .eq('article_slug', article.slug)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setComments(
-          (data || []).map(c => ({
-            avatar: c.avatar || 'https://randomuser.me/api/portraits/men/32.jpg',
-            name: c.author || 'Utilisateur',
-            time: c.created_at ? new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            text: c.content || ''
-          }))
-        );
-        setCommentsLoading(false);
-      });
+    if (article?.slug) {
+      fetchComments();
+    }
   }, [article?.slug]);
 
   // Compute the visible comments (wrap around if needed)
@@ -297,7 +333,12 @@ const ArticleDetail = () => {
                   <Banner position="sous-article" width={1200} height={180} />
                 </div>
                 <div className="bg-white rounded-2xl shadow-lg p-8" id="comment-form">
-                  <CommentForm onAdd={handleAddComment} placeholder={t('Ajouter un commentaire…')} sendLabel={t('Envoyer')} />
+                  <CommentForm 
+                    onAdd={handleAddComment} 
+                    placeholder={t('Ajouter un commentaire…')} 
+                    sendLabel={t('Envoyer')}
+                    user={user}
+                  />
                 </div>
               </article>
               
@@ -362,19 +403,29 @@ const ArticleDetail = () => {
                       className="flex flex-col gap-3 transition-transform duration-700"
                       style={{ transform: `translateY(-${startIdx * commentHeight}px)` }}
                     >
-                      {visibleComments.concat(visibleComments.length < visibleCount ? [] : visibleComments).map((review, idx) => (
-                        <div
-                          key={idx}
-                          className="bg-white rounded-2xl shadow p-4 flex gap-4 items-start w-full max-w-full"
-                        >
-                          <img src={review.avatar} alt={review.name} className="w-12 h-12 rounded-full object-cover" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-bold text-base text-black">{review.name}</div>
-                            <div className="text-gray-400 text-sm mb-2">{review.time}</div>
-                            <div className="text-gray-500 text-base leading-snug break-words max-w-full">{review.text}</div>
+                      {visibleComments.concat(visibleComments.length < visibleCount ? [] : visibleComments).map((review, idx) => {
+                        const userInfo = getCommentUserInfo(review);
+                        return (
+                          <div
+                            key={review.id || idx}
+                            className="bg-white rounded-2xl shadow p-4 flex gap-4 items-start w-full max-w-full"
+                          >
+                            <img 
+                              src={userInfo.avatar} 
+                              alt={userInfo.name} 
+                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-base text-black">{userInfo.name}</div>
+                              <div className="text-gray-400 text-sm mb-2">{review.time}</div>
+                              <div className="text-gray-500 text-base leading-snug break-words max-w-full">{review.text}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

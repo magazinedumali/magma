@@ -44,14 +44,14 @@ const reviews = [
 
 const CategoryPage = () => {
   const { category } = useParams<{ category: string }>();
+  const [showAll, setShowAll] = useState(false);
+
   if (!category) return <Navigate to="/not-found" replace />;
   const articles = getArticlesByCategory(category);
   const trendingArticles = getTrendingArticles(4);
   const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
   if (articles.length === 0) return <Navigate to="/not-found" replace />;
-  
-  const [showAll, setShowAll] = useState(false);
-  
+
   const articlesToShow = showAll ? articles : articles.slice(0, 5);
   
   return (

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 
 const PAGE_SIZE = 10;
 
@@ -50,13 +51,26 @@ const ArticleCommentsMobile = () => {
       .eq('article_slug', slug)
       .order('created_at', { ascending: false })
       .range(from, to);
-    if (reset) {
-      setComments(data || []);
-      setTotal(count || 0);
-      setHasMore((data?.length || 0) === PAGE_SIZE);
-    } else {
-      setComments(prev => [...prev, ...(data || [])]);
-      setHasMore((data?.length || 0) === PAGE_SIZE);
+    
+    if (data) {
+      // Map comments with real user info
+      const mappedComments = data.map(comment => {
+        const userInfo = getCommentUserInfo(comment);
+        return {
+          ...comment,
+          avatar: userInfo.avatar,
+          author: userInfo.name,
+        };
+      });
+      
+      if (reset) {
+        setComments(mappedComments);
+        setTotal(count || 0);
+        setHasMore((data.length || 0) === PAGE_SIZE);
+      } else {
+        setComments(prev => [...prev, ...mappedComments]);
+        setHasMore((data.length || 0) === PAGE_SIZE);
+      }
     }
     setLoading(false);
     setLoadingMore(false);
@@ -67,8 +81,8 @@ const ArticleCommentsMobile = () => {
     e.preventDefault();
     if (!inputValue.trim() || !slug || !user) return;
     setSending(true);
-    const author = user.user_metadata?.name || user.email || 'Utilisateur';
-    const avatar = user.user_metadata?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg';
+    const author = getUserDisplayName(user);
+    const avatar = getUserAvatar(user);
     await supabase.from('comments').insert({
       article_slug: slug,
       author,
@@ -113,29 +127,43 @@ const ArticleCommentsMobile = () => {
         ) : comments.length === 0 ? (
           <div className="text-center text-red-500 mt-10 font-semibold">Aucun commentaire publié pour cet article</div>
         ) : (
-          comments.map((comment, idx) => (
-            <div key={comment.id || idx} className="flex items-start gap-3 bg-white rounded-2xl px-4 py-3 shadow">
-              <img src={comment.avatar} alt={comment.author} className="w-10 h-10 rounded-full object-cover" loading="lazy" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-[#1a2746]">{comment.author}</span>
-                  <span className="text-xs text-gray-400">{new Date(comment.created_at).toLocaleString()}</span>
+          comments.map((comment, idx) => {
+            const userInfo = getCommentUserInfo(comment);
+            return (
+              <div key={comment.id || idx} className="flex items-start gap-3 bg-white rounded-2xl px-4 py-3 shadow">
+                <img 
+                  src={userInfo.avatar} 
+                  alt={userInfo.name} 
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200" 
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-[#1a2746]">{userInfo.name}</span>
+                    <span className="text-xs text-gray-400">{comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}</span>
+                  </div>
+                  <div className="text-gray-700 text-base break-words">{comment.content}</div>
                 </div>
-                <div className="text-gray-700 text-base break-words">{comment.content}</div>
+                {user && comment.user_id === user.id && (
+                  <button onClick={() => handleDelete(comment.id)} className="ml-2 text-[#ff184e] text-lg font-bold">🗑️</button>
+                )}
               </div>
-              {user && comment.user_id === user.id && (
-                <button onClick={() => handleDelete(comment.id)} className="ml-2 text-[#ff184e] text-lg font-bold">🗑️</button>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
         {loadingMore && <div className="text-center text-gray-400 py-4">Chargement…</div>}
       </div>
       <form onSubmit={handleAddComment} className="flex items-center bg-white rounded-t-2xl px-4 py-3 shadow-lg">
         <img
-          src={user?.user_metadata?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg'}
-          alt="Votre avatar"
+          src={user ? getUserAvatar(user) : '/placeholder.svg'}
+          alt={user ? getUserDisplayName(user) : 'Avatar'}
           className="w-9 h-9 rounded-full object-cover border-2 border-gray-200 mr-3"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
         />
         {user ? (
           <>

@@ -1,73 +1,259 @@
-# Welcome to your Lovable project
+# Le Magazine du Mali
 
-## Project info
+A modern news magazine platform built with React, TypeScript, Vite, and Supabase.
 
-**URL**: https://lovable.dev/projects/9d5c5ce7-0fe7-4160-aa1c-ba62778f32ac
+## 🚀 Features
 
-## How can I edit this code?
+- **Article Management**: Create, edit, and manage articles with rich text editor
+- **Category Management**: Organize articles by categories
+- **User Authentication**: Admin and SuperAdmin authentication
+- **Comments System**: User comments on articles
+- **Media Management**: Upload and manage images and videos
+- **Stories**: Create and manage stories
+- **Polls**: Create and manage polls with voting
+- **Videos**: Manage video content
+- **Menu Management**: Customize main navigation menu
+- **Pages Management**: Create and manage static pages
+- **Albums**: Manage audio albums
+- **Responsive Design**: Mobile and desktop views
+- **Multi-language Support**: i18n internationalization
 
-There are several ways of editing your application.
+## 📋 Prerequisites
 
-**Use Lovable**
+Before you begin, ensure you have the following installed:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9d5c5ce7-0fe7-4160-aa1c-ba62778f32ac) and start prompting.
+- **Node.js** (v18 or higher) - [Install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **npm** or **yarn** or **pnpm**
+- **Supabase Account** - [Sign up here](https://supabase.com)
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Installation
 
-**Use your preferred IDE**
+### 1. Clone the repository
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
 git clone <YOUR_GIT_URL>
+cd magma
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 2. Install dependencies
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 3. Configure environment variables
+
+Create a `.env` file in the root directory:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_TINYMCE_API_KEY=your-tinymce-api-key-here
+VITE_TEMPO=false
+```
+
+### 4. Set up Supabase Database
+
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Run the SQL migration files in your Supabase SQL Editor:
+   - `add_videos_table.sql`
+   - `add_pages_table.sql`
+   - `add_main_menu.sql`
+   - `add_main_menu_hierarchy.sql`
+   - `add_share_fields_to_articles.sql`
+
+3. Create the following storage buckets:
+   - `stories` (public)
+   - `polls` (public)
+   - `videos` (public)
+   - `images` (public)
+   - `medias` (public)
+
+4. Set up Row Level Security (RLS) policies for your tables
+5. Configure authentication providers if needed
+
+See [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) for detailed schema documentation.
+
+### 5. Start the development server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📁 Project Structure
 
-**Use GitHub Codespaces**
+```
+magma/
+├── src/
+│   ├── admin/              # Admin article management components
+│   ├── components/         # Reusable React components
+│   │   ├── admin-dashboard/  # Admin dashboard components
+│   │   ├── header/         # Header components
+│   │   ├── hero/           # Hero section components
+│   │   └── ui/             # UI components (shadcn/ui)
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utility libraries
+│   │   ├── supabaseClient.ts  # Supabase client configuration
+│   │   ├── i18n.ts         # Internationalization setup
+│   │   └── utils.ts        # Utility functions
+│   ├── mobile/             # Mobile-specific pages
+│   ├── pages/              # Main application pages
+│   │   ├── admin/          # Admin dashboard pages
+│   │   └── superadmin/     # SuperAdmin dashboard pages
+│   └── types/              # TypeScript type definitions
+├── public/                 # Static assets
+├── .env.example           # Environment variables example
+├── DATABASE_SCHEMA.md     # Database schema documentation
+└── README.md              # This file
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔐 Authentication
 
-## What technologies are used for this project?
+### Admin Dashboard
+- URL: `/admin`
+- Login: `/admin/login`
+- Register: `/admin/register`
 
-This project is built with:
+### SuperAdmin Dashboard
+- URL: `/superadmin`
+- Login: `/superadmin/login`
+- Register: `/superadmin/register`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🧪 Development
 
-## How can I deploy this project?
+### Available Scripts
 
-Simply open [Lovable](https://lovable.dev/projects/9d5c5ce7-0fe7-4160-aa1c-ba62778f32ac) and click on Share -> Publish.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
 
-## Can I connect a custom domain to my Lovable project?
+### Code Style
 
-Yes, you can!
+This project uses:
+- **ESLint** for code linting
+- **TypeScript** for type safety
+- **Prettier** (if configured) for code formatting
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🚢 Deployment
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Vercel
+
+1. Push your code to GitHub
+2. Import your repository in Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy
+
+The project includes a `vercel.json` configuration file for Vercel deployment.
+
+### Other Platforms
+
+The project can be deployed to any platform that supports Node.js and static site hosting:
+- Netlify
+- AWS Amplify
+- Cloudflare Pages
+- GitHub Pages (with build step)
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_SUPABASE_URL` | Supabase project URL | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
+| `VITE_TINYMCE_API_KEY` | TinyMCE API key for rich text editor | No |
+| `VITE_TEMPO` | Enable Tempo development tools | No |
+
+### Supabase Configuration
+
+1. Create a Supabase project
+2. Get your project URL and anon key from Settings > API
+3. Set up authentication providers
+4. Create required database tables (see SQL files)
+5. Set up storage buckets
+6. Configure RLS policies
+
+## 📝 Database Setup
+
+See [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) for detailed database schema documentation.
+
+Key tables:
+- `articles` - Article content
+- `categories` - Article categories
+- `comments` - User comments
+- `stories` - Stories content
+- `polls` - Polls and voting
+- `videos` - Video content
+- `pages` - Static pages
+- `main_menu` - Navigation menu
+- `albums` - Audio albums
+- `medias` - Media files
+- `banners` - Banner advertisements
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Supabase connection errors**
+   - Verify your `.env` file has correct credentials
+   - Check that your Supabase project is active
+   - Verify network connectivity
+
+2. **Build errors**
+   - Clear `node_modules` and reinstall: `rm -rf node_modules && npm install`
+   - Check Node.js version: `node --version` (should be v18+)
+
+3. **Authentication issues**
+   - Verify Supabase Auth is enabled
+   - Check RLS policies are correctly configured
+   - Verify email provider is configured in Supabase
+
+## 📚 Technologies Used
+
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Supabase** - Backend as a Service
+- **React Router** - Routing
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - UI components
+- **TinyMCE** - Rich text editor
+- **React Query** - Data fetching
+- **i18next** - Internationalization
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/your-feature-name`
+5. Submit a pull request
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 🆘 Support
+
+For support, please contact the development team or create an issue in the repository.
+
+## 🔗 Useful Links
+
+- [Supabase Documentation](https://supabase.com/docs)
+- [React Documentation](https://react.dev)
+- [Vite Documentation](https://vitejs.dev)
+- [TypeScript Documentation](https://www.typescriptlang.org)
+
+---
+
+**Note**: This project is built with [Lovable](https://lovable.dev). You can edit this project directly in Lovable or use your preferred IDE.

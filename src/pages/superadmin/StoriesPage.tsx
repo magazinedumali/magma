@@ -37,7 +37,7 @@ const StoriesPage = () => {
   const badges = Array.from(new Set(stories.map(s => s.badge).filter(Boolean)));
 
   // Filtrage
-  let filtered = stories.filter(s => !search || s.title.toLowerCase().includes(search.toLowerCase()) || (s.badge || '').toLowerCase().includes(search.toLowerCase()));
+  const filtered = stories.filter(s => !search || s.title.toLowerCase().includes(search.toLowerCase()) || (s.badge || '').toLowerCase().includes(search.toLowerCase()));
   const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 

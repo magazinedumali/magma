@@ -53,6 +53,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('articles')
         .select('*')
+        .eq('statut', 'publie')
         .eq('categorie', 'Business')
         .order('date_publication', { ascending: false })
         .limit(3);
@@ -83,25 +84,12 @@ const Index = () => {
       setLoadingTech(true);
       setErrorTech(null);
 
-      // 1. Récupérer l'id de la catégorie 'Technologie'
-      const { data: catData, error: catError } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('name', 'Technologie')
-        .single();
-
-      if (catError || !catData) {
-        setErrorTech('Catégorie "Technologie" non trouvée.');
-        setTechnologyArticles([]);
-        setLoadingTech(false);
-        return;
-      }
-
-      // 2. Récupérer les articles de cette catégorie
+      // Récupérer les articles de la catégorie 'Technologie' (case-insensitive)
       const { data, error } = await supabase
         .from('articles')
         .select('*')
-        .eq('category_id', catData.id)
+        .eq('statut', 'publie')
+        .ilike('categorie', 'Technologie')
         .order('date_publication', { ascending: false })
         .limit(2);
 
@@ -138,25 +126,12 @@ const Index = () => {
       setLoadingSports(true);
       setErrorSports(null);
 
-      // Récupérer l'id de la catégorie 'Sport'
-      const { data: catData, error: catError } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('name', 'Sport')
-        .single();
-
-      if (catError || !catData) {
-        setErrorSports('Catégorie "Sport" non trouvée.');
-        setSportsArticles([]);
-        setLoadingSports(false);
-        return;
-      }
-
-      // Récupérer les articles de cette catégorie
+      // Récupérer les articles de la catégorie 'Sport' (case-insensitive, matches 'Sport' or 'Sports')
       const { data, error } = await supabase
         .from('articles')
         .select('*')
-        .eq('category_id', catData.id)
+        .eq('statut', 'publie')
+        .ilike('categorie', 'Sport%')
         .order('date_publication', { ascending: false })
         .limit(1);
 

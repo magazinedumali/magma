@@ -15,6 +15,7 @@ import ConfirmBulkTagModal from './ConfirmBulkTagModal';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import ArticleImageDebug from '@/components/ArticleImageDebug';
+import { useAdminContext } from '@/hooks/use-admin-context';
 
 export interface Article {
   id: string;
@@ -59,6 +60,7 @@ const ArticleList: React.FC = () => {
   const [loadingBulkTag, setLoadingBulkTag] = useState(false);
   const [showImageDebug, setShowImageDebug] = useState(false);
   const navigate = useNavigate();
+  const { getArticleEditPath, getArticleCreatePath } = useAdminContext();
 
   // Charger les articles depuis Supabase
   const fetchArticles = async () => {
@@ -151,12 +153,12 @@ const ArticleList: React.FC = () => {
 
   // Ouvre la page d'édition
   const handleEdit = (id: string) => {
-    navigate(`/superadmin/articles/edit/${id}`);
+    navigate(getArticleEditPath(id));
   };
 
   // Ouvre la page de création d'article
   const handleAdd = () => {
-    navigate('/superadmin/articles/nouveau');
+    navigate(getArticleCreatePath());
   };
 
   const filteredArticles = articles.filter(article => {
