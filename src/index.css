@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -91,17 +91,17 @@
   }
 
   body {
-    @apply bg-background text-foreground font-roboto;
+    @apply bg-background text-foreground font-poppins;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-jost font-bold;
+    @apply font-poppins font-bold;
   }
 }
 
 @layer components {
   .section-title {
-    @apply text-2xl font-jost font-bold border-b-2 border-[#ff184e] inline-block pb-2 mb-6;
+    @apply text-2xl font-poppins font-bold border-b-2 border-[#ff184e] inline-block pb-2 mb-6;
   }
 
   .article-category {

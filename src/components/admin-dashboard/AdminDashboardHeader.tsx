@@ -14,23 +14,25 @@ const AdminDashboardHeader = () => {
     navigate("/admin/login");
   };
   return (
-    <header className="dashboard-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexDirection: 'row', paddingTop: 24, paddingBottom: 24 }}>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+    <header className="dashboard-header">
+      <div className="flex items-center gap-4">
         {/* Avatar Admin */}
         {user && user.user_metadata?.avatar_url ? (
           <img
             src={user.user_metadata.avatar_url}
             alt="avatar"
-            style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', background: '#eee', border: '2px solid #4f8cff' }}
+            className="w-12 h-12 rounded-full object-cover border-2 border-[#4f8cff]"
           />
         ) : (
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#4f8cff', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 22, border: '2px solid #4f8cff' }}>
-            A
+          <div className="w-12 h-12 rounded-full bg-[#4f8cff] text-white flex items-center justify-center font-semibold text-lg border-2 border-[#4f8cff] font-poppins">
+            {user?.email?.charAt(0).toUpperCase() || 'A'}
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-          <span style={{ fontSize: 18, color: '#888', fontWeight: 500, marginBottom: 2 }}>Dashboard</span>
-          <span style={{ fontSize: 32, fontWeight: 700, lineHeight: 1.1 }}>Bienvenue Admin,</span>
+        <div className="flex flex-col">
+          <span className="text-sm text-gray-500 font-medium font-poppins">Dashboard</span>
+          <span className="text-2xl font-semibold text-gray-800 font-poppins">
+            Bienvenue {user?.user_metadata?.name || user?.email?.split('@')[0] || 'Admin'}
+          </span>
         </div>
       </div>
     </header>

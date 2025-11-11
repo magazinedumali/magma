@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { X, Edit2, Trash2, User, Search, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { getCommentUserInfo } from '@/lib/userHelper';
 
 const DUMMY_COMMENTS = [
   { id: 1, author: "Awa", avatar: "", content: "Super article, merci !", article: { titre: "L'économie malienne en 2024", url: "/article/economie-2024" }, created_at: "2024-06-10" },
@@ -48,33 +49,50 @@ const CommentsPage = () => {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   // Ajout/édition commentaire
-  const handleSave = async (comment) => {
+  const handleSave = async (comment: any) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
     try {
+      const updateData: any = {
+        content: comment.content,
+      };
+      
+      // Only update author and avatar if provided (for manual edits)
+      if (comment.author) {
+        updateData.author = comment.author;
+      }
+      if (comment.avatar) {
+        updateData.avatar = comment.avatar;
+      }
+      
+      // Handle article reference
+      if (comment.article_slug) {
+        updateData.article_slug = comment.article_slug;
+      }
+      if (comment.article_id) {
+        updateData.article_id = comment.article_id;
+      }
+      
       if (comment.id) {
-        // Update
-        const { error: updateError } = await supabase.from('comments').update({
-          author: comment.author,
-          avatar: comment.avatar,
-          content: comment.content,
-          article_titre: comment.article_titre,
-          article_url: comment.article_url,
-          created_at: comment.created_at,
-        }).eq('id', comment.id);
+        // Update existing comment
+        const { error: updateError } = await supabase
+          .from('comments')
+          .update(updateData)
+          .eq('id', comment.id);
         if (updateError) throw updateError;
         setSuccess('Commentaire modifié !');
       } else {
-        // Insert
-        const { error: insertError } = await supabase.from('comments').insert([{
-          author: comment.author,
-          avatar: comment.avatar,
-          content: comment.content,
-          article_titre: comment.article_titre,
-          article_url: comment.article_url,
-          created_at: comment.created_at,
-        }]);
+        // Insert new comment - requires article_slug or article_id
+        if (!comment.article_slug && !comment.article_id) {
+          throw new Error('Article requis pour créer un commentaire');
+        }
+        const { error: insertError } = await supabase
+          .from('comments')
+          .insert([{
+            ...updateData,
+            created_at: comment.created_at || new Date().toISOString(),
+          }]);
         if (insertError) throw insertError;
         setSuccess('Commentaire ajouté !');
       }
@@ -82,7 +100,7 @@ const CommentsPage = () => {
       setEditComment(null);
       fetchComments();
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l’enregistrement.');
+      setError(err.message || "Erreur lors de l'enregistrement.");
     } finally {
       setLoading(false);
     }
@@ -107,121 +125,309 @@ const CommentsPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#f9fafd] to-[#e6eaff] flex flex-col items-center py-0 px-0 font-jost">
-      <div className="w-full max-w-7xl flex-1 flex flex-col justify-start items-center px-2 sm:px-6 md:px-10 py-10">
-        {/* Barre sticky */}
-        <div className="w-full sticky top-0 z-20 bg-white/80 backdrop-blur-md rounded-b-2xl shadow-lg mb-8 px-4 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-[#e5e9f2]">
+    <div className="font-poppins">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-3xl font-bold mb-2 text-[#232b46] flex items-center gap-2">🗨️ Commentaires</h2>
-            <div className="flex flex-wrap gap-4 text-base text-gray-600">
-              <span>Total : <b>{total}</b></span>
-              {topArticles.length > 0 && <span>Top articles : {topArticles.map(([titre, count]) => <span key={titre} className="ml-1">{titre} <span className="text-xs text-gray-400">({Number(count)})</span></span>)}</span>}
-              {topAuthors.length > 0 && <span>Top auteurs : {topAuthors.map(([author, count]) => <span key={author} className="ml-1">{author} <span className="text-xs text-gray-400">({Number(count)})</span></span>)}</span>}
-            </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Gestion des commentaires</h2>
+            <p className="text-sm text-gray-500">Gérez tous les commentaires de votre site</p>
           </div>
-          <div className="flex flex-wrap gap-3 items-center justify-end">
+          <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
-              <input type="text" placeholder="Recherche auteur, texte, article..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#4f8cff] outline-none text-base bg-white shadow-sm" />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Rechercher..." 
+                value={search} 
+                onChange={e => { setSearch(e.target.value); setPage(1); }} 
+                className="pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm bg-white font-poppins"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
-            <button onClick={() => { setEditComment(null); setModalOpen(true); }} className="px-5 py-2 rounded-xl bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition">+ Ajouter</button>
+            <button 
+              onClick={() => { setEditComment(null); setModalOpen(true); }} 
+              className="px-5 py-2.5 rounded-lg bg-[#4f8cff] text-white font-medium text-sm hover:bg-[#2563eb] transition-colors shadow-sm"
+            >
+              + Ajouter
+            </button>
           </div>
         </div>
-        {/* Tableau moderne */}
-        <div className="w-full bg-white rounded-3xl shadow-2xl p-0 overflow-x-auto mb-10">
-          <table className="w-full min-w-[900px] bg-white rounded-3xl overflow-hidden">
-            <thead>
-              <tr className="bg-[#f1f3fa] text-[#232b46] text-lg">
-                <th className="py-4 px-6">Auteur</th>
-                <th className="py-4 px-6">Avatar</th>
-                <th className="py-4 px-6">Commentaire</th>
-                <th className="py-4 px-6">Article</th>
-                <th className="py-4 px-6">Date</th>
-                <th className="py-4 px-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.length === 0 ? (
-                <tr><td colSpan={6} className="py-12 text-center text-gray-400 text-lg">Aucun commentaire trouvé.</td></tr>
-              ) : (
-                paginated.map(comment => (
-                  <tr key={comment.id} className="border-b hover:bg-[#f9fafd] transition">
-                    <td className="py-4 px-6 font-medium text-[#232b46] text-base">{comment.author}</td>
-                    <td className="py-4 px-6 text-center">
-                      {comment.avatar ? <img src={comment.avatar} alt={comment.author} className="w-12 h-12 rounded-full object-cover mx-auto border-2 border-gray-200" /> : <User className="w-10 h-10 text-gray-300 mx-auto" />}
-                    </td>
-                    <td className="py-4 px-6 text-gray-700 text-base max-w-[320px] break-words">{comment.content}</td>
-                    <td className="py-4 px-6">
-                      <a href={comment.article_url} target="_blank" rel="noopener noreferrer" className="text-[#4f8cff] font-semibold flex items-center gap-1 hover:underline">
-                        {comment.article_titre} <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </td>
-                    <td className="py-4 px-6 text-gray-500 text-base">{comment.created_at}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex gap-2 justify-center">
-                        <button onClick={() => { setEditComment(comment); setModalOpen(true); }} className="bg-[#ffc107] text-[#232b46] p-2 rounded-full shadow hover:scale-110 transition" title="Éditer"><Edit2 className="w-5 h-5" /></button>
-                        <button onClick={() => setConfirmDelete(comment)} className="bg-[#ff184e] text-white p-2 rounded-full shadow hover:scale-110 transition" title="Supprimer"><Trash2 className="w-5 h-5" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {/* Pagination */}
-        {pageCount > 1 && (
-          <div className="flex justify-center gap-4 mb-10">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-6 py-3 rounded-xl border border-gray-200 text-base font-bold bg-white shadow disabled:opacity-50">Précédent</button>
-            <span className="px-6 py-3 text-base font-bold">Page {page} / {pageCount}</span>
-            <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={page === pageCount} className="px-6 py-3 rounded-xl border border-gray-200 text-base font-bold bg-white shadow disabled:opacity-50">Suivant</button>
-          </div>
-        )}
-        {/* Modale ajout/édition */}
-        {modalOpen && (
-          <CommentModal
-            open={modalOpen}
-            onClose={() => { setModalOpen(false); setEditComment(null); }}
-            onSave={handleSave}
-            initialData={editComment}
-          />
-        )}
-        {/* Confirmation suppression */}
-        {confirmDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-10 rounded-2xl shadow-2xl">
-              <div className="text-2xl font-bold mb-8 text-[#ff184e]">Supprimer le commentaire de "{confirmDelete.author}" ?</div>
-              <div className="flex justify-end gap-6">
-                <button onClick={() => setConfirmDelete(null)} className="bg-gray-200 text-[#ff184e] px-6 py-3 rounded-xl font-semibold hover:scale-105 transition">Annuler</button>
-                <button onClick={() => handleDelete(confirmDelete)} className="bg-[#ff184e] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition">Supprimer</button>
+        
+        {/* Stats */}
+        {(total > 0 || topArticles.length > 0 || topAuthors.length > 0) && (
+          <div className="flex flex-wrap gap-6 mb-6">
+            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+              <div className="text-xs text-gray-500 mb-1">Total</div>
+              <div className="text-lg font-semibold text-gray-800">{total}</div>
+            </div>
+            {topArticles.length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+                <div className="text-xs text-gray-500 mb-1">Top Articles</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {topArticles.map(([titre, count], idx) => (
+                    <span key={titre}>{idx > 0 && ', '}{titre} ({Number(count)})</span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+            {topAuthors.length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+                <div className="text-xs text-gray-500 mb-1">Top Auteurs</div>
+                <div className="text-sm font-medium text-gray-800">
+                  {topAuthors.map(([author, count], idx) => (
+                    <span key={author}>{idx > 0 && ', '}{author} ({Number(count)})</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+          {success}
+        </div>
+      )}
+
+      {/* Table */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-gray-500 font-poppins text-base">Chargement...</div>
+        </div>
+      ) : paginated.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+          <p className="text-gray-500 font-medium">Aucun commentaire trouvé.</p>
+        </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px]">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Auteur</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Commentaire</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Article</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {paginated.map(comment => {
+                    const userInfo = getCommentUserInfo(comment);
+                    return (
+                      <tr key={comment.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={userInfo.avatar} 
+                              alt={userInfo.name} 
+                              className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{userInfo.name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 max-w-md">
+                          <p className="text-sm text-gray-800 break-words">{comment.content}</p>
+                        </td>
+                        <td className="px-6 py-4">
+                          {comment.article_slug ? (
+                            <a 
+                              href={`/article/${comment.article_slug}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-[#4f8cff] font-medium text-sm hover:underline flex items-center gap-1"
+                            >
+                              {comment.article_titre || comment.article_slug} 
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : comment.article_url ? (
+                            <a 
+                              href={comment.article_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-[#4f8cff] font-medium text-sm hover:underline flex items-center gap-1"
+                            >
+                              {comment.article_titre || 'Article'} 
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <span className="text-sm text-gray-500">{comment.article_titre || 'N/A'}</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-gray-600">
+                            {comment.created_at ? new Date(comment.created_at).toLocaleDateString('fr-FR', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }) : 'N/A'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => { setEditComment(comment); setModalOpen(true); }} 
+                              className="p-2 bg-yellow-50 text-yellow-600 rounded-lg hover:bg-yellow-100 transition-colors border border-yellow-200" 
+                              title="Éditer"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => setConfirmDelete(comment)} 
+                              className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-200" 
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          {/* Pagination */}
+          {pageCount > 1 && (
+            <div className="flex justify-center items-center gap-3">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))} 
+                disabled={page === 1} 
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Précédent
+              </button>
+              <span className="px-4 py-2 text-sm font-medium text-gray-700">Page {page} / {pageCount}</span>
+              <button 
+                onClick={() => setPage(p => Math.min(pageCount, p + 1))} 
+                disabled={page === pageCount} 
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Suivant
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {/* Modale ajout/édition */}
+      {modalOpen && (
+        <CommentModal
+          open={modalOpen}
+          onClose={() => { setModalOpen(false); setEditComment(null); }}
+          onSave={handleSave}
+          initialData={editComment}
+        />
+      )}
+      
+      {/* Confirmation suppression */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Supprimer le commentaire</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Êtes-vous sûr de vouloir supprimer le commentaire de <strong>{getCommentUserInfo(confirmDelete).name}</strong> ?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setConfirmDelete(null)} 
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={() => handleDelete(confirmDelete)} 
+                className="px-4 py-2 rounded-lg bg-[#ff184e] text-white text-sm font-medium hover:bg-red-600 transition-colors"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // Modale ajout/édition commentaire
-const CommentModal = ({ open, onClose, onSave, initialData }) => {
+const CommentModal = ({ open, onClose, onSave, initialData }: any) => {
   const [author, setAuthor] = useState(initialData?.author || "");
   const [avatar, setAvatar] = useState(initialData?.avatar || "");
   const [content, setContent] = useState(initialData?.content || "");
-  const [article, setArticle] = useState(initialData?.article_titre || "");
-  const [date, setDate] = useState(initialData?.created_at || "");
+  const [articleSlug, setArticleSlug] = useState(initialData?.article_slug || "");
+  const [date, setDate] = useState(initialData?.created_at ? initialData.created_at.split('T')[0] : new Date().toISOString().split('T')[0]);
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
 
-  const handleSubmit = e => {
+  React.useEffect(() => {
+    if (open) {
+      // Initialize form data
+      if (initialData) {
+        setAuthor(initialData.author || "");
+        setAvatar(initialData.avatar || "");
+        setContent(initialData.content || "");
+        setArticleSlug(initialData.article_slug || "");
+        setDate(initialData.created_at ? initialData.created_at.split('T')[0] : new Date().toISOString().split('T')[0]);
+      } else {
+        // Reset form for new comment
+        setAuthor("");
+        setAvatar("");
+        setContent("");
+        setArticleSlug("");
+        setDate(new Date().toISOString().split('T')[0]);
+      }
+      
+      // Load articles for dropdown
+      setLoadingArticles(true);
+      supabase
+        .from('articles')
+        .select('id, title, titre, slug')
+        .eq('statut', 'publie')
+        .order('date_publication', { ascending: false })
+        .limit(100)
+        .then(({ data }) => {
+          setArticles(data || []);
+          setLoadingArticles(false);
+        });
+    }
+  }, [open, initialData]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!author.trim() || !content.trim() || !article.trim() || !date.trim()) return;
+    if (!content.trim() || !articleSlug.trim()) return;
+    
+    // Find article by slug
+    const article = articles.find(a => a.slug === articleSlug);
+    if (!article) {
+      alert('Article non trouvé');
+      return;
+    }
+    
     onSave({
       id: initialData?.id,
-      author,
-      avatar,
-      content,
-      article_titre: article,
-      article_url: initialData?.article_url || "#",
-      created_at: date,
+      author: author || initialData?.author,
+      avatar: avatar || initialData?.avatar,
+      content: content.trim(),
+      article_slug: articleSlug,
+      article_id: article.id,
+      article_titre: article.title || article.titre,
+      created_at: date ? new Date(date).toISOString() : new Date().toISOString(),
     });
   };
 
@@ -230,27 +436,82 @@ const CommentModal = ({ open, onClose, onSave, initialData }) => {
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative animate-fade-in">
         <button type="button" onClick={onClose} className="absolute top-4 right-4 bg-gray-200 text-[#ff184e] p-2 rounded-full hover:scale-110 transition"><X className="w-6 h-6" /></button>
         <h3 className="text-2xl font-bold text-[#232b46] mb-2">{initialData ? 'Éditer le commentaire' : 'Nouveau commentaire'}</h3>
+        {!initialData && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Auteur (optionnel)</label>
+              <input 
+                value={author} 
+                onChange={e => setAuthor(e.target.value)} 
+                placeholder="Laisser vide pour utiliser l'utilisateur connecté" 
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Avatar (URL, optionnel)</label>
+              <input 
+                value={avatar} 
+                onChange={e => setAvatar(e.target.value)} 
+                placeholder="Laisser vide pour générer automatiquement" 
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins" 
+              />
+            </div>
+          </>
+        )}
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Auteur :</label>
-          <input value={author} onChange={e => setAuthor(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Commentaire <span className="text-red-500">*</span></label>
+          <textarea 
+            value={content} 
+            onChange={e => setContent(e.target.value)} 
+            required 
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins min-h-[100px] resize-y" 
+          />
         </div>
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Avatar (URL) :</label>
-          <input value={avatar} onChange={e => setAvatar(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Article <span className="text-red-500">*</span></label>
+          {loadingArticles ? (
+            <div className="text-sm text-gray-500 py-2.5">Chargement des articles...</div>
+          ) : (
+            <select 
+              value={articleSlug} 
+              onChange={e => setArticleSlug(e.target.value)} 
+              required
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins"
+            >
+              <option value="">Sélectionner un article</option>
+              {articles.map(article => (
+                <option key={article.id} value={article.slug}>
+                  {article.title || article.titre} ({article.slug})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Commentaire :</label>
-          <textarea value={content} onChange={e => setContent(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg min-h-[80px]" />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Date <span className="text-red-500">*</span></label>
+          <input 
+            type="date" 
+            value={date} 
+            onChange={e => setDate(e.target.value)} 
+            required 
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins" 
+          />
         </div>
-        <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Article :</label>
-          <input value={article} onChange={e => setArticle(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" />
+        <div className="flex justify-end gap-3 pt-2">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            className="px-5 py-2.5 rounded-lg bg-[#4f8cff] text-white text-sm font-medium hover:bg-[#2563eb] transition-colors shadow-sm"
+          >
+            {initialData ? 'Enregistrer' : 'Créer le commentaire'}
+          </button>
         </div>
-        <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Date :</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" />
-        </div>
-        <button type="submit" className="mt-4 px-6 py-3 rounded-xl bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition">{initialData ? 'Enregistrer' : 'Créer le commentaire'}</button>
       </form>
     </div>
   ) : null;

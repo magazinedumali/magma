@@ -125,23 +125,7 @@ const AdminDashboardSidebar = () => {
       </div>
       <button
         onClick={handleLogout}
-        style={{
-          background: '#4f8cff',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 10,
-          padding: '14px 0',
-          fontWeight: 700,
-          fontSize: 17,
-          width: '88%',
-          margin: '32px auto 0 auto',
-          display: 'block',
-          boxShadow: '0 2px 8px #4f8cff22',
-          fontFamily: 'Jost, sans-serif',
-          cursor: 'pointer',
-          letterSpacing: 0.2,
-          transition: 'background 0.18s, color 0.18s',
-        }}
+        className="bg-[#4f8cff] text-white border-none rounded-lg py-3.5 font-semibold text-sm w-[88%] mx-auto mt-6 block shadow-sm hover:bg-[#2563eb] transition-colors font-poppins cursor-pointer"
       >
         Déconnexion
       </button>

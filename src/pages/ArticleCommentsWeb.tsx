@@ -27,14 +27,7 @@ const ArticleCommentsWeb: React.FC = () => {
     });
   }, [slug]);
 
-  // Fetch first page
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    fetchCommentsPage(0, PAGE_SIZE - 1, true);
-  }, [slug]);
-  
-  const fetchCommentsPage = async (from: number, to: number, reset: boolean = false) => {
+  const fetchCommentsPage = useCallback(async (from: number, to: number, reset: boolean = false) => {
     if (!slug) return;
     const { data } = await supabase
       .from('comments')
@@ -69,7 +62,14 @@ const ArticleCommentsWeb: React.FC = () => {
         setLoadingMore(false);
       }
     }
-  };
+  }, [slug]);
+  
+  // Fetch first page
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    fetchCommentsPage(0, PAGE_SIZE - 1, true);
+  }, [slug, fetchCommentsPage]);
 
   // Infinite scroll
   useEffect(() => {
@@ -115,8 +115,7 @@ const ArticleCommentsWeb: React.FC = () => {
     return () => {
       if (subscription) supabase.removeChannel(subscription);
     };
-    // eslint-disable-next-line
-  }, [slug]);
+  }, [slug, comments.length, fetchCommentsPage]);
 
   // Récupérer l'utilisateur connecté
   useEffect(() => {

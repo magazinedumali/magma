@@ -134,108 +134,243 @@ const StoriesPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#f9fafd] to-[#e6eaff] flex flex-col items-center py-0 px-0 font-jost">
-      <div className="w-full max-w-7xl flex-1 flex flex-col justify-start items-center px-2 sm:px-6 md:px-10 py-10">
-        {/* Barre sticky */}
-        <div className="w-full sticky top-0 z-20 bg-white/80 backdrop-blur-md rounded-b-2xl shadow-lg mb-8 px-4 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-[#e5e9f2]">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-3xl font-bold text-[#232b46] flex items-center gap-2">📰 Stories</h2>
-            <div className="flex flex-wrap gap-4 text-base text-gray-600">
-              <span>Total : <b>{total}</b></span>
-              <span>Actives : <b>{totalActive}</b></span>
-              <span>Vues : <b>{totalViews}</b></span>
-              {badges.length > 0 && <span>Badges : {badges.map(b => <span key={b} className="ml-1 bg-[#ffc107]/30 text-[#232b46] px-2 py-1 rounded-full text-xs font-bold">{b}</span>)}</span>}
-            </div>
+    <div className="font-poppins">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Gestion des Stories</h2>
+            <p className="text-sm text-gray-500">Gérez les stories de votre site</p>
           </div>
-          <div className="flex flex-wrap gap-3 items-center justify-end">
+          <div className="flex flex-wrap gap-3 items-center">
             <div className="relative">
-              <input type="text" placeholder="Recherche titre, badge..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#4f8cff] outline-none text-base bg-white shadow-sm" />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Rechercher..." 
+                value={search} 
+                onChange={e => { setSearch(e.target.value); setPage(1); }} 
+                className="pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm bg-white font-poppins"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
-            <button onClick={() => { setEditStory(null); setModalOpen(true); }} className="px-5 py-2 rounded-xl bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition flex items-center gap-2"><Plus className="w-5 h-5" /> Nouvelle</button>
+            <button 
+              onClick={() => { setEditStory(null); setModalOpen(true); }} 
+              className="px-5 py-2.5 rounded-lg bg-[#4f8cff] text-white font-medium text-sm hover:bg-[#2563eb] transition-colors shadow-sm flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Nouvelle
+            </button>
           </div>
         </div>
-        {/* Feedback visuel */}
-        {(loading || error || success) && (
-          <div className="w-full max-w-2xl mx-auto mb-6">
-            {loading && <div className="text-[#4f8cff] font-bold animate-pulse">Chargement...</div>}
-            {error && <div className="text-[#ff184e] font-bold">{error}</div>}
-            {success && <div className="text-green-600 font-bold">{success}</div>}
-          </div>
-        )}
-        {/* Grille de stories */}
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-10">
-          {paginated.length === 0 ? (
-            <div className="col-span-full text-center text-gray-400 text-lg py-12">Aucune story trouvée.</div>
-          ) : (
-            paginated.map(story => (
-              <div key={story.id} className={`relative group bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col transition hover:scale-[1.03] hover:shadow-2xl cursor-pointer border-2 ${story.is_active ? 'border-[#4f8cff]' : 'border-transparent'}`}>
-                {/* Image story */}
-                <div className="relative w-full h-48 flex items-center justify-center bg-gray-50 overflow-hidden" onClick={() => openLightbox(story.image_url)}>
-                  {story.image_url ? <img src={story.image_url} alt={story.title} className="object-cover w-full h-full transition group-hover:scale-105" /> : <ImgIcon className="w-16 h-16 text-gray-300" />}
-                  {story.badge && <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-[#ffc107]/90 text-[#232b46]">{story.badge}</span>}
-                  {story.is_active && <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold bg-[#4f8cff]/90 text-white flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Active</span>}
-                </div>
-                {/* Infos */}
-                <div className="flex-1 flex flex-col p-4 gap-2">
-                  <div className="font-bold text-[#232b46] text-lg truncate" title={story.title}>{story.title}</div>
-                  <div className="text-gray-400 text-xs flex items-center gap-2"><Eye className="w-4 h-4" /> {story.views || 0} vues</div>
-                </div>
-                {/* Actions */}
-                <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={e => { e.stopPropagation(); handleToggleActive(story.id, story.is_active); }} className={`bg-[#4f8cff] text-white p-2 rounded-full shadow hover:scale-110 transition ${story.is_active ? '' : 'opacity-60'}`} title={story.is_active ? 'Désactiver' : 'Activer'}>{story.is_active ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
-                  <button onClick={e => { e.stopPropagation(); setEditStory(story); setModalOpen(true); }} className="bg-[#ffc107] text-[#232b46] p-2 rounded-full shadow hover:scale-110 transition" title="Éditer"><Edit2 className="w-5 h-5" /></button>
-                  <button onClick={e => { e.stopPropagation(); setConfirmDelete(story); }} className="bg-[#ff184e] text-white p-2 rounded-full shadow hover:scale-110 transition" title="Supprimer"><Trash2 className="w-5 h-5" /></button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        {/* Pagination */}
-        {pageCount > 1 && (
-          <div className="flex justify-center gap-4 mb-10">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-6 py-3 rounded-xl border border-gray-200 text-base font-bold bg-white shadow disabled:opacity-50">Précédent</button>
-            <span className="px-6 py-3 text-base font-bold">Page {page} / {pageCount}</span>
-            <button onClick={() => setPage(p => Math.min(pageCount, p + 1))} disabled={page === pageCount} className="px-6 py-3 rounded-xl border border-gray-200 text-base font-bold bg-white shadow disabled:opacity-50">Suivant</button>
-          </div>
-        )}
-        {/* Modale ajout/édition */}
-        {modalOpen && (
-          <StoryModal
-            open={modalOpen}
-            onClose={() => { setModalOpen(false); setEditStory(null); }}
-            onSave={handleSave}
-            initialData={editStory}
-            dragActive={dragActive}
-            setDragActive={setDragActive}
-            inputRef={inputRef}
-            loading={loading}
-          />
-        )}
-        {/* Lightbox */}
-        {lightbox && (
-          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" onClick={closeLightbox}>
-            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full relative flex flex-col items-center">
-              <button onClick={closeLightbox} className="absolute top-4 right-4 bg-gray-200 text-[#ff184e] p-2 rounded-full hover:scale-110 transition"><X className="w-6 h-6" /></button>
-              <div className="w-full flex flex-col items-center">
-                <img src={lightbox} alt="aperçu story" className="max-h-[60vh] w-auto rounded-xl shadow mb-4" />
-              </div>
+        
+        {/* Stats */}
+        {(total > 0 || totalActive > 0 || totalViews > 0 || badges.length > 0) && (
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+              <div className="text-xs text-gray-500 mb-1">Total</div>
+              <div className="text-lg font-semibold text-gray-800">{total}</div>
             </div>
-          </div>
-        )}
-        {/* Confirmation suppression */}
-        {confirmDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-10 rounded-2xl shadow-2xl">
-              <div className="text-2xl font-bold mb-8 text-[#ff184e]">Supprimer la story "{confirmDelete.title}" ?</div>
-              <div className="flex justify-end gap-6">
-                <button onClick={() => setConfirmDelete(null)} className="bg-gray-200 text-[#ff184e] px-6 py-3 rounded-xl font-semibold hover:scale-105 transition">Annuler</button>
-                <button onClick={() => handleDelete(confirmDelete)} className="bg-[#ff184e] text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition">Supprimer</button>
-              </div>
+            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+              <div className="text-xs text-gray-500 mb-1">Actives</div>
+              <div className="text-lg font-semibold text-gray-800">{totalActive}</div>
             </div>
+            <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+              <div className="text-xs text-gray-500 mb-1">Vues</div>
+              <div className="text-lg font-semibold text-gray-800">{totalViews}</div>
+            </div>
+            {badges.length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-200 px-4 py-3">
+                <div className="text-xs text-gray-500 mb-1">Badges</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {badges.map(b => (
+                    <span key={b} className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">{b}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+          {success}
+        </div>
+      )}
+      
+      {loading && !stories.length && (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-gray-500 font-poppins text-base">Chargement...</div>
+        </div>
+      )}
+      {/* Stories Grid */}
+      {paginated.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+          <p className="text-gray-500 font-medium">Aucune story trouvée.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
+            {paginated.map(story => (
+              <div 
+                key={story.id} 
+                className={`relative group bg-white rounded-lg border-2 overflow-hidden flex flex-col transition-all hover:shadow-lg cursor-pointer ${
+                  story.is_active ? 'border-[#4f8cff]' : 'border-gray-200'
+                }`}
+              >
+                {/* Image story */}
+                <div 
+                  className="relative w-full h-48 flex items-center justify-center bg-gray-50 overflow-hidden" 
+                  onClick={() => openLightbox(story.image_url)}
+                >
+                  {story.image_url ? (
+                    <img 
+                      src={story.image_url} 
+                      alt={story.title} 
+                      className="object-cover w-full h-full transition-transform group-hover:scale-105" 
+                    />
+                  ) : (
+                    <ImgIcon className="w-12 h-12 text-gray-300" />
+                  )}
+                  {story.badge && (
+                    <span className="absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                      {story.badge}
+                    </span>
+                  )}
+                  {story.is_active && (
+                    <span className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium bg-[#4f8cff] text-white flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Active
+                    </span>
+                  )}
+                </div>
+                
+                {/* Infos */}
+                <div className="flex-1 flex flex-col p-4 gap-2">
+                  <div className="font-semibold text-gray-800 text-sm truncate" title={story.title}>
+                    {story.title}
+                  </div>
+                  <div className="text-gray-500 text-xs flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5" /> {story.views || 0} vues
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={e => { e.stopPropagation(); handleToggleActive(story.id, story.is_active); }} 
+                    className={`p-2 rounded-lg shadow-sm transition-colors ${
+                      story.is_active 
+                        ? 'bg-[#4f8cff] text-white hover:bg-[#2563eb]' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`} 
+                    title={story.is_active ? 'Désactiver' : 'Activer'}
+                  >
+                    {story.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  <button 
+                    onClick={e => { e.stopPropagation(); setEditStory(story); setModalOpen(true); }} 
+                    className="p-2 bg-yellow-50 text-yellow-600 rounded-lg shadow-sm hover:bg-yellow-100 transition-colors" 
+                    title="Éditer"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={e => { e.stopPropagation(); setConfirmDelete(story); }} 
+                    className="p-2 bg-red-50 text-red-600 rounded-lg shadow-sm hover:bg-red-100 transition-colors" 
+                    title="Supprimer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          {pageCount > 1 && (
+            <div className="flex justify-center items-center gap-3">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))} 
+                disabled={page === 1} 
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Précédent
+              </button>
+              <span className="px-4 py-2 text-sm font-medium text-gray-700">Page {page} / {pageCount}</span>
+              <button 
+                onClick={() => setPage(p => Math.min(pageCount, p + 1))} 
+                disabled={page === pageCount} 
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Suivant
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {/* Modale ajout/édition */}
+      {modalOpen && (
+        <StoryModal
+          open={modalOpen}
+          onClose={() => { setModalOpen(false); setEditStory(null); }}
+          onSave={handleSave}
+          initialData={editStory}
+          dragActive={dragActive}
+          setDragActive={setDragActive}
+          inputRef={inputRef}
+          loading={loading}
+        />
+      )}
+      
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" onClick={closeLightbox}>
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full relative">
+            <button 
+              onClick={closeLightbox} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img 
+              src={lightbox} 
+              alt="aperçu story" 
+              className="max-h-[70vh] w-auto mx-auto rounded-lg" 
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Confirmation suppression */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Supprimer la story</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Êtes-vous sûr de vouloir supprimer la story <strong>"{confirmDelete.title}"</strong> ?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setConfirmDelete(null)} 
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={() => handleDelete(confirmDelete)} 
+                className="px-4 py-2 rounded-lg bg-[#ff184e] text-white text-sm font-medium hover:bg-red-600 transition-colors"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -300,43 +435,98 @@ const StoryModal = ({ open, onClose, onSave, initialData, dragActive, setDragAct
   };
 
   return open ? (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative animate-fade-in">
-        <button type="button" onClick={onClose} className="absolute top-4 right-4 bg-gray-200 text-[#ff184e] p-2 rounded-full hover:scale-110 transition"><X className="w-6 h-6" /></button>
-        <h3 className="text-2xl font-bold text-[#232b46] mb-2">{initialData ? 'Éditer la story' : 'Nouvelle story'}</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg flex flex-col gap-5 relative max-h-[90vh] overflow-y-auto font-poppins">
+        <button type="button" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+          <X className="w-5 h-5" />
+        </button>
+        <h3 className="text-xl font-semibold text-gray-800 mb-1">{initialData ? 'Éditer la story' : 'Nouvelle story'}</h3>
+        
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Titre :</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" required />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Titre <span className="text-red-500">*</span></label>
+          <input 
+            value={title} 
+            onChange={e => setTitle(e.target.value)} 
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins" 
+            required 
+          />
         </div>
+        
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Image :</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Image</label>
           <div
-            className={`w-full border-2 border-dashed rounded-xl transition-all duration-200 flex flex-col items-center justify-center py-6 mb-2 ${dragActive ? 'border-[#4f8cff] bg-blue-50' : 'border-gray-200 bg-white/70'}`}
+            className={`w-full border-2 border-dashed rounded-lg transition-all duration-200 flex flex-col items-center justify-center py-6 mb-2 ${
+              dragActive ? 'border-[#4f8cff] bg-blue-50' : 'border-gray-200 bg-gray-50'
+            }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
           >
             <UploadCloud className="w-8 h-8 text-[#4f8cff] mb-2" />
-            <div className="text-base font-bold mb-1">Glissez-déposez une image ici</div>
-            <div className="text-gray-500 mb-2">ou cliquez sur Upload</div>
-            <button type="button" onClick={() => { if (inputRef.current) inputRef.current.click(); }} className="px-4 py-2 rounded-xl bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition flex items-center gap-2"><UploadCloud className="w-4 h-4" /> Upload</button>
+            <div className="text-sm font-medium mb-1 text-gray-700">Glissez-déposez une image ici</div>
+            <div className="text-xs text-gray-500 mb-3">ou cliquez sur le bouton ci-dessous</div>
+            <button 
+              type="button" 
+              onClick={() => { if (inputRef.current) inputRef.current.click(); }} 
+              className="px-4 py-2 rounded-lg bg-[#4f8cff] text-white text-sm font-medium hover:bg-[#2563eb] transition-colors shadow-sm flex items-center gap-2"
+            >
+              <UploadCloud className="w-4 h-4" /> Upload
+            </button>
             <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileInput} disabled={loading} />
           </div>
-          {imageUrl && <img src={imageUrl} alt="aperçu" className="mt-3 max-w-xs rounded-lg shadow" />}
+          {imageUrl && (
+            <img src={imageUrl} alt="aperçu" className="mt-3 max-w-xs rounded-lg shadow border border-gray-200" />
+          )}
         </div>
+        
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Badge (optionnel) :</label>
-          <input value={badge} onChange={e => setBadge(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" placeholder="Ex: Nouveau, Populaire..." />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Badge (optionnel)</label>
+          <input 
+            value={badge} 
+            onChange={e => setBadge(e.target.value)} 
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins" 
+            placeholder="Ex: Nouveau, Populaire..." 
+          />
         </div>
+        
         <div>
-          <label className="block font-bold mb-2 text-[#232b46]">Vues :</label>
-          <input type="number" value={views} onChange={e => setViews(Number(e.target.value))} className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#4f8cff] outline-none text-lg" min="0" />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Vues</label>
+          <input 
+            type="number" 
+            value={views} 
+            onChange={e => setViews(Number(e.target.value))} 
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20 outline-none text-sm font-poppins" 
+            min="0" 
+          />
         </div>
+        
         <div className="flex items-center gap-3">
-          <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} id="active" className="w-5 h-5" />
-          <label htmlFor="active" className="font-bold text-[#232b46]">Active</label>
+          <input 
+            type="checkbox" 
+            checked={isActive} 
+            onChange={e => setIsActive(e.target.checked)} 
+            id="active" 
+            className="w-4 h-4 rounded border-gray-300 text-[#4f8cff] focus:ring-2 focus:ring-[#4f8cff]/20" 
+          />
+          <label htmlFor="active" className="text-sm font-medium text-gray-700">Active</label>
         </div>
-        <button type="submit" className="mt-4 px-6 py-3 rounded-xl bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition" disabled={loading}>{initialData ? 'Enregistrer' : 'Créer la story'}</button>
+        
+        <div className="flex justify-end gap-3 pt-2">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            className="px-5 py-2.5 rounded-lg bg-[#4f8cff] text-white text-sm font-medium hover:bg-[#2563eb] transition-colors shadow-sm" 
+            disabled={loading}
+          >
+            {loading ? 'Enregistrement...' : initialData ? 'Enregistrer' : 'Créer la story'}
+          </button>
+        </div>
       </form>
     </div>
   ) : null;

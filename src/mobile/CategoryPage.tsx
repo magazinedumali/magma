@@ -64,12 +64,12 @@ const CategoryPage = () => {
             <nav className="text-sm text-gray-500 mb-2">
               <span>Accueil</span> &gt; <span>Blog</span> &gt; <span className="text-news-red font-bold">{categoryTitle}</span>
             </nav>
-            <h1 className="text-3xl font-jost font-bold mb-6 text-[#1a2746]">{categoryTitle}</h1>
+            <h1 className="text-3xl font-poppins font-bold mb-6 text-[#1a2746]">{categoryTitle}</h1>
             <div className="space-y-10">
               {articlesToShow.map((article, idx) => (
                 <div key={article.id} className="flex flex-col gap-4">
                   {/* Title */}
-                  <h2 className="font-bold text-2xl md:text-3xl font-jost mb-2 leading-snug text-[#1a2746]">{article.title}</h2>
+                  <h2 className="font-bold text-2xl md:text-3xl font-poppins mb-2 leading-snug text-[#1a2746]">{article.title}</h2>
                   {/* Card with image */}
                   <div className="bg-white rounded-2xl shadow p-0 overflow-hidden transition-colors duration-300">
                     <img

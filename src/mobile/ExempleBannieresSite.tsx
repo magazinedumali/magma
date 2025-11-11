@@ -3,7 +3,7 @@ import Banner from "../components/Banner";
 
 export default function ExempleBannieresSite() {
   return (
-    <div style={{ fontFamily: 'Jost, sans-serif', background: '#f7f8fa', minHeight: '100vh', padding: 32 }}>
+    <div style={{ fontFamily: 'Poppins, sans-serif', background: '#f7f8fa', minHeight: '100vh', padding: 32 }}>
       <h1 style={{ marginBottom: 32 }}>Exemple d'intégration des bannières sur le site</h1>
       <div style={{ marginBottom: 32 }}>
         <h2>Header</h2>

@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 .dashboard-container {
   display: flex;
   height: 100vh;
   background: #f5f7fa;
-  font-family: 'Jost', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 .dashboard-sidebar {
   position: fixed;
@@ -39,9 +39,9 @@
   color: #ff4d4f;
 }
 .dashboard-logo {
-  font-family: 'Jost', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 .dashboard-search {
   display: flex;
@@ -58,8 +58,9 @@
   margin-left: 10px;
   width: 100%;
   outline: none;
-  font-family: 'Jost', sans-serif;
-  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
 }
 .search-icon {
   color: #aaa;
@@ -67,11 +68,12 @@
 }
 .sidebar-section-title {
   color: #6b7280;
-  font-size: 0.95rem;
-  margin: 18px 0 6px 36px;
+  font-size: 0.875rem;
+  margin: 20px 0 8px 36px;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  font-weight: 500;
+  letter-spacing: 1px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
 }
 .dashboard-sidebar nav ul {
   padding: 0;
@@ -84,15 +86,16 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 10px 32px 10px 36px;
-  font-size: 1.05rem;
-  font-family: 'Jost', sans-serif;
+  padding: 12px 32px 12px 36px;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
   font-weight: 500;
   color: #23272f;
-  border-left: 4px solid transparent;
-  border-radius: 8px 0 0 8px;
+  border-left: 3px solid transparent;
+  border-radius: 0 8px 8px 0;
+  margin-right: 12px;
   cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  transition: all 0.2s ease;
   text-decoration: none;
   background: transparent;
 }
@@ -105,8 +108,9 @@
 .dashboard-sidebar nav ul li a.active,
 .dashboard-sidebar nav ul li a:hover {
   background: #ff4d4f;
-  border-left: 4px solid #ff4d4f;
+  border-left: 3px solid #ff4d4f;
   color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.2);
 }
 .dashboard-sidebar nav ul li a.active .sidebar-icon,
 .dashboard-sidebar nav ul li a:hover .sidebar-icon {
@@ -116,42 +120,52 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 32px;
-  background: #f5f7fa;
-  border-radius: 12px;
-  margin: 24px 20px 0 20px;
-  font-family: 'Jost', sans-serif;
-  font-size: 1.08rem;
+  padding: 14px 20px;
+  background: #ffffff;
+  border: 1px solid #e5e9f2;
+  border-radius: 10px;
+  margin: 24px 20px 20px 20px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
   font-weight: 500;
   color: #23272f;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .dashboard-avatar {
   background: #ff4d4f;
   color: #fff;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 1.1rem;
-  font-family: 'Jost', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  flex-shrink: 0;
 }
 .main-content {
   flex: 1;
-  padding: 32px;
+  padding: 40px 48px;
   margin-left: 270px;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
 }
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e9f2;
 }
 .dashboard-header h1 {
-  font-size: 2rem;
+  font-size: 1.875rem;
   font-weight: 600;
+  color: #23272f;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: -0.5px;
 }
 .screen-options {
   background: #e5e9f2;
@@ -168,8 +182,14 @@
 .widget {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px #0001;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+  font-family: 'Poppins', sans-serif;
+  transition: box-shadow 0.2s ease;
+}
+.widget:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .widget.alert {
   background: #fffbe6;

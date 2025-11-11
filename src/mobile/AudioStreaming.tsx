@@ -141,7 +141,7 @@ export default function AudioStreamingPage() {
           <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-sm mr-2 border border-gray-100">
             <ArrowLeft size={24} className="text-[#1a2746]" />
           </button>
-          <span className="font-extrabold text-xl tracking-wide text-[#1a2746] font-jost">MAGMA FM</span>
+          <span className="font-extrabold text-xl tracking-wide text-[#1a2746] font-poppins">MAGMA FM</span>
         </div>
         <div className="flex items-center gap-3">
           <button className="p-2 rounded-full bg-gray-100">
@@ -175,7 +175,7 @@ export default function AudioStreamingPage() {
           {/* Texte sur le dégradé */}
           <div className="absolute left-0 right-0 bottom-6 flex flex-col items-center z-10">
             <span className="text-white text-sm font-normal tracking-widest mb-1" style={{letterSpacing:'0.1em'}}>{track.artist}</span>
-            <span className="text-white text-2xl font-bold font-jost mb-2 drop-shadow-lg">{track.title}</span>
+            <span className="text-white text-2xl font-bold font-poppins mb-2 drop-shadow-lg">{track.title}</span>
             <div className="flex justify-center gap-2 mt-2">
               {demoPlaylist.map((_, idx) => (
                 <span key={idx} className={`w-2 h-2 rounded-full ${current === idx ? 'bg-white' : 'bg-gray-400/60'}`}></span>
