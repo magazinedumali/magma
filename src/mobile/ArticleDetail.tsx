@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import { supabase } from '@/lib/supabaseClient';
 import { mapArticleFromSupabase } from '@/lib/articleMapper';
+import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 
 function stripHtml(html: string): string {
   if (!html) return '';
