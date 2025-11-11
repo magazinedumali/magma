@@ -355,7 +355,7 @@ const ArticleList: React.FC = () => {
           <select
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 font-poppins"
           >
             <option value="">Tous statuts</option>
             <option value="publie">Publié</option>

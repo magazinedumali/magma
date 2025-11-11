@@ -48,7 +48,13 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       share_image_url: initialValues.share_image_url || '',
       share_description: initialValues.share_description || '',
       statut: initialValues.statut || 'brouillon',
-      date_publication: (initialValues.date_publication || new Date().toISOString().slice(0, 10)).slice(0, 10),
+      // Pour les brouillons, ne pas définir de date par défaut
+      // Pour les articles publiés, utiliser la date existante ou laisser vide (sera définie automatiquement)
+      date_publication: initialValues.date_publication 
+        ? (typeof initialValues.date_publication === 'string' && initialValues.date_publication.length > 10 
+            ? initialValues.date_publication.slice(0, 10) 
+            : initialValues.date_publication.slice(0, 10))
+        : '',
     }
   });
   const [uploading, setUploading] = useState(false);
@@ -68,6 +74,19 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   const navigate = useNavigate();
   const { categories, loading: loadingCategories } = useCategories();
   const { getArticlesPath } = useAdminContext();
+  
+  // Observer le changement de statut pour définir automatiquement la date si nécessaire
+  const currentStatut = watch('statut');
+  const currentDatePublication = watch('date_publication');
+  
+  useEffect(() => {
+    // Si le statut passe à "publie" et qu'il n'y a pas de date de publication, définir la date actuelle silencieusement
+    // Le toast sera affiché lors de la soumission pour éviter les notifications répétées
+    if (currentStatut === 'publie' && (!currentDatePublication || String(currentDatePublication).trim() === '')) {
+      const today = new Date().toISOString().slice(0, 10);
+      setValue('date_publication', today, { shouldValidate: false });
+    }
+  }, [currentStatut, currentDatePublication, setValue]);
 
   // Drag & drop pour image
   const onDropImage = async (acceptedFiles: File[]) => {
@@ -150,10 +169,39 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     // Génère le slug à partir du titre
     const slug = slugify(values.titre);
     
-    // Si l'article est publié et qu'il n'y a pas de date de publication, utiliser la date actuelle
-    const datePublication = values.statut === 'publie' && !values.date_publication
-      ? new Date().toISOString().slice(0, 10)
-      : values.date_publication;
+    // Si l'article est publié, s'assurer qu'une date de publication est définie
+    let datePublication = values.date_publication;
+    
+    if (values.statut === 'publie') {
+      // Si l'article est publié et qu'il n'y a pas de date de publication (vide, null, ou undefined)
+      // ou si la date est invalide, utiliser la date actuelle
+      const dateStr = datePublication ? String(datePublication).trim() : '';
+      if (!datePublication || dateStr === '' || dateStr === 'undefined' || dateStr === 'null') {
+        datePublication = new Date().toISOString();
+        toast.success("Date de publication définie automatiquement à aujourd'hui");
+      } else {
+        // S'assurer que la date est au format ISO complet pour Supabase
+        // Si c'est juste une date (YYYY-MM-DD), on peut la convertir en ISO
+        const dateStr2 = String(datePublication);
+        if (dateStr2.length === 10) {
+          datePublication = new Date(dateStr2 + 'T00:00:00').toISOString();
+        }
+      }
+    } else if (values.statut === 'brouillon') {
+      // Pour les brouillons, on peut garder la date ou la vider
+      // Si la date existe, on la garde (elle pourra servir si l'article est republié)
+      // Sinon, on laisse null/undefined
+      const dateStr = datePublication ? String(datePublication).trim() : '';
+      if (!datePublication || dateStr === '') {
+        datePublication = null;
+      } else {
+        // Garder la date même pour les brouillons (pour pouvoir republier avec la même date)
+        const dateStr2 = String(datePublication);
+        if (dateStr2.length === 10) {
+          datePublication = new Date(dateStr2 + 'T00:00:00').toISOString();
+        }
+      }
+    }
     
     const valuesWithSlug = { ...values, slug, date_publication: datePublication };
     const res =
@@ -166,7 +214,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       toast.error("Erreur lors de l'enregistrement : " + res.error.message);
     } else {
       if (articleId && articleId !== 'new') {
-        toast.success("Article mis à jour!");
+        if (values.statut === 'publie') {
+          toast.success("Article publié avec succès!");
+        } else {
+          toast.success("Article mis à jour!");
+        }
       } else {
         toast.success("Article créé!");
       }
@@ -194,15 +246,34 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
         } else if (data) {
           console.log('Loading article data for edit:', data);
           console.log('Article image_url:', data.image_url);
+          console.log('Article statut:', data.statut);
+          console.log('Article date_publication:', data.date_publication);
+          
+          // Préparer les données du formulaire
           const formData = {
             ...data,
-            date_publication: data.date_publication ? data.date_publication.slice(0, 10) : '',
-            tags: Array.isArray(data.tags) ? data.tags : [],
+            // Formater la date de publication pour l'input date (YYYY-MM-DD)
+            date_publication: data.date_publication 
+              ? (typeof data.date_publication === 'string' 
+                  ? (data.date_publication.length > 10 
+                      ? data.date_publication.slice(0, 10) 
+                      : data.date_publication)
+                  : new Date(data.date_publication).toISOString().slice(0, 10))
+              : '',
+            tags: Array.isArray(data.tags) ? data.tags : (typeof data.tags === 'string' ? data.tags.split(',').map((t: string) => t.trim()) : []),
             gallery: Array.isArray(data.gallery) ? data.gallery : [],
           };
+          
           console.log('Resetting form with data:', formData);
-          console.log('Form image_url being set to:', formData.image_url);
+          console.log('Form statut:', formData.statut);
+          console.log('Form date_publication:', formData.date_publication);
           reset(formData);
+          
+          // Expand publication block if article is a draft (so admin can easily publish it)
+          if (data.statut === 'brouillon') {
+            setOpenBlock(prev => ({ ...prev, publication: true }));
+          }
+          
           // Expand image block if there's an existing image
           if (data.image_url) {
             console.log('Expanding image block for existing image');
@@ -311,25 +382,49 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             <span className={`transition-transform ${openBlock.publication ? 'rotate-90' : ''}`}>▶</span>
           </button>
           <div className={`overflow-hidden transition-all duration-300 ${openBlock.publication ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>
-      <Controller
-        control={control}
+            <Controller
+              control={control}
               name="statut"
-        render={({ field }) => (
-          <select {...field} className="input input-bordered w-full">
-                  <option value="brouillon">Brouillon</option>
-                  <option value="publie">Publié</option>
-          </select>
-        )}
-      />
+              render={({ field }) => (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Statut de l'article</label>
+                  <select {...field} className="input input-bordered w-full">
+                    <option value="brouillon">Brouillon</option>
+                    <option value="publie">Publié</option>
+                  </select>
+                  {field.value === 'publie' && (
+                    <p className="text-xs text-gray-600 mt-2">
+                      💡 Si aucune date n'est spécifiée, la date d'aujourd'hui sera utilisée automatiquement
+                    </p>
+                  )}
+                </div>
+              )}
+            />
             <div className="mt-4">
-              <label className="block text-sm font-medium mb-1">Date de publication</label>
+              <label className="block text-sm font-medium mb-1">
+                Date de publication
+                {watch('statut') === 'publie' && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
+              </label>
               <Controller
                 control={control}
                 name="date_publication"
                 render={({ field }) => (
-                  <input type="date" className="input input-bordered w-full" {...field} />
+                  <input 
+                    type="date" 
+                    className="input input-bordered w-full" 
+                    {...field}
+                    value={field.value || ''}
+                    placeholder={watch('statut') === 'publie' ? 'Date automatique si vide' : 'Optionnel pour les brouillons'}
+                  />
                 )}
               />
+              {watch('statut') === 'publie' && !watch('date_publication') && (
+                <p className="text-xs text-blue-600 mt-1">
+                  ⏰ La date d'aujourd'hui sera utilisée lors de l'enregistrement
+                </p>
+              )}
             </div>
           </div>
         </div>
