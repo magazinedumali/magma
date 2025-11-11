@@ -4,11 +4,27 @@ import { FaSearch, FaHome, FaFileAlt, FaImages, FaComments, FaTools, FaMusic, Fa
 import "./dashboard.css";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "../../lib/supabaseClient";
+import { useAdminContext } from "@/hooks/use-admin-context";
 
 const AdminDashboardSidebar = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const { 
+    basePath,
+    getDashboardPath, 
+    getArticlesPath, 
+    getCategoriesPath, 
+    getMediasPath, 
+    getCommentsPath, 
+    getAlbumsPath, 
+    getStoriesPath, 
+    getPollsPath, 
+    getPagesPath, 
+    getVideosPath, 
+    getMenuPath
+  } = useAdminContext();
+  
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
   }, []);
@@ -43,61 +59,61 @@ const AdminDashboardSidebar = () => {
           <div className="sidebar-section-title">{t('Content')}</div>
           <ul>
             <li>
-              <NavLink to="/admin" end className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getDashboardPath()} end className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaHome className="sidebar-icon" />
                 <span>{t('Dashboard')}</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/articles" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getArticlesPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaFileAlt className="sidebar-icon" />
                 <span>{t('Articles')}</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/categories" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getCategoriesPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaTools className="sidebar-icon" />
                 <span>Catégories</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/medias" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getMediasPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaImages className="sidebar-icon" />
                 <span>{t('Médias')}</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/commentaires" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getCommentsPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaComments className="sidebar-icon" />
                 <span>{t('Commentaires')}</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/albums" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getAlbumsPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaMusic className="sidebar-icon" />
                 <span>{t('Albums audios')}</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/stories" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getStoriesPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaImages className="sidebar-icon" />
                 <span>{t('Stories')}</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/polls" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getPollsPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaFire className="sidebar-icon" />
                 <span>Sondages</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/pages" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getPagesPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaFileAlt className="sidebar-icon" />
                 <span>Pages du site</span>
               </NavLink>
             </li>
             <li>
-              <NavLink to="/admin/videos" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getVideosPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaImages className="sidebar-icon" />
                 <span>Vidéos</span>
               </NavLink>
@@ -106,7 +122,7 @@ const AdminDashboardSidebar = () => {
           <div className="sidebar-section-title">{t('Website')}</div>
           <ul>
             <li>
-              <NavLink to="/admin/menu" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={getMenuPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaSitemap className="sidebar-icon" />
                 <span>Menu principal</span>
               </NavLink>
@@ -115,7 +131,7 @@ const AdminDashboardSidebar = () => {
           <div className="sidebar-section-title">{t('System')}</div>
           <ul>
             <li>
-              <NavLink to="/admin/parametres" className={({ isActive }) => isActive ? "active" : undefined}>
+              <NavLink to={`${basePath}/parametres`} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaTools className="sidebar-icon" />
                 <span>{t('Paramètres')}</span>
               </NavLink>
