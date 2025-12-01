@@ -54,6 +54,15 @@ out/
 *.temp
 .cache/
 
+# Secrets and credentials - NEVER commit these!
+client_secret*.json
+*credentials*.json
+*secret*.json
+*oauth*.json
+*google*.json
+.env
+.env.*
+
 # Lock files (optional - uncomment if you want to ignore them)
 # package-lock.json
 # yarn.lock
