@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, User, Radio, SkipBack, SkipForward } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { getUserAvatar } from '@/lib/userHelper';
 import AudioPlayer from '@/components/AudioPlayer';
 
 const demoPlaylist = [
@@ -62,7 +63,7 @@ export default function AudioStreamingPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser(data.user);
-        setAvatar(data.user.user_metadata?.avatar_url || '');
+        setAvatar(getUserAvatar(data.user));
       }
     });
   }, []);
@@ -148,8 +149,15 @@ export default function AudioStreamingPage() {
             <Radio size={22} className="text-[#ff184e]" />
           </button>
           <button className="p-1 rounded-full border-2 border-[#ff184e] overflow-hidden w-10 h-10 flex items-center justify-center">
-            {avatar ? (
-              <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+            {avatar && avatar !== '/placeholder.svg' ? (
+              <img 
+                src={avatar} 
+                alt="avatar" 
+                className="w-8 h-8 rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
+              />
             ) : (
               <User size={28} className="text-[#ff184e]" />
             )}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { getUserAvatar } from "../../lib/userHelper";
 import "./dashboard.css";
 
 const AdminDashboardHeader = () => {
@@ -17,11 +18,14 @@ const AdminDashboardHeader = () => {
     <header className="dashboard-header">
       <div className="flex items-center gap-4">
         {/* Avatar Admin */}
-        {user && user.user_metadata?.avatar_url ? (
+        {user && getUserAvatar(user) !== '/placeholder.svg' ? (
           <img
-            src={user.user_metadata.avatar_url}
+            src={getUserAvatar(user)}
             alt="avatar"
             className="w-12 h-12 rounded-full object-cover border-2 border-[#4f8cff]"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg';
+            }}
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-[#4f8cff] text-white flex items-center justify-center font-semibold text-lg border-2 border-[#4f8cff] font-poppins">

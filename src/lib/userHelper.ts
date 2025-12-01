@@ -2,21 +2,46 @@
 
 /**
  * Get user avatar URL from user metadata or generate a default one
+ * Handles Google OAuth and other providers
+ * 
+ * Google OAuth stores profile picture in 'picture' field
+ * This function checks multiple fields to ensure compatibility
  */
 export const getUserAvatar = (user: any): string => {
-  if (user?.user_metadata?.avatar_url) {
-    return user.user_metadata.avatar_url;
+  if (!user) return '/placeholder.svg';
+
+  const metadata = user.user_metadata || {};
+  
+  // Priority order:
+  // 1. avatar_url (standard Supabase field, may be normalized from Google)
+  if (metadata.avatar_url) {
+    return metadata.avatar_url;
+  }
+  
+  // 2. picture (Google OAuth standard field)
+  if (metadata.picture) {
+    return metadata.picture;
+  }
+  
+  // 3. avatar (alternative field name)
+  if (metadata.avatar) {
+    return metadata.avatar;
+  }
+  
+  // 4. Check app_metadata (some providers store it there)
+  if (user.app_metadata?.avatar_url) {
+    return user.app_metadata.avatar_url;
   }
   
   // Generate a default avatar based on email or name
-  if (user?.email) {
-    // Use a service like UI Avatars or generate initials
-    const emailHash = user.email.toLowerCase().trim();
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email.split('@')[0])}&background=4f8cff&color=fff&size=128`;
+  if (user.email) {
+    const emailName = user.email.split('@')[0];
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(emailName)}&background=4f8cff&color=fff&size=128`;
   }
   
-  if (user?.user_metadata?.name) {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata.name)}&background=4f8cff&color=fff&size=128`;
+  if (metadata.name || metadata.full_name) {
+    const displayName = metadata.name || metadata.full_name;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=4f8cff&color=fff&size=128`;
   }
   
   // Fallback to a generic avatar

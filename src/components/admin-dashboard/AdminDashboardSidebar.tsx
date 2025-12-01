@@ -4,6 +4,7 @@ import { FaSearch, FaHome, FaFileAlt, FaImages, FaComments, FaTools, FaMusic, Fa
 import "./dashboard.css";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "../../lib/supabaseClient";
+import { getUserAvatar } from "../../lib/userHelper";
 import { useAdminContext } from "@/hooks/use-admin-context";
 
 const AdminDashboardSidebar = () => {
@@ -36,15 +37,18 @@ const AdminDashboardSidebar = () => {
     <aside className="dashboard-sidebar">
       <div className="dashboard-logo-row">
         {/* Avatar Admin */}
-        {user && user.user_metadata?.avatar_url ? (
+        {user && getUserAvatar(user) !== '/placeholder.svg' ? (
           <img
-            src={user.user_metadata.avatar_url}
+            src={getUserAvatar(user)}
             alt="avatar"
             style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', background: '#eee', border: '2px solid #4f8cff' }}
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg';
+            }}
           />
         ) : (
           <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#4f8cff', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 22, border: '2px solid #4f8cff' }}>
-            A
+            {user?.email?.charAt(0).toUpperCase() || 'A'}
           </div>
         )}
         <span className="dashboard-logo">Admin</span>

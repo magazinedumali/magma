@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/lib/supabaseClient';
 import { useTranslation } from 'react-i18next';
+import { getUserAvatar } from '@/lib/userHelper';
 import MainNavigation from './header/MainNavigation';
 import HeaderLogo from './header/HeaderLogo';
 
@@ -199,8 +200,15 @@ const Header = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 px-3 py-1 rounded hover:bg-gray-100 transition">
-                    {user.user_metadata?.avatar_url ? (
-                      <img src={user.user_metadata.avatar_url} alt="avatar" className="w-8 h-8 rounded-full" />
+                    {getUserAvatar(user) !== '/placeholder.svg' ? (
+                      <img 
+                        src={getUserAvatar(user)} 
+                        alt="avatar" 
+                        className="w-8 h-8 rounded-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder.svg';
+                        }}
+                      />
                     ) : (
                       <UserCircle size={32} className="text-gray-400" />
                     )}

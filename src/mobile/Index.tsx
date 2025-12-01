@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, memo } from 'react';
 import { Bell, Bookmark, User, Search as SearchIcon, PlayCircle, Sun, Moon } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { getUserAvatar } from '@/lib/userHelper';
 import { getFeaturedArticles, getArticlesByCategory, getRecentArticles } from '@/data/articles';
 import { categories as siteCategories } from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
@@ -249,7 +250,7 @@ export default function MobileHome() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [articles, tab, loadingMore, hasMore]);
 
-  const avatar = user?.user_metadata?.avatar_url || '';
+  const avatar = user ? getUserAvatar(user) : '';
   const name = user?.user_metadata?.name || user?.email?.split('@')[0] || '';
   const username = user?.user_metadata?.username || '';
 
@@ -324,8 +325,15 @@ export default function MobileHome() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                {avatar ? (
-                  <img src={avatar} alt="avatar" className="w-12 h-12 rounded-full object-cover" />
+                {avatar && avatar !== '/placeholder.svg' ? (
+                  <img 
+                    src={avatar} 
+                    alt="avatar" 
+                    className="w-12 h-12 rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
+                  />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#cbd5e1"/><path d="M4 20c0-2.21 3.582-4 8-4s8 1.79 8 4" fill="#cbd5e1"/></svg>

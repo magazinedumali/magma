@@ -28,6 +28,7 @@ import TestArticle from './pages/TestArticle';
 import SlugDebugger from './pages/SlugDebugger';
 import SlugFixer from './pages/SlugFixer';
 import ErrorBoundary from './components/ErrorBoundary';
+import GoogleAuthNormalizer from './components/GoogleAuthNormalizer';
 import routes from "tempo-routes";
 import './lib/i18n';
 import { useEffect } from 'react';
@@ -64,6 +65,7 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <GoogleAuthNormalizer />
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

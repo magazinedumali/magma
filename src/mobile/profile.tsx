@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Heart, Download, Globe, MapPin, CreditCard, Trash2, Clock, LogOut, ChevronRight, Settings, Bell, Bookmark, User, Search as SearchIcon, PlayCircle } from 'lucide-react';
+import { getUserAvatar } from '@/lib/userHelper';
 
 export default function MobileProfile() {
   const [user, setUser] = useState<any>(null);
@@ -23,7 +24,7 @@ export default function MobileProfile() {
       setUser(data.user);
       setName(data.user.user_metadata?.name || 'Utilisateur');
       setUsername(data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'username');
-      setAvatar(data.user.user_metadata?.avatar_url || '');
+      setAvatar(getUserAvatar(data.user));
     });
   }, [navigate]);
 
@@ -88,8 +89,16 @@ export default function MobileProfile() {
       {/* Avatar, name, username, edit button */}
       <div className="flex items-center gap-4 px-6 mt-2 mb-6">
         <div className="relative">
-          {avatar ? (
-            <img src={avatar} alt="avatar" className="w-32 h-32 rounded-full object-cover border-4 border-white shadow" loading="lazy" />
+          {avatar && avatar !== '/placeholder.svg' ? (
+            <img 
+              src={avatar} 
+              alt="avatar" 
+              className="w-32 h-32 rounded-full object-cover border-4 border-white shadow" 
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder.svg';
+              }}
+            />
           ) : (
             <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow">
               {/* Default social profile icon SVG */}

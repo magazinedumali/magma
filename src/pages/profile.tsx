@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
+import { getUserAvatar } from '@/lib/userHelper';
 
 const Profile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -28,7 +29,7 @@ const Profile: React.FC = () => {
       setUser(data.user);
       setName(data.user.user_metadata?.name || '');
       setEmail(data.user.email);
-      setAvatar(data.user.user_metadata?.avatar_url || '');
+      setAvatar(getUserAvatar(data.user));
     });
 
     // Simple mobile detection
@@ -122,9 +123,16 @@ const Profile: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)' }}>
         <div style={{ background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', minWidth: 340 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24, position: 'relative' }}>
-            {avatar ? (
+            {avatar && avatar !== '/placeholder.svg' ? (
               <div style={{ position: 'relative', width: 80, height: 80 }}>
-                <img src={avatar} alt="avatar" style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 12, objectFit: 'cover' }} />
+                <img 
+                  src={avatar} 
+                  alt="avatar" 
+                  style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 12, objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
