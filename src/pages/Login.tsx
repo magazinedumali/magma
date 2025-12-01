@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { supabase } from '@/lib/supabaseClient';
+import { getOAuthRedirectUrl } from '@/lib/authHelpers';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -46,10 +47,12 @@ const Login: React.FC = () => {
     setError('');
     setLoading(true);
     try {
+      const redirectUrl = getOAuthRedirectUrl();
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
         },
       });
       if (error) {
