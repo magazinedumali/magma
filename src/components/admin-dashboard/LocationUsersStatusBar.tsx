@@ -1,30 +1,58 @@
-export default function LocationUsersStatusBar({ locations = [], total }) {
-  const totalValue = total || locations.reduce((s, v) => s + v.value, 0);
+export default function LocationUsersStatusBar({ locations = [], total }: any) {
+  const totalValue = total || locations.reduce((s: number, v: any) => s + v.value, 0);
+
   return (
-    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-8">
-      <h2 className="text-lg font-bold mb-4 text-[#232b46]">Utilisateurs par localisation</h2>
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-3xl font-bold text-[#232b46]">{totalValue}</span>
-        <span className="text-gray-400 ml-2">Utilisateurs</span>
+    <div className="dark-card" style={{ marginBottom: 0 }}>
+      <h2>Utilisateurs par localisation</h2>
+      
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 20 }}>
+        <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>
+          {totalValue}
+        </span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontWeight: 500, paddingBottom: 4 }}>
+          Utilisateurs
+        </span>
       </div>
-      <div className="flex h-4 w-full rounded-full overflow-hidden mb-4">
-        {locations.map((loc, i) => (
+
+      <div style={{ 
+        display: 'flex', 
+        width: '100%', 
+        height: 8, 
+        borderRadius: 4, 
+        overflow: 'hidden', 
+        marginBottom: 20,
+        background: 'rgba(255,255,255,0.05)'
+      }}>
+        {locations.map((loc: any) => (
           <div
             key={loc.label}
-            style={{ width: `${(loc.value / totalValue) * 100}%`, background: loc.color }}
-            className="h-full"
+            style={{ 
+              width: `${(loc.value / totalValue) * 100}%`, 
+              background: loc.color 
+            }}
           />
         ))}
       </div>
-      <div className="flex flex-wrap gap-4">
-        {locations.map((loc, i) => (
-          <div key={loc.label} className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: loc.color }} />
-            <span className="text-sm text-gray-600">{loc.label}</span>
-            <span className="text-xs text-gray-400 ml-1">+{loc.value}</span>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 20px' }}>
+        {locations.map((loc: any) => (
+          <div key={loc.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ 
+              width: 10, 
+              height: 10, 
+              borderRadius: '50%', 
+              background: loc.color,
+              boxShadow: `0 0 8px ${loc.color}80`
+            }} />
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              {loc.label}
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              {loc.value}
+            </span>
           </div>
         ))}
       </div>
     </div>
   );
-} 
+}

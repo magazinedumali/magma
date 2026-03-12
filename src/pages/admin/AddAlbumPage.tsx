@@ -58,17 +58,19 @@ const AddAlbumPage = () => {
   };
 
   return (
-    <div style={{ padding: 32, fontFamily: 'Jost, sans-serif' }}>
-      <h2 style={{ marginBottom: 24 }}>Ajouter un album</h2>
-      {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
+    <div className="text-[var(--text-primary)] max-w-2xl mx-auto py-8">
+      <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-8">Ajouter un album</h2>
+      
+      {error && (
+        <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-xl border border-red-400/20 mb-8 animate-fadeIn">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: 600 }}>
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="title"
-            style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}
-          >
-            Titre
+      <form onSubmit={handleSubmit} className="dark-card flex flex-col gap-6">
+        <div>
+          <label htmlFor="title" className="block mb-2 font-medium text-[var(--text-secondary)]">
+            Titre de l'album
           </label>
           <input
             id="title"
@@ -76,21 +78,13 @@ const AddAlbumPage = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #e5e9f2',
-              borderRadius: 8,
-              fontSize: 16
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]"
+            placeholder="Ex: Soirée de Lancement"
           />
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="description"
-            style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}
-          >
+        <div>
+          <label htmlFor="description" className="block mb-2 font-medium text-[var(--text-secondary)]">
             Description
           </label>
           <textarea
@@ -98,23 +92,13 @@ const AddAlbumPage = () => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #e5e9f2',
-              borderRadius: 8,
-              fontSize: 16,
-              minHeight: 100,
-              resize: 'vertical'
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)] min-h-[120px] resize-y"
+            placeholder="Courte description de l'événement..."
           />
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="cover"
-            style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}
-          >
+        <div>
+          <label htmlFor="cover" className="block mb-2 font-medium text-[var(--text-secondary)]">
             Image de couverture
           </label>
           <input
@@ -123,47 +107,24 @@ const AddAlbumPage = () => {
             accept="image/*"
             onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
             required
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #e5e9f2',
-              borderRadius: 8,
-              fontSize: 16
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--accent)] file:text-white hover:file:brightness-110"
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="flex gap-4 mt-4">
           <button
             type="button"
             onClick={() => navigate('/admin/albums')}
-            style={{
-              padding: '12px 24px',
-              background: '#e5e9f2',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 16,
-              cursor: 'pointer',
-              flex: 1
-            }}
+            className="flex-1 bg-white/5 border border-white/10 text-[var(--text-primary)] px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-semibold"
           >
             Annuler
           </button>
           <button
             type="submit"
             disabled={loading}
-            style={{
-              padding: '12px 24px',
-              background: '#4f8cff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 16,
-              cursor: 'pointer',
-              flex: 1
-            }}
+            className="flex-1 bg-[var(--accent)] text-white px-6 py-3 rounded-xl hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[0_4px_16px_var(--accent-glow)] font-semibold"
           >
-            {loading ? 'Création...' : 'Créer l\'album'}
+            {loading ? 'Création en cours...' : 'Créer l\'album'}
           </button>
         </div>
       </form>
@@ -171,4 +132,4 @@ const AddAlbumPage = () => {
   );
 };
 
-export default AddAlbumPage; 
+export default AddAlbumPage;

@@ -21,7 +21,7 @@ export interface Article {
   id: string;
   titre: string;
   image_url?: string;
-  image?: string; // Alternative field name for backward compatibility
+  image?: string; 
   categorie?: string;
   tags?: string[];
   audio_url?: string;
@@ -62,7 +62,6 @@ const ArticleList: React.FC = () => {
   const navigate = useNavigate();
   const { getArticleEditPath, getArticleCreatePath } = useAdminContext();
 
-  // Charger les articles depuis Supabase
   const fetchArticles = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -73,18 +72,6 @@ const ArticleList: React.FC = () => {
       setError(error.message);
       toast.error("Erreur lors du chargement des articles");
     } else {
-      console.log('Fetched articles data:', data);
-      // Debug: Check image URLs for first few articles
-      data?.slice(0, 3).forEach((article, index) => {
-        console.log(`Article ${index + 1} image data:`, {
-          id: article.id,
-          titre: article.titre,
-          image_url: article.image_url,
-          image: article.image,
-          hasImageUrl: !!article.image_url,
-          hasImage: !!article.image
-        });
-      });
       setArticles(data || []);
       setError(null);
     }
@@ -95,36 +82,26 @@ const ArticleList: React.FC = () => {
     fetchArticles();
   }, []);
 
-  // Suppression d'un article (ouvre la modale)
   const handleDelete = (id: string) => {
     const article = articles.find(a => a.id === id);
     if (article) setArticleToDelete(article);
   };
 
-  // Confirmation réelle de suppression
   const handleConfirmDelete = async () => {
     if (!articleToDelete) return;
     setLoadingDelete(true);
-    // Suppression locale immédiate (optimiste)
     setArticles(prev => prev.filter(a => a.id !== articleToDelete.id));
     setSelected(selected.filter(id => id !== articleToDelete.id));
-    // Suppression des fichiers du Storage
+    
     try {
-      // Supprimer l'image principale
       if (articleToDelete.image_url) {
         const path = articleToDelete.image_url.split('/storage/v1/object/public/')[1];
-        if (path) {
-          await supabase.storage.from('article-images').remove([path]);
-        }
+        if (path) await supabase.storage.from('article-images').remove([path]);
       }
-      // Supprimer l'audio principal
       if (articleToDelete.audio_url) {
         const path = articleToDelete.audio_url.split('/storage/v1/object/public/')[1];
-        if (path) {
-          await supabase.storage.from('article-audios').remove([path]);
-        }
+        if (path) await supabase.storage.from('article-audios').remove([path]);
       }
-      // Supprimer les images de la galerie
       if (Array.isArray(articleToDelete.gallery)) {
         const galleryPaths = articleToDelete.gallery
           .map((url) => url.split('/storage/v1/object/public/')[1])
@@ -136,27 +113,24 @@ const ArticleList: React.FC = () => {
     } catch (e) {
       toast.error("Erreur lors de la suppression d'un fichier associé");
     }
-    // Suppression de l'article en base
+    
     const { error, count } = await supabase.from('articles').delete({ count: 'exact' }).eq('id', articleToDelete.id);
     setLoadingDelete(false);
+    
     if (error || count === 0) {
       toast.error("Erreur lors de la suppression en base. L'article n'a pas été supprimé.");
-      // Recharge la liste pour être sûr
       fetchArticles();
     } else {
       toast.success("Article supprimé");
-      // Recharge la liste pour être sûr
       fetchArticles();
     }
     setArticleToDelete(null);
   };
 
-  // Ouvre la page d'édition
   const handleEdit = (id: string) => {
     navigate(getArticleEditPath(id));
   };
 
-  // Ouvre la page de création d'article
   const handleAdd = () => {
     navigate(getArticleCreatePath());
   };
@@ -170,14 +144,13 @@ const ArticleList: React.FC = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredArticles.length / pageSize) || 1;
   const paginatedArticles = filteredArticles.slice((page - 1) * pageSize, page * pageSize);
 
-  // Selection logic
   const handleSelect = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]);
   };
+  
   const handleSelectAll = () => {
     if (selectAll) {
       setSelected([]);
@@ -187,64 +160,42 @@ const ArticleList: React.FC = () => {
       setSelectAll(true);
     }
   };
+  
   useEffect(() => {
     setSelectAll(
       paginatedArticles.length > 0 && paginatedArticles.every(a => selected.includes(a.id))
     );
   }, [paginatedArticles, selected]);
 
-  // Suppression multiple (ouvre la modale)
-  const handleBulkDelete = () => {
-    setBulkDeleteOpen(true);
-  };
+  const handleBulkDelete = () => setBulkDeleteOpen(true);
+  const handleBulkStatus = () => { setBulkStatus('publie'); setBulkStatusOpen(true); };
+  const handleBulkCategory = () => { setBulkCategory(''); setBulkCategoryOpen(true); };
+  const handleBulkTag = () => { setBulkTag(''); setBulkTagAction('add'); setBulkTagOpen(true); };
 
-  // Confirmation réelle de suppression multiple
   const handleConfirmBulkDelete = async () => {
     setLoadingBulkDelete(true);
     const { error } = await supabase.from('articles').delete().in('id', selected);
     setLoadingBulkDelete(false);
-    if (error) {
-      toast.error("Erreur lors de la suppression");
-    } else {
-      toast.success("Articles supprimés");
-      fetchArticles();
-      setSelected([]);
-    }
+    if (error) { toast.error("Erreur lors de la suppression"); } 
+    else { toast.success("Articles supprimés"); fetchArticles(); setSelected([]); }
     setBulkDeleteOpen(false);
   };
 
-  // Export utility
   const exportArticles = (type: 'csv' | 'json') => {
     const toExport = articles.filter(a => selected.includes(a.id));
     if (type === 'json') {
       const blob = new Blob([JSON.stringify(toExport, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'articles.json';
-      a.click();
-      URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href = url; a.download = 'articles.json'; a.click(); URL.revokeObjectURL(url);
     } else {
-      // CSV
       const header = ['id', 'titre', 'categorie', 'auteur', 'tags', 'image_url', 'audio_url', 'contenu'];
       const rows = toExport.map(a => [
-        a.id,
-        a.titre,
-        a.categorie,
-        a.auteur,
-        (a.tags || []).join(','),
-        a.image_url,
-        a.audio_url,
-        a.contenu?.replace(/\n/g, ' ')
+        a.id, a.titre, a.categorie, a.auteur, (a.tags || []).join(','), a.image_url, a.audio_url, a.contenu?.replace(/\n/g, ' ')
       ]);
       const csv = [header, ...rows].map(r => r.map(x => '"' + (x || '') + '"').join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'articles.csv';
-      a.click();
-      URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href = url; a.download = 'articles.csv'; a.click(); URL.revokeObjectURL(url);
     }
   };
 
@@ -253,28 +204,13 @@ const ArticleList: React.FC = () => {
     if (article) setSelectedDetailArticle(article);
   };
 
-  const handleBulkStatus = () => {
-    setBulkStatus('publie');
-    setBulkStatusOpen(true);
-  };
-
   const handleConfirmBulkStatus = async () => {
     setLoadingBulkStatus(true);
     const { error } = await supabase.from('articles').update({ statut: bulkStatus }).in('id', selected);
     setLoadingBulkStatus(false);
-    if (error) {
-      toast.error("Erreur lors du changement de statut");
-    } else {
-      toast.success("Statut mis à jour");
-      fetchArticles();
-      setSelected([]);
-    }
+    if (error) { toast.error("Erreur lors du changement de statut"); } 
+    else { toast.success("Statut mis à jour"); fetchArticles(); setSelected([]); }
     setBulkStatusOpen(false);
-  };
-
-  const handleBulkCategory = () => {
-    setBulkCategory('');
-    setBulkCategoryOpen(true);
   };
 
   const handleConfirmBulkCategory = async () => {
@@ -282,153 +218,123 @@ const ArticleList: React.FC = () => {
     setLoadingBulkCategory(true);
     const { error } = await supabase.from('articles').update({ categorie: bulkCategory }).in('id', selected);
     setLoadingBulkCategory(false);
-    if (error) {
-      toast.error("Erreur lors du changement de catégorie");
-    } else {
-      toast.success("Catégorie mise à jour");
-      fetchArticles();
-      setSelected([]);
-    }
+    if (error) { toast.error("Erreur lors du changement de catégorie"); } 
+    else { toast.success("Catégorie mise à jour"); fetchArticles(); setSelected([]); }
     setBulkCategoryOpen(false);
-  };
-
-  const handleBulkTag = () => {
-    setBulkTag('');
-    setBulkTagAction('add');
-    setBulkTagOpen(true);
   };
 
   const handleConfirmBulkTag = async () => {
     if (!bulkTag) return;
     setLoadingBulkTag(true);
-    // Récupère les articles sélectionnés
     const toUpdate = articles.filter(a => selected.includes(a.id));
-    // Prépare les nouvelles valeurs de tags
     const updates = toUpdate.map(a => {
       let tags = Array.isArray(a.tags) ? [...a.tags] : [];
-      if (bulkTagAction === 'add' && !tags.includes(bulkTag)) {
-        tags.push(bulkTag);
-      } else if (bulkTagAction === 'remove') {
-        tags = tags.filter(t => t !== bulkTag);
-      }
+      if (bulkTagAction === 'add' && !tags.includes(bulkTag)) { tags.push(bulkTag); } 
+      else if (bulkTagAction === 'remove') { tags = tags.filter(t => t !== bulkTag); }
       return { id: a.id, tags };
     });
-    // Met à jour chaque article (en bulk via upsert ou update)
     for (const u of updates) {
       await supabase.from('articles').update({ tags: u.tags }).eq('id', u.id);
     }
     setLoadingBulkTag(false);
     toast.success('Tags mis à jour');
-    fetchArticles();
-    setSelected([]);
-    setBulkTagOpen(false);
+    fetchArticles(); setSelected([]); setBulkTagOpen(false);
   };
 
   const allCategories = Array.from(new Set(articles.map(a => a.categorie).filter(Boolean)));
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold">Articles</h2>
-        <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+    <div className="text-[var(--text-primary)]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Articles</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Gérez tout votre contenu éditorial.</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
-            <MagnifyingGlassIcon className="w-5 h-5 absolute left-2 top-2.5 text-gray-400" />
+            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-2.5 text-[var(--text-muted)] border-r border-white/10 pr-1" />
             <input
               type="text"
               placeholder="Rechercher par titre ou tag..."
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
-              className="pl-9 pr-3 py-2 border rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="pl-11 pr-3 py-2 bg-white/5 border border-white/10 rounded-lg w-full focus:outline-none focus:border-[var(--accent)] text-sm transition-colors text-white placeholder-[var(--text-muted)]"
             />
           </div>
           <select
             value={categoryFilter}
             onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--accent)] text-sm transition-colors text-white appearance-none pr-8 cursor-pointer"
           >
-            <option value="">Toutes catégories</option>
+            <option value="" className="bg-[var(--bg-main)] text-white">Toutes catégories</option>
             {allCategories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat} value={cat} className="bg-[var(--bg-main)] text-white">{cat}</option>
             ))}
           </select>
-          {/* Filtre statut */}
           <select
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 font-poppins"
+            className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 focus:outline-none focus:border-[var(--accent)] text-sm transition-colors text-white appearance-none pr-8 cursor-pointer"
           >
-            <option value="">Tous statuts</option>
-            <option value="publie">Publié</option>
-            <option value="brouillon">Brouillon</option>
+            <option value="" className="bg-[var(--bg-main)] text-white">Tous statuts</option>
+            <option value="publie" className="bg-[var(--bg-main)] text-green-400">Publié</option>
+            <option value="brouillon" className="bg-[var(--bg-main)] text-yellow-400">Brouillon</option>
           </select>
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2 shadow"
+            className="bg-[var(--accent)] text-white px-5 py-2 rounded-lg hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[0_4px_16px_var(--accent-glow)] flex items-center gap-2 font-medium"
             onClick={handleAdd}
           >
-            <span className="text-lg font-bold">+</span> Ajouter un article
+            <span className="text-xl leading-none -mt-1">+</span> Créer un article
           </button>
         </div>
       </div>
-      {/* Bulk actions bar */}
+
       {selected.length > 0 && (
-        <div className="flex items-center gap-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-4 animate-fadeIn">
-          <span className="font-semibold">{selected.length} sélectionné(s)</span>
-          <button onClick={handleBulkDelete} className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">Supprimer</button>
-          <button onClick={handleBulkStatus} className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">Changer le statut</button>
-          <button onClick={handleBulkCategory} className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">Changer la catégorie</button>
-          <button onClick={handleBulkTag} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition">Ajouter/Retirer un tag</button>
-          <button onClick={() => exportArticles('csv')} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">Exporter CSV</button>
-          <button onClick={() => exportArticles('json')} className="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 transition">Exporter JSON</button>
-          <button onClick={() => setShowImageDebug(!showImageDebug)} className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition">
-            {showImageDebug ? 'Hide' : 'Debug'} Images
-          </button>
-          <button onClick={() => setSelected([])} className="ml-auto text-blue-600 underline">Tout désélectionner</button>
-        </div>
-      )}
-      
-      {/* Image Debug Section */}
-      {showImageDebug && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
-          <h3 className="text-lg font-bold mb-4">Image Debug - Articles avec problèmes d'images</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredArticles.slice(0, 6).map(article => (
-              <ArticleImageDebug key={article.id} article={article} />
-            ))}
-          </div>
+        <div className="flex items-center gap-3 bg-[var(--accent)]/10 border border-[var(--accent)]/20 rounded-xl px-4 py-3 mb-6 animate-fadeIn shadow-[0_4px_16px_rgba(0,0,0,0.2)] backdrop-blur-md">
+          <span className="font-semibold text-white bg-[var(--accent)] px-2 py-0.5 rounded text-sm">{selected.length}</span>
+          <span className="text-sm font-medium text-[var(--accent)]">sélectionné(s)</span>
+          <div className="h-6 w-px bg-white/10 mx-2"></div>
+          <button onClick={handleBulkDelete} className="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-md hover:bg-red-500 flex-1 hover:text-white transition-colors text-xs font-semibold">Supprimer</button>
+          <button onClick={handleBulkStatus} className="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-md hover:bg-blue-500 flex-1 hover:text-white transition-colors text-xs font-semibold">Statut</button>
+          <button onClick={handleBulkCategory} className="bg-purple-500/20 text-purple-400 border border-purple-500/30 px-3 py-1.5 rounded-md hover:bg-purple-500 flex-1 hover:text-white transition-colors text-xs font-semibold">Catégorie</button>
+          <button onClick={handleBulkTag} className="bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-3 py-1.5 rounded-md hover:bg-yellow-500 flex-1 hover:text-white transition-colors text-xs font-semibold">Tags</button>
+          <button onClick={() => exportArticles('csv')} className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5 rounded-md hover:bg-green-500 flex-1 hover:text-white transition-colors text-xs font-semibold">CSV</button>
+          
+          <button onClick={() => setSelected([])} className="ml-auto text-[var(--text-muted)] hover:text-white text-sm transition-colors">Désélectionner tout</button>
         </div>
       )}
       
       {loading ? (
-        <div className="flex flex-col items-center justify-center text-gray-500 py-12">
-          <svg className="animate-spin h-8 w-8 mb-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-          Chargement...
+        <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20">
+          <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+          Chargement des articles...
         </div>
       ) : error ? (
-        <div className="text-center text-red-500">{error}</div>
+        <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-lg border border-red-400/20">{error}</div>
       ) : filteredArticles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-gray-400 py-12">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 018 0v2m-4-4v4m0 0v4m0-4h4m-4 0H5" /></svg>
-          Aucun article pour le moment.
+        <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20 dark-card">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          <p className="text-lg font-medium">Aucun article trouvé.</p>
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 mb-2">
-            <input
-              type="checkbox"
-              checked={selectAll}
-              onChange={handleSelectAll}
-              className="w-4 h-4 accent-blue-600"
-              aria-label="Tout sélectionner"
-            />
-            <span className="text-sm text-gray-600">Tout sélectionner cette page</span>
+          <div className="flex items-center gap-2 mb-4 bg-white/5 p-2 rounded-lg border border-white/5 w-fit">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectAll}
+                onChange={handleSelectAll}
+                className="w-4 h-4 accent-[#ff184e]"
+                aria-label="Tout sélectionner"
+              />
+              <span className="text-sm font-medium text-[var(--text-secondary)]">Tout sélectionner page active</span>
+            </label>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6">
             {paginatedArticles.map(article => {
               const imageUrl = article.image_url || article.image;
-              console.log(`Passing to ArticleCard for "${article.titre}":`, {
-                image_url: imageUrl,
-                hasImageUrl: !!imageUrl
-              });
               return (
                 <ArticleCard
                   key={article.id}
@@ -449,42 +355,58 @@ const ArticleList: React.FC = () => {
               );
             })}
           </div>
-          {/* Pagination controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-2">
+          
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-8 pt-6 border-t border-white/10 gap-4">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1 rounded border bg-white disabled:opacity-50"
-              >Précédent</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(pn => (
-                <button
-                  key={pn}
-                  onClick={() => setPage(pn)}
-                  className={`px-3 py-1 rounded border ${pn === page ? 'bg-blue-600 text-white' : 'bg-white'}`}
-                >{pn}</button>
-              ))}
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1 rounded border bg-white disabled:opacity-50"
-              >Suivant</button>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Par page:</span>
+              <span className="text-sm text-[var(--text-muted)] mr-2">Afficher par page:</span>
               <select
                 value={pageSize}
                 onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-                className="border rounded px-2 py-1"
+                className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm focus:outline-none focus:border-[var(--accent)] cursor-pointer text-white appearance-none pr-6"
               >
                 {[8, 16, 32, 64].map(size => (
-                  <option key={size} value={size}>{size}</option>
+                  <option key={size} value={size} className="bg-[var(--bg-main)]">{size}</option>
                 ))}
               </select>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 disabled:opacity-30 hover:bg-white/10 transition-colors text-sm font-medium"
+              >
+                Précédent
+              </button>
+              
+              <div className="flex bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pn => (
+                  <button
+                    key={pn}
+                    onClick={() => setPage(pn)}
+                    className={`w-8 h-8 flex items-center justify-center text-sm font-medium transition-colors ${
+                      pn === page 
+                        ? 'bg-[var(--accent)] text-white shadow-[0_0_10px_var(--accent-glow)]' 
+                        : 'hover:bg-white/10 text-[var(--text-secondary)]'
+                    }`}
+                  >
+                    {pn}
+                  </button>
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 disabled:opacity-30 hover:bg-white/10 transition-colors text-sm font-medium"
+              >
+                Suivant
+              </button>
             </div>
           </div>
         </>
       )}
+
       {selectedDetailArticle && (
         <ArticleDetailModal
           article={selectedDetailArticle}
@@ -541,4 +463,4 @@ const ArticleList: React.FC = () => {
   );
 };
 
-export default ArticleList; 
+export default ArticleList;

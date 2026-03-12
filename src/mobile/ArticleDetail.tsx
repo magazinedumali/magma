@@ -3,7 +3,7 @@ import { useParams, Navigate, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SmallArticleCard from '@/components/SmallArticleCard';
-import { getArticleById, getRecentArticles } from '@/data/articles';
+
 import { Clock, Share2, Bookmark, Send, MessageCircle, X, Facebook, Twitter, Linkedin, Copy } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
 import CommentForm from '@/components/CommentForm';

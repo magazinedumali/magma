@@ -3,7 +3,7 @@ import { useParams, Navigate, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SmallArticleCard from '@/components/SmallArticleCard';
-import { getArticleById, getRecentArticles } from '@/data/articles';
+
 import { Clock } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
 import CommentForm from '@/components/CommentForm';
@@ -18,7 +18,6 @@ const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const recentArticles = getRecentArticles(5);
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [user, setUser] = useState<any>(null);
@@ -26,6 +25,29 @@ const ArticleDetail = () => {
   // Central state for comments (most recent first)
   const [comments, setComments] = useState<any[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
+
+  // Recent articles state
+  const [recentArticles, setRecentArticles] = useState<any[]>([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+
+  // Fetch recent articles from Supabase
+  useEffect(() => {
+    const fetchRecentArticles = async () => {
+      setLoadingRecent(true);
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('statut', 'publie')
+        .order('date_publication', { ascending: false })
+        .limit(6);
+      
+      if (data) {
+        setRecentArticles(data.map(mapArticleFromSupabase));
+      }
+      setLoadingRecent(false);
+    };
+    fetchRecentArticles();
+  }, []);
 
   // Fetch current user
   useEffect(() => {
@@ -438,19 +460,22 @@ const ArticleDetail = () => {
                 <div className="bg-gray-50 p-6 mb-8">
                   <h3 className="text-xl font-bold mb-4">{t('Articles récents')}</h3>
                   <div className="space-y-4">
-                    {recentArticles
-                      .filter(recent => (recent.slug || recent.id) && (recent.slug || recent.id) !== (article.slug || article.id))
-                      .slice(0, 4)
-                      .map(recent => (
-                        <SmallArticleCard
-                          key={recent.slug || recent.id}
-                          slug={recent.slug || recent.id}
-                          title={recent.title}
-                          image={recent.image}
-                          date={recent.date}
-                        />
-                      ))
-                    }
+                    {loadingRecent ? (
+                      <div className="text-gray-400">Chargement...</div>
+                    ) : (
+                      recentArticles
+                        .filter(recent => (recent.slug || recent.id) && (recent.slug || recent.id) !== (article.slug || article.id))
+                        .slice(0, 4)
+                        .map(recent => (
+                          <SmallArticleCard
+                            key={recent.slug || recent.id}
+                            slug={recent.slug || recent.id}
+                            title={recent.title}
+                            image={recent.image}
+                            date={recent.date}
+                          />
+                        ))
+                    )}
                   </div>
                 </div>
                 <div className="bg-gray-50 p-6">

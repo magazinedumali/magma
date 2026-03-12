@@ -21,27 +21,27 @@ const EditAlbumPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchAlbum = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('albums')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        setAlbum(data);
+        setTitle(data.title);
+        setDescription(data.description);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAlbum();
   }, [id]);
-
-  const fetchAlbum = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('albums')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      setAlbum(data);
-      setTitle(data.title);
-      setDescription(data.description);
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,25 +91,32 @@ const EditAlbumPage = () => {
   };
 
   if (loading) {
-    return <div style={{ padding: 32, textAlign: 'center' }}>Chargement...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20">
+        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+        Chargement de l'album...
+      </div>
+    );
   }
 
   if (!album) {
-    return <div style={{ padding: 32, textAlign: 'center' }}>Album non trouvé</div>;
+    return <div className="text-center text-red-400 py-10 text-lg">Album non trouvé</div>;
   }
 
   return (
-    <div style={{ padding: 32, fontFamily: 'Jost, sans-serif' }}>
-      <h2 style={{ marginBottom: 24 }}>Modifier l'album</h2>
-      {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
+    <div className="text-[var(--text-primary)] max-w-2xl mx-auto py-8">
+      <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-8">Modifier l'album</h2>
+      
+      {error && (
+        <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-xl border border-red-400/20 mb-8 animate-fadeIn">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: 600 }}>
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="title"
-            style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}
-          >
-            Titre
+      <form onSubmit={handleSubmit} className="dark-card flex flex-col gap-6">
+        <div>
+          <label htmlFor="title" className="block mb-2 font-medium text-[var(--text-secondary)]">
+            Titre de l'album
           </label>
           <input
             id="title"
@@ -117,21 +124,12 @@ const EditAlbumPage = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #e5e9f2',
-              borderRadius: 8,
-              fontSize: 16
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]"
           />
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="description"
-            style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}
-          >
+        <div>
+          <label htmlFor="description" className="block mb-2 font-medium text-[var(--text-secondary)]">
             Description
           </label>
           <textarea
@@ -139,82 +137,47 @@ const EditAlbumPage = () => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #e5e9f2',
-              borderRadius: 8,
-              fontSize: 16,
-              minHeight: 100,
-              resize: 'vertical'
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)] min-h-[120px] resize-y"
           />
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <label
-            htmlFor="cover"
-            style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}
-          >
+        <div>
+          <label htmlFor="cover" className="block mb-2 font-medium text-[var(--text-secondary)]">
             Image de couverture
           </label>
-          {album.cover_url && (
-            <img
-              src={album.cover_url}
-              alt="Cover preview"
-              style={{
-                width: '100%',
-                maxHeight: 200,
-                objectFit: 'cover',
-                borderRadius: 8,
-                marginBottom: 12
-              }}
-            />
+          
+          {album.cover_url && !coverFile && (
+            <div className="mb-4 relative rounded-xl overflow-hidden border border-white/10 w-full h-48">
+              <img
+                src={album.cover_url}
+                alt="Cover preview"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-xs backdrop-blur-sm">Image actuelle</div>
+            </div>
           )}
+          
           <input
             id="cover"
             type="file"
             accept="image/*"
             onChange={(e) => setCoverFile(e.target.files?.[0] || null)}
-            style={{
-              width: '100%',
-              padding: 12,
-              border: '1px solid #e5e9f2',
-              borderRadius: 8,
-              fontSize: 16
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="flex gap-4 mt-4">
           <button
             type="button"
             onClick={() => navigate('/admin/albums')}
-            style={{
-              padding: '12px 24px',
-              background: '#e5e9f2',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 16,
-              cursor: 'pointer',
-              flex: 1
-            }}
+            className="flex-1 bg-white/5 border border-white/10 text-[var(--text-primary)] px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-semibold"
           >
             Annuler
           </button>
           <button
             type="submit"
             disabled={saving}
-            style={{
-              padding: '12px 24px',
-              background: '#4f8cff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 16,
-              cursor: 'pointer',
-              flex: 1
-            }}
+            className="flex-1 bg-[var(--accent)] text-white px-6 py-3 rounded-xl hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[0_4px_16px_var(--accent-glow)] font-semibold"
           >
             {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>
@@ -224,4 +187,4 @@ const EditAlbumPage = () => {
   );
 };
 
-export default EditAlbumPage; 
+export default EditAlbumPage;

@@ -7,12 +7,7 @@ import ArticleCard from '@/components/ArticleCard';
 import SmallArticleCard from '@/components/SmallArticleCard';
 import MostReadingSection from '@/components/MostReadingSection';
 import PublishedVideoSection, { Video } from '@/components/PublishedVideoSection';
-import { 
-  articles, 
-  getFeaturedArticles, 
-  getTrendingArticles,
-  getArticlesByCategory
-} from '@/data/articles';
+
 import Banner from '@/components/Banner';
 import { Button } from '@/components/ui/button';
 import Poll from '@/components/Poll';
@@ -31,9 +26,6 @@ const SECTION_TITLES = {
 };
 
 const Index = () => {
-  const featuredArticles = getFeaturedArticles();
-  const trendingArticles = getTrendingArticles(5);
-  
   // Remplacement de la logique statique pour la section Technologie
   const [technologyArticles, setTechnologyArticles] = useState<any[]>([]);
   const [loadingTech, setLoadingTech] = useState(true);
@@ -43,8 +35,6 @@ const Index = () => {
   const [businessArticles, setBusinessArticles] = useState<any[]>([]);
   const [loadingBusiness, setLoadingBusiness] = useState(true);
   const [errorBusiness, setErrorBusiness] = useState<string | null>(null);
-
-  const entertainmentArticles = getArticlesByCategory('Entertainment').slice(0, 1);
   
   useEffect(() => {
     const fetchBusinessArticles = async () => {
@@ -187,6 +177,43 @@ const Index = () => {
   }, []);
 
   const mappedRecentArticles = mapArticlesFromSupabase(recentArticles || []);
+
+  // --- Section Additional dynamique (News, Travel, Entertainment) ---
+  const [additionalData, setAdditionalData] = useState({
+    selectedNews: [] as any[],
+    travelBlogs: [] as any[],
+    entertainmentArts: [] as any[]
+  });
+  const [loadingAdditional, setLoadingAdditional] = useState(true);
+
+  useEffect(() => {
+    const fetchAdditional = async () => {
+      setLoadingAdditional(true);
+      const [ resNews, resTravel, resEnt ] = await Promise.all([
+        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', '%Actualit%').order('date_publication', { ascending: false }).limit(3),
+        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', 'Voyage').order('date_publication', { ascending: false }).limit(3),
+        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', 'Divertissement').order('date_publication', { ascending: false }).limit(1)
+      ]);
+      setAdditionalData({
+        selectedNews: resNews.data || [],
+        travelBlogs: resTravel.data || [],
+        entertainmentArts: resEnt.data || []
+      });
+      setLoadingAdditional(false);
+    };
+    fetchAdditional();
+  }, []);
+
+  const mappedEntertainmentArts = additionalData.entertainmentArts.map(a => ({
+    id: a.id,
+    slug: a.slug || a.id,
+    title: a.titre,
+    excerpt: a.meta_description || '',
+    image: a.image_url,
+    category: a.categorie || 'Divertissement',
+    date: a.date_publication,
+    author: a.auteur,
+  }));
   
   return (
     <div>
@@ -215,49 +242,27 @@ const Index = () => {
               <div>
                 <h2 className="text-2xl font-jost font-bold mb-4" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.selectedNews}</h2>
                 <div className="space-y-6">
-                  {[{
-                    category: 'Fashion',
-                    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9',
-                    date: 'Jun 14, 2022',
-                    title: 'Your customers care about. For example, as and',
-                    author: 'Magezix',
-                    read: '3 min read',
-                  }, {
-                    category: 'Business',
-                    image: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2',
-                    date: 'Jun 14, 2022',
-                    title: 'Marketing agency, some of our content clusters are',
-                    author: 'Magezix',
-                    read: '3 min read',
-                  }, {
-                    category: 'Business',
-                    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
-                    date: 'Jun 14, 2022',
-                    title: "It's good for SEO to create content clusters around",
-                    author: 'Magezix',
-                    read: '3 min read',
-                  }].map((item, idx) => (
-                    <div key={idx} className="flex gap-4 items-start">
+                  {loadingAdditional && <div>Chargement...</div>}
+                  {!loadingAdditional && additionalData.selectedNews.length === 0 && <div>Aucun article.</div>}
+                  {!loadingAdditional && additionalData.selectedNews.map((item, idx) => (
+                    <div key={idx} className="flex gap-4 items-start cursor-pointer hover:bg-gray-50 p-2 -ml-2 rounded transition-colors" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
                       <div className="relative min-w-[140px] w-[140px] h-[90px] rounded-lg overflow-hidden">
                         <img 
-                          src={item.image} 
-                          alt={item.title} 
+                          src={item.image_url || '/placeholder.svg'} 
+                          alt={item.titre} 
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder.svg';
                           }}
                           loading="lazy"
                         />
-                        <span className={`absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold ${item.category === 'Fashion' ? 'bg-pink-600' : 'bg-red-600'}`}>{item.category}</span>
+                        <span className={`absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold ${item.categorie === 'Mode' || item.categorie === 'Fashion' ? 'bg-pink-600' : 'bg-red-600'}`}>{item.categorie || 'Actualités'}</span>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center text-gray-500 text-sm mb-1">
-                          <span className="mr-2">📅 {item.date}</span>
+                          <span className="mr-2">📅 {new Date(item.date_publication).toLocaleDateString()}</span>
                         </div>
-                        <h3 className="font-bold text-lg font-jost mb-2">{item.title}</h3>
-                        <div className="flex items-center text-gray-500 text-xs font-roboto">
-                          {/* Removed author avatar, name, and read time */}
-                        </div>
+                        <h3 className="font-bold text-lg font-jost mb-2 line-clamp-2">{item.titre}</h3>
                       </div>
                     </div>
                   ))}
@@ -267,49 +272,27 @@ const Index = () => {
               <div>
                 <h2 className="text-2xl font-jost font-bold mb-4" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.travelBlogs}</h2>
                 <div className="space-y-6">
-                  {[{
-                    category: 'Travel',
-                    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-                    date: 'Jun 09, 2022',
-                    title: 'The heart of inbound marketing helping',
-                    author: 'Magezix',
-                    read: '3 min read',
-                  }, {
-                    category: 'Travel',
-                    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
-                    date: 'Jun 09, 2022',
-                    title: 'Inbound marketing is a marketing approach',
-                    author: 'Magezix',
-                    read: '3 min read',
-                  }, {
-                    category: 'Travel',
-                    image: 'https://images.unsplash.com/photo-1503676382389-4809596d5290',
-                    date: 'Jun 09, 2022',
-                    title: 'How To Organize And Write Content For',
-                    author: 'Magezix',
-                    read: '3 min read',
-                  }].map((item, idx) => (
-                    <div key={idx} className="flex gap-4 items-start">
+                  {loadingAdditional && <div>Chargement...</div>}
+                  {!loadingAdditional && additionalData.travelBlogs.length === 0 && <div>Aucun article.</div>}
+                  {!loadingAdditional && additionalData.travelBlogs.map((item, idx) => (
+                    <div key={idx} className="flex gap-4 items-start cursor-pointer hover:bg-gray-50 p-2 -ml-2 rounded transition-colors" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
                       <div className="relative min-w-[140px] w-[140px] h-[90px] rounded-lg overflow-hidden">
                         <img 
-                          src={item.image} 
-                          alt={item.title} 
+                          src={item.image_url || '/placeholder.svg'} 
+                          alt={item.titre} 
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder.svg';
                           }}
                           loading="lazy"
                         />
-                        <span className="absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold bg-lime-600">{item.category}</span>
+                        <span className="absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold bg-lime-600">{item.categorie || 'Voyage'}</span>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center text-gray-500 text-sm mb-1">
-                          <span className="mr-2">📅 {item.date}</span>
+                          <span className="mr-2">📅 {new Date(item.date_publication).toLocaleDateString()}</span>
                         </div>
-                        <h3 className="font-bold text-lg font-jost mb-2">{item.title}</h3>
-                        <div className="flex items-center text-gray-500 text-xs font-roboto">
-                          {/* Removed author avatar, name, and read time */}
-                        </div>
+                        <h3 className="font-bold text-lg font-jost mb-2 line-clamp-2">{item.titre}</h3>
                       </div>
                     </div>
                   ))}
@@ -399,7 +382,9 @@ const Index = () => {
               {/* Entertainment Section */}
               <div>
                 <h2 className="section-title">{SECTION_TITLES.entertainment}</h2>
-                {entertainmentArticles.map((article) => (
+                {loadingAdditional && <div>Chargement...</div>}
+                {!loadingAdditional && mappedEntertainmentArts.length === 0 && <div>Aucun article.</div>}
+                {!loadingAdditional && mappedEntertainmentArts.map((article) => (
                   <ArticleCard
                     key={article.id}
                     slug={article.slug || article.id.toString()}

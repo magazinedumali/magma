@@ -18,36 +18,41 @@ const ConfirmBulkStatusModal: React.FC<ConfirmBulkStatusModalProps> = ({ open, c
   return (
     <Dialog.Root open={open} onOpenChange={open => { if (!open) onCancel(); }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50 animate-fadeIn" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl p-0 max-w-md w-full animate-modalIn">
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-lg font-bold truncate">Changer le statut de {count} article(s)</h2>
-            <button onClick={onCancel} className="p-2 rounded hover:bg-gray-100 transition" title="Fermer">
-              <XMarkIcon className="w-5 h-5 text-gray-600" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-2xl p-0 max-w-md w-full animate-modalIn text-[var(--text-primary)]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5">
+            <h2 className="text-xl font-bold truncate">Changer le statut</h2>
+            <button onClick={onCancel} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-[var(--text-muted)] hover:text-white" title="Fermer">
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
-          <div className="px-6 py-6 flex flex-col gap-4 items-center text-center">
-            <ArrowPathIcon className="w-12 h-12 text-blue-500 mb-2" />
-            <div className="font-semibold text-blue-700">Sélectionnez le nouveau statut</div>
+          <div className="px-6 py-8 flex flex-col items-center text-center">
+            <div className="bg-green-500/10 p-4 rounded-full mb-4">
+              <ArrowPathIcon className="w-10 h-10 text-green-400" />
+            </div>
+            
+            <h3 className="text-lg font-semibold mb-2">Sélectionnez le nouveau statut pour {count} article(s)</h3>
+            
             <select
               value={statut}
               onChange={e => setStatut(e.target.value)}
-              className="border rounded px-4 py-2 mt-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full px-4 py-3 bg-black/30 border border-[var(--border)] rounded-xl text-white focus:outline-none focus:border-green-500 transition-colors appearance-none mt-4"
               disabled={loading}
             >
-              <option value="publie">Publié</option>
-              <option value="brouillon">Brouillon</option>
+              <option value="publie" className="bg-[var(--bg-main)] text-green-400">Publié</option>
+              <option value="brouillon" className="bg-[var(--bg-main)] text-yellow-400">Brouillon</option>
             </select>
-            <div className="text-sm text-gray-500 mt-2">Tous les articles sélectionnés auront ce statut.</div>
-            <div className="flex gap-4 mt-4 justify-center">
+            <p className="text-sm text-[var(--text-muted)] mt-4">Tous les articles sélectionnés auront ce statut.</p>
+            
+            <div className="flex gap-3 mt-8 w-full">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors font-semibold"
                 disabled={loading}
               >Annuler</button>
               <button
                 onClick={onConfirm}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition font-semibold"
+                className="flex-1 px-4 py-3 rounded-xl bg-green-600 text-white hover:brightness-110 shadow-[0_4px_16px_rgba(34,197,94,0.3)] transition-all font-semibold"
                 disabled={loading}
               >{loading ? 'Mise à jour...' : 'Valider'}</button>
             </div>
@@ -58,4 +63,4 @@ const ConfirmBulkStatusModal: React.FC<ConfirmBulkStatusModalProps> = ({ open, c
   );
 };
 
-export default ConfirmBulkStatusModal; 
+export default ConfirmBulkStatusModal;

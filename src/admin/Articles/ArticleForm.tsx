@@ -286,28 +286,28 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   }, [articleId, reset]);
 
   return (
-    <div className="flex w-full min-h-screen bg-gray-50">
+    <div className="flex w-full min-h-screen">
       {/* Loader central lors du chargement de l'article */}
       {loadingArticle && (
-        <div className="fixed inset-0 flex items-center justify-center bg-white/70 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md z-50">
           <div className="flex flex-col items-center gap-2">
-            <svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-            <span className="text-blue-700 font-semibold">Chargement de l'article...</span>
+            <svg className="animate-spin h-10 w-10 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+            <span className="text-[var(--text-primary)] font-semibold">Chargement de l'article...</span>
           </div>
         </div>
       )}
       {/* Confirmation visuelle après enregistrement */}
       {showConfirmation && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fadeIn">
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-500/90 backdrop-blur-md border border-green-400 text-white px-6 py-3 rounded-xl shadow-[0_4px_24px_rgba(34,197,94,0.3)] z-50 animate-fadeIn font-medium">
           ✅ {articleId && articleId !== 'new' ? 'Article mis à jour!' : 'Article créé!'}
         </div>
       )}
       {/* Zone centrale */}
-      <form className="flex-1 max-w-5xl mx-auto w-full bg-white my-8 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+      <form className="flex-1 max-w-5xl mx-auto w-full my-8 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
         <input
           {...register('titre', { required: true })}
-          className="w-full mb-4 px-3 py-2 border border-[#e5e9f2] rounded-[6px] font-sans text-lg focus:outline-none focus:ring-2 focus:ring-blue-200 placeholder-gray-400"
-          placeholder="Titre"
+          className="w-full mb-6 px-4 py-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] font-sans text-xl font-bold focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-glow)] transition-colors placeholder-[var(--text-muted)]"
+          placeholder="Titre de l'article"
           disabled={uploading || loadingArticle}
         />
         <Controller
@@ -365,46 +365,46 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
         />
         {/* BOUTON CREER/ENREGISTRER EN BAS DU FORM */}
         <div className="flex gap-4 justify-end mt-8">
-          <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition" disabled={uploading || loadingArticle}>
+          <button type="submit" className="bg-[var(--accent)] text-white px-8 py-3 rounded-xl hover:brightness-110 font-semibold transition-all shadow-[0_4px_16px_var(--accent-glow)] hover:-translate-y-0.5" disabled={uploading || loadingArticle}>
             {uploading ? 'Enregistrement...' : (articleId ? 'Enregistrer' : 'Créer')}
           </button>
-          <button type="button" className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400 transition" onClick={() => navigate(getArticlesPath())} disabled={uploading || loadingArticle}>
+          <button type="button" className="bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] px-8 py-3 rounded-xl hover:bg-white/10 font-semibold transition-all" onClick={() => navigate(getArticlesPath())} disabled={uploading || loadingArticle}>
             Annuler
           </button>
         </div>
       </form>
       {/* Sidebar options à droite */}
-      <aside className="w-72 flex-shrink-0 sticky top-8 ml-8 space-y-6 hidden lg:block">
+      <aside className="w-80 flex-shrink-0 sticky top-8 ml-8 space-y-6 hidden lg:block">
         {/* Bloc sauvegarde/statut */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('publication')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('publication')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>Publication</span>
             <span className={`transition-transform ${openBlock.publication ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.publication ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.publication ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
             <Controller
               control={control}
               name="statut"
               render={({ field }) => (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Statut de l'article</label>
-                  <select {...field} className="input input-bordered w-full">
-                    <option value="brouillon">Brouillon</option>
-                    <option value="publie">Publié</option>
+                  <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">Statut de l'article</label>
+                  <select {...field} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors">
+                    <option value="brouillon" className="bg-[var(--bg-main)]">Brouillon</option>
+                    <option value="publie" className="bg-[var(--bg-main)]">Publié</option>
                   </select>
                   {field.value === 'publie' && (
-                    <p className="text-xs text-gray-600 mt-2">
+                    <p className="text-xs text-[var(--text-muted)] mt-2 italic">
                       💡 Si aucune date n'est spécifiée, la date d'aujourd'hui sera utilisée automatiquement
                     </p>
                   )}
                 </div>
               )}
             />
-            <div className="mt-4">
-              <label className="block text-sm font-medium mb-1">
+            <div className="mt-5">
+              <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
                 Date de publication
                 {watch('statut') === 'publie' && (
-                  <span className="text-red-500 ml-1">*</span>
+                  <span className="text-[var(--accent)] ml-1">*</span>
                 )}
               </label>
               <Controller
@@ -413,7 +413,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 render={({ field }) => (
                   <input 
                     type="date" 
-                    className="input input-bordered w-full" 
+                    className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors" 
                     {...field}
                     value={field.value || ''}
                     placeholder={watch('statut') === 'publie' ? 'Date automatique si vide' : 'Optionnel pour les brouillons'}
@@ -421,7 +421,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 )}
               />
               {watch('statut') === 'publie' && !watch('date_publication') && (
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-[var(--accent-blue)] mt-2">
                   ⏰ La date d'aujourd'hui sera utilisée lors de l'enregistrement
                 </p>
               )}
@@ -429,15 +429,15 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           </div>
         </div>
         {/* Bloc image principale */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('image')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('image')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>Image principale</span>
-            <span className={`transition-transform ${openBlock.image ? 'rotate-90' : ''}`}>▶</span>
+            <span className={`transition-transform text-[var(--text-muted)] ${openBlock.image ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.image ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.image ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
             {/* Hidden input to ensure image_url is registered with the form */}
             <input type="hidden" {...register('image_url')} />
-            <div {...getRootImageProps()} className={`border-2 border-dashed rounded p-4 text-center cursor-pointer ${isDragImageActive ? 'bg-blue-50' : ''}`}>
+            <div {...getRootImageProps()} className={`border border-dashed border-[var(--border)] hover:border-[var(--accent)] transition-colors rounded-xl p-6 text-center cursor-pointer bg-black/20 hover:bg-black/40 ${isDragImageActive ? 'border-[var(--accent)] bg-black/40' : ''}`}>
               <input {...getInputImageProps()} />
               {(() => {
                 const imageUrl = watch('image_url');
@@ -468,50 +468,51 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           </div>
         </div>
         {/* Bloc galerie d'images */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('gallery')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('gallery')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>Galerie d'images</span>
-            <span className={`transition-transform ${openBlock.gallery ? 'rotate-90' : ''}`}>▶</span>
+            <span className={`transition-transform text-[var(--text-muted)] ${openBlock.gallery ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.gallery ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>
-            <div {...getRootGalleryProps()} className={`border-2 border-dashed rounded p-4 text-center cursor-pointer ${isDragGalleryActive ? 'bg-blue-50' : ''}`}>
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.gallery ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
+            <div {...getRootGalleryProps()} className={`border border-dashed border-[var(--border)] hover:border-[var(--accent)] transition-colors rounded-xl p-6 text-center cursor-pointer bg-black/20 hover:bg-black/40 ${isDragGalleryActive ? 'border-[var(--accent)] bg-black/40' : ''}`}>
               <input {...getInputGalleryProps()} />
               {gallery.length > 0 ? (
                 <div className="flex flex-wrap gap-3 justify-center">
                   {gallery.map((img: string, idx: number) => (
                     <div key={idx} className="relative group">
-                      <img src={img} alt={`galerie-${idx}`} className="h-16 w-16 object-cover rounded shadow" />
-                      <button type="button" onClick={() => removeGalleryImage(img)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 group-hover:opacity-100 transition text-xs">&times;</button>
+                      <img src={img} alt={`galerie-${idx}`} className="h-16 w-16 object-cover rounded-lg shadow-md border border-[var(--border)]" />
+                      <button type="button" onClick={(e) => { e.stopPropagation(); removeGalleryImage(img); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 group-hover:opacity-100 transition text-xs shadow-lg">&times;</button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <span>Glissez-déposez plusieurs images pour la galerie (max 5)</span>
+                <span className="text-[var(--text-muted)] text-sm">Glissez-déposez plusieurs images pour la galerie (max 5)</span>
               )}
             </div>
           </div>
         </div>
         {/* Bloc audio */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('audio')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('audio')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>Fichier audio</span>
-            <span className={`transition-transform ${openBlock.audio ? 'rotate-90' : ''}`}>▶</span>
+            <span className={`transition-transform text-[var(--text-muted)] ${openBlock.audio ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.audio ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>
-      <div {...getRootAudioProps()} className={`border-2 border-dashed rounded p-4 text-center cursor-pointer ${isDragAudioActive ? 'bg-blue-50' : ''}`}>
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.audio ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
+      <div {...getRootAudioProps()} className={`border border-dashed border-[var(--border)] hover:border-[var(--accent)] transition-colors rounded-xl p-6 text-center cursor-pointer bg-black/20 hover:bg-black/40 ${isDragAudioActive ? 'border-[var(--accent)] bg-black/40' : ''}`}>
         <input {...getInputAudioProps()} />
         {watch('audio_url') ? (
           <div className="relative inline-block w-full">
-            <audio controls src={watch('audio_url')} className="mx-auto w-full mt-2 rounded" />
+            <audio controls src={watch('audio_url')} className="mx-auto w-full mt-2 rounded-lg opacity-80" />
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (window.confirm("Êtes-vous sûr de vouloir supprimer cet audio ?")) {
                   setValue('audio_url', '');
                   toast.success("Audio supprimé");
                 }
               }}
-              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700 transition z-10"
+              className="absolute -top-3 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg hover:bg-red-700 transition z-10"
               title="Supprimer l'audio"
               disabled={uploading || loadingArticle}
             >
@@ -519,68 +520,69 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             </button>
           </div>
         ) : (
-          <span>Glissez-déposez un fichier audio ou cliquez ici</span>
+          <span className="text-[var(--text-muted)] text-sm">Glissez-déposez un fichier audio ou cliquez ici</span>
         )}
       </div>
           </div>
         </div>
         {/* Bloc SEO */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('seo')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('seo')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>SEO</span>
-            <span className={`transition-transform ${openBlock.seo ? 'rotate-90' : ''}`}>▶</span>
+            <span className={`transition-transform text-[var(--text-muted)] ${openBlock.seo ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.seo ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}> 
-            <input {...register('meta_title')} className="input input-bordered w-full" placeholder="Meta Title (SEO)" maxLength={60} />
-            <textarea {...register('meta_description')} className="input input-bordered w-full min-h-[60px]" placeholder="Meta Description (SEO)" maxLength={160} />
-            <input {...register('share_image_url')} className="input input-bordered w-full mt-4" placeholder="Image de partage (URL)" />
-            <textarea {...register('share_description')} className="input input-bordered w-full min-h-[60px] mt-2" placeholder="Description de partage (pour réseaux sociaux)" maxLength={200} />
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.seo ? 'max-h-96 p-5 border-t border-[var(--border)] flex flex-col gap-4' : 'max-h-0 p-0'}`}> 
+            <input {...register('meta_title')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]" placeholder="Meta Title (SEO)" maxLength={60} />
+            <textarea {...register('meta_description')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)] min-h-[80px] resize-y" placeholder="Meta Description (SEO)" maxLength={160} />
+            <input {...register('share_image_url')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]" placeholder="Image de partage (URL)" />
+            <textarea {...register('share_description')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)] min-h-[80px] resize-y" placeholder="Description de partage (pour réseaux sociaux)" maxLength={200} />
           </div>
         </div>
         {/* Bloc catégorie et auteur */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('meta')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('meta')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>Catégorie & Auteur</span>
-            <span className={`transition-transform ${openBlock.meta ? 'rotate-90' : ''}`}>▶</span>
+            <span className={`transition-transform text-[var(--text-muted)] ${openBlock.meta ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.meta ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>  
-            <label className="block text-gray-700 font-bold mb-2">Catégorie</label>
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.meta ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>  
+            <label className="block text-[var(--text-secondary)] font-medium mb-2 text-sm">Catégorie</label>
             {loadingCategories ? (
-              <div className="text-gray-400">Chargement…</div>
+              <div className="text-[var(--text-muted)]">Chargement…</div>
             ) : (
-              <select {...register('categorie')} className="input input-bordered w-full mb-4">
-                <option value="">Sélectionner une catégorie</option>
+              <select {...register('categorie')} className="w-full mb-4 px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none">
+                <option value="" className="bg-[var(--bg-main)]">Sélectionner une catégorie</option>
                 {categories.map((cat: any) => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  <option key={cat.id} value={cat.name} className="bg-[var(--bg-main)]">{cat.name}</option>
                 ))}
               </select>
             )}
-            <input {...register('auteur', { required: true })} className="input input-bordered w-full" placeholder="Auteur" />
+            <label className="block text-[var(--text-secondary)] font-medium mb-2 text-sm mt-4">Auteur</label>
+            <input {...register('auteur', { required: true })} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]" placeholder="Nom de l'auteur" />
           </div>
         </div>
         {/* Bloc tags */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl shadow-none">
-          <button type="button" onClick={() => toggleBlock('tags')} className="w-full flex items-center justify-between px-4 py-3 font-semibold focus:outline-none">
+        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
+          <button type="button" onClick={() => toggleBlock('tags')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
             <span>Tags</span>
-            <span className={`transition-transform ${openBlock.tags ? 'rotate-90' : ''}`}>▶</span>
+            <span className={`transition-transform text-[var(--text-muted)] ${openBlock.tags ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.tags ? 'max-h-96 p-4' : 'max-h-0 p-0'}`}>  
-        <div className="flex gap-2 mb-2">
+          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.tags ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>  
+        <div className="flex gap-2 mb-4">
           <input
             type="text"
             value={tagInput}
             onChange={e => setTagInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' ? (e.preventDefault(), addTag()) : undefined}
-            className="input input-bordered flex-1"
-            placeholder="Ajouter un tag"
+            className="w-full flex-1 px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]"
+            placeholder="Nouveau tag"
           />
-          <button type="button" onClick={addTag} className="bg-blue-600 text-white px-3 py-1 rounded">Ajouter</button>
+          <button type="button" onClick={addTag} className="bg-[var(--accent)] text-white px-4 py-2 rounded-lg font-medium hover:brightness-110 shadow-[0_2px_8px_var(--accent-glow)] transition-all">Ajouter</button>
         </div>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag: string, idx: number) => (
-            <span key={idx} className="bg-gray-200 px-2 py-1 rounded text-xs flex items-center gap-1">
+            <span key={idx} className="bg-white/10 border border-white/5 px-2.5 py-1 rounded-md text-xs font-medium text-[var(--text-primary)] flex items-center gap-1.5 shadow-sm">
               #{tag}
-              <button type="button" onClick={() => removeTag(tag)} className="text-red-500 ml-1">&times;</button>
+              <button type="button" onClick={() => removeTag(tag)} className="text-[var(--accent)] hover:text-white transition-colors ml-0.5">&times;</button>
             </span>
           ))}
         </div>

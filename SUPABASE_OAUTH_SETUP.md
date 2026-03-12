@@ -100,3 +100,4 @@ Le code de l'application détecte automatiquement l'environnement :
 
 Cette détection se fait dans `src/lib/authHelpers.ts` via la fonction `getOAuthRedirectUrl()`.
 
+

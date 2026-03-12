@@ -17,42 +17,52 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ article, open, 
   return (
     <Dialog.Root open={open} onOpenChange={open => { if (!open) onCancel(); }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50 animate-fadeIn" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl p-0 max-w-md w-full animate-modalIn">
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-lg font-bold truncate" title={article.titre}>Supprimer l'article</h2>
-            <button onClick={onCancel} className="p-2 rounded hover:bg-gray-100 transition" title="Fermer">
-              <XMarkIcon className="w-5 h-5 text-gray-600" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-2xl p-0 max-w-md w-full animate-modalIn text-[var(--text-primary)]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5">
+            <h2 className="text-xl font-bold truncate">Supprimer l'article</h2>
+            <button onClick={onCancel} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-[var(--text-muted)] hover:text-white" title="Fermer">
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
-          <div className="px-6 py-6 flex flex-col gap-4 items-center text-center">
-            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mb-2" />
-            <div className="font-semibold text-red-700">Cette action est irréversible !</div>
-            {article.image_url && (
-              <img 
-                src={article.image_url} 
-                alt={article.titre} 
-                className="w-32 h-20 object-cover rounded mx-auto"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
-                loading="lazy"
-              />
-            )}
-            <div className="text-lg font-bold">{article.titre}</div>
-            {article.statut && (
-              <span className={`px-2 py-1 rounded font-semibold text-xs ${article.statut === 'publie' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{article.statut === 'publie' ? 'Publié' : 'Brouillon'}</span>
-            )}
-            <div className="text-sm text-gray-500 mt-2">Voulez-vous vraiment supprimer cet article ?</div>
-            <div className="flex gap-4 mt-4 justify-center">
+          <div className="px-6 py-8 flex flex-col items-center text-center">
+            <div className="bg-red-500/10 p-4 rounded-full mb-4">
+              <ExclamationTriangleIcon className="w-10 h-10 text-red-500" />
+            </div>
+            
+            <div className="font-semibold text-red-400 bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/20 w-fit mb-6">Cette action est irréversible !</div>
+            
+            <div className="bg-black/30 w-full border border-white/5 rounded-xl p-3 flex flex-col items-center justify-center mb-2">
+              {article.image_url ? (
+                <img 
+                  src={article.image_url} 
+                  alt={article.titre} 
+                  className="w-full h-32 object-cover rounded-lg border border-white/10 mb-3"
+                  onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-32 bg-white/5 rounded-lg border border-white/5 flex items-center justify-center text-3xl mb-3">📷</div>
+              )}
+              <h3 className="text-lg font-bold px-2 line-clamp-2">{article.titre}</h3>
+              {article.statut && (
+                <span className={`px-2.5 py-1 rounded font-bold text-xs mt-2 ${article.statut === 'publie' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  {article.statut === 'publie' ? 'Publié' : 'Brouillon'}
+                </span>
+              )}
+            </div>
+            
+            <p className="text-sm text-[var(--text-muted)] mt-4">Voulez-vous vraiment supprimer cet article ?</p>
+            
+            <div className="flex gap-3 mt-6 w-full">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors font-semibold"
                 disabled={loading}
               >Annuler</button>
               <button
                 onClick={onConfirm}
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition font-semibold"
+                className="flex-1 px-4 py-3 rounded-xl bg-red-500 text-white hover:brightness-110 shadow-[0_4px_16px_rgba(239,68,68,0.3)] transition-all font-semibold"
                 disabled={loading}
               >{loading ? 'Suppression...' : 'Supprimer définitivement'}</button>
             </div>
@@ -63,4 +73,4 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ article, open, 
   );
 };
 
-export default ConfirmDeleteModal; 
+export default ConfirmDeleteModal;

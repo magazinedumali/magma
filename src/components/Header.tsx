@@ -23,25 +23,10 @@ import { useTranslation } from 'react-i18next';
 import { getUserAvatar } from '@/lib/userHelper';
 import MainNavigation from './header/MainNavigation';
 import HeaderLogo from './header/HeaderLogo';
-
-export const categories = [
-  { name: 'Actualités', path: '/category/actualites' },
-  { name: 'International', path: '/category/international' },
-  { name: 'Économie', path: '/category/business' },
-  { name: 'Éducation', path: '/category/education' },
-  { name: 'Société', path: '/category/societe' },
-  { name: 'Santé', path: '/category/sante' },
-  { name: 'Sport', path: '/category/sport' },
-  { name: 'Mode', path: '/category/fashion' },
-  { name: 'Alimentation', path: '/category/food' },
-  { name: 'Art de vivre', path: '/category/lifestyle' },
-  { name: 'Politique', path: '/category/politics' },
-  { name: 'Actualité Tech', path: '/category/tech' },
-  { name: 'Voyage', path: '/category/travel' },
-  { name: 'Divertissement', path: '/category/entertainment' },
-];
+import { useCategories } from '@/hooks/useCategories';
 
 const Header = () => {
+  const { categories } = useCategories();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [currentArticleTitle, setCurrentArticleTitle] = useState("");

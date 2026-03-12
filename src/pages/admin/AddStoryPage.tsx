@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useAdminContext } from '@/hooks/use-admin-context';
+import { UploadCloud } from 'lucide-react';
 
 const AddStoryPage = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const AddStoryPage = () => {
       // Upload image
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('stories')
         .upload(fileName, imageFile);
 
@@ -58,76 +59,63 @@ const AddStoryPage = () => {
   };
 
   return (
-    <div style={{ padding: 32, fontFamily: 'Jost, sans-serif' }}>
-      <h2 style={{ marginBottom: 24 }}>Ajouter une story</h2>
-      {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
+    <div className="text-[var(--text-primary)] max-w-2xl mx-auto py-8">
+      <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-8">Ajouter une story</h2>
+      
+      {error && (
+        <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-xl border border-red-400/20 mb-8 animate-fadeIn">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: 600 }}>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 8 }}>Titre</label>
+      <form onSubmit={handleSubmit} className="dark-card flex flex-col gap-6">
+        <div>
+          <label className="block mb-2 font-medium text-[var(--text-secondary)]">Titre de la story</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 6,
-              border: '1px solid #e5e9f2',
-              fontSize: 16
-            }}
+            className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]"
+            placeholder="Titre accrocheur..."
           />
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <label style={{ display: 'block', marginBottom: 8 }}>Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            required
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 6,
-              border: '1px solid #e5e9f2',
-              fontSize: 16
-            }}
-          />
+        <div>
+           <label className="block mb-2 font-medium text-[var(--text-secondary)]">Image (Format vertical recommandé)</label>
+           <div className="w-full border-2 border-dashed border-white/10 rounded-xl bg-black/20 hover:bg-black/40 hover:border-white/20 transition-all duration-300 flex flex-col items-center justify-center py-10 relative">
+              <UploadCloud className="w-10 h-10 mb-3 text-white/40" />
+              <div className="text-sm font-semibold mb-1 text-[var(--text-primary)]">Sélectionner une image</div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                required
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              {imageFile && (
+                <div className="mt-4 text-[var(--accent)] font-medium text-sm bg-[var(--accent)]/10 px-3 py-1 rounded-full border border-[var(--accent)]/20">
+                  {imageFile.name}
+                </div>
+              )}
+           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 16 }}>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              background: '#23272f',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '12px 24px',
-              cursor: 'pointer',
-              fontSize: 16,
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? 'Création...' : 'Créer la story'}
-          </button>
+        <div className="flex gap-4 mt-4">
           <button
             type="button"
             onClick={() => navigate(getStoriesPath())}
-            style={{
-              background: '#e5e9f2',
-              color: '#23272f',
-              border: 'none',
-              borderRadius: 6,
-              padding: '12px 24px',
-              cursor: 'pointer',
-              fontSize: 16
-            }}
+            className="flex-1 bg-white/5 border border-white/10 text-[var(--text-primary)] px-6 py-3 rounded-xl hover:bg-white/10 transition-colors font-semibold"
+            disabled={loading}
           >
             Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-[var(--accent)] text-white px-6 py-3 rounded-xl hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[0_4px_16px_var(--accent-glow)] font-semibold"
+          >
+            {loading ? 'Création...' : 'Créer la story'}
           </button>
         </div>
       </form>
@@ -135,4 +123,4 @@ const AddStoryPage = () => {
   );
 };
 
-export default AddStoryPage; 
+export default AddStoryPage;

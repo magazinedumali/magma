@@ -1,17 +1,22 @@
 import React from "react";
 import AdminDashboardSidebar from "./AdminDashboardSidebar";
 import AdminDashboardHeader from "./AdminDashboardHeader";
-import { Outlet } from 'react-router-dom';
 import "./dashboard.css";
 
-const AdminDashboardLayout = () => (
+interface AdminDashboardLayoutProps {
+  children?: React.ReactNode;
+}
+
+const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => (
   <div className="dashboard-container">
     <AdminDashboardSidebar />
     <main className="main-content">
       <AdminDashboardHeader />
-      <Outlet />
+      <div className="main-content-inner">
+        {children}
+      </div>
     </main>
   </div>
 );
 
-export default AdminDashboardLayout; 
+export default AdminDashboardLayout;

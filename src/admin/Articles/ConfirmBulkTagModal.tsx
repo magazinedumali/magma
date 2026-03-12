@@ -20,44 +20,52 @@ const ConfirmBulkTagModal: React.FC<ConfirmBulkTagModalProps> = ({ open, count, 
   return (
     <Dialog.Root open={open} onOpenChange={open => { if (!open) onCancel(); }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50 animate-fadeIn" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl p-0 max-w-md w-full animate-modalIn">
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-lg font-bold truncate">{action === 'add' ? 'Ajouter' : 'Retirer'} un tag à {count} article(s)</h2>
-            <button onClick={onCancel} className="p-2 rounded hover:bg-gray-100 transition" title="Fermer">
-              <XMarkIcon className="w-5 h-5 text-gray-600" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fadeIn" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-2xl p-0 max-w-md w-full animate-modalIn text-[var(--text-primary)]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/5">
+            <h2 className="text-xl font-bold truncate">Gérer les tags</h2>
+            <button onClick={onCancel} className="p-2 rounded-lg hover:bg-white/10 transition-colors text-[var(--text-muted)] hover:text-white" title="Fermer">
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
-          <div className="px-6 py-6 flex flex-col gap-4 items-center text-center">
-            <HashtagIcon className="w-12 h-12 text-blue-500 mb-2" />
-            <div className="font-semibold text-blue-700">Tag à {action === 'add' ? 'ajouter' : 'retirer'}</div>
-            <input
-              type="text"
-              value={tag}
-              onChange={e => setTag(e.target.value)}
-              className="border rounded px-4 py-2 mt-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-200"
-              placeholder="Nom du tag"
-              disabled={loading}
-            />
-            <select
-              value={action}
-              onChange={e => setAction(e.target.value as 'add' | 'remove')}
-              className="border rounded px-4 py-2 mt-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-200"
-              disabled={loading}
-            >
-              <option value="add">Ajouter</option>
-              <option value="remove">Retirer</option>
-            </select>
-            <div className="text-sm text-gray-500 mt-2">Tous les articles sélectionnés seront mis à jour.</div>
-            <div className="flex gap-4 mt-4 justify-center">
+          <div className="px-6 py-8 flex flex-col items-center text-center">
+            <div className="bg-purple-500/10 p-4 rounded-full mb-4">
+              <HashtagIcon className="w-10 h-10 text-purple-400" />
+            </div>
+            
+            <h3 className="text-lg font-semibold mb-2">{action === 'add' ? 'Ajouter' : 'Retirer'} un tag à {count} article(s)</h3>
+            
+            <div className="w-full flex gap-3 mt-4">
+              <input
+                type="text"
+                value={tag}
+                onChange={e => setTag(e.target.value)}
+                className="flex-1 px-4 py-3 bg-black/30 border border-[var(--border)] rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none"
+                placeholder="Nom du tag"
+                disabled={loading}
+              />
+              <select
+                value={action}
+                onChange={e => setAction(e.target.value as 'add' | 'remove')}
+                className="w-1/3 px-4 py-3 bg-black/30 border border-[var(--border)] rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none"
+                disabled={loading}
+              >
+                <option value="add" className="bg-[var(--bg-main)]">Ajouter</option>
+                <option value="remove" className="bg-[var(--bg-main)]">Retirer</option>
+              </select>
+            </div>
+            
+            <p className="text-sm text-[var(--text-muted)] mt-4">Tous les articles sélectionnés seront mis à jour.</p>
+            
+            <div className="flex gap-3 mt-8 w-full">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors font-semibold"
                 disabled={loading}
               >Annuler</button>
               <button
                 onClick={onConfirm}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition font-semibold"
+                className="flex-1 px-4 py-3 rounded-xl bg-purple-600 text-white hover:brightness-110 shadow-[0_4px_16px_rgba(147,51,234,0.3)] transition-all font-semibold"
                 disabled={loading || !tag}
               >{loading ? 'Mise à jour...' : 'Valider'}</button>
             </div>
@@ -68,4 +76,4 @@ const ConfirmBulkTagModal: React.FC<ConfirmBulkTagModalProps> = ({ open, count, 
   );
 };
 
-export default ConfirmBulkTagModal; 
+export default ConfirmBulkTagModal;

@@ -1,32 +1,67 @@
-export default function ModernTable({ rows }) {
-  if (!rows) return null;
+export default function ModernTable({ rows }: any) {
+  if (!rows || rows.length === 0) return null;
+
   return (
-    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-8 overflow-x-auto">
-      <h2 className="text-lg font-bold mb-4 text-[#232b46]">Derniers articles publiés</h2>
-      <table className="min-w-full text-sm">
+    <div className="dark-card" style={{ padding: '24px', overflowX: 'auto', marginBottom: 0 }}>
+      <h2>Derniers articles publiés</h2>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontFamily: 'var(--font)' }}>
         <thead>
-          <tr className="text-left text-gray-500">
-            <th className="py-2 px-3">Titre</th>
-            <th className="py-2 px-3">Auteur</th>
-            <th className="py-2 px-3">Date</th>
-            <th className="py-2 px-3">Statut</th>
-            <th className="py-2 px-3">Catégorie</th>
+          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            <th style={{ padding: '0 16px 12px 0', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Titre</th>
+            <th style={{ padding: '0 16px 12px 16px', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Auteur</th>
+            <th style={{ padding: '0 16px 12px 16px', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</th>
+            <th style={{ padding: '0 16px 12px 16px', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Statut</th>
+            <th style={{ padding: '0 0 12px 16px', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Catégorie</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, idx) => (
-            <tr key={row.id || idx} className="border-b last:border-none hover:bg-gray-50 transition">
-              <td className="py-2 px-3 font-medium text-[#232b46]">{row.titre}</td>
-              <td className="py-2 px-3">{row.auteur || '-'}</td>
-              <td className="py-2 px-3">{row.date_publication ? new Date(row.date_publication).toLocaleDateString() : '-'}</td>
-              <td className="py-2 px-3">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{row.statut || 'Brouillon'}</span>
-              </td>
-              <td className="py-2 px-3">{row.categorie || '-'}</td>
-            </tr>
-          ))}
+          {rows.map((row: any, idx: number) => {
+            const isLast = idx === rows.length - 1;
+            const isPublished = row.statut?.toLowerCase() === 'publié' || row.statut?.toLowerCase() === 'published';
+            
+            return (
+              <tr 
+                key={row.id || idx} 
+                style={{ 
+                  borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.03)',
+                  transition: 'background 0.2s',
+                  cursor: 'default'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <td style={{ padding: '16px 16px 16px 0', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                  {row.titre}
+                </td>
+                <td style={{ padding: '16px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                  {row.auteur || '-'}
+                </td>
+                <td style={{ padding: '16px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                  {row.date_publication ? new Date(row.date_publication).toLocaleDateString() : '-'}
+                </td>
+                <td style={{ padding: '16px' }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    background: isPublished ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.15)',
+                    color: isPublished ? '#22c55e' : '#94a3b8',
+                    textTransform: 'capitalize'
+                  }}>
+                    {row.statut || 'Brouillon'}
+                  </span>
+                </td>
+                <td style={{ padding: '16px 0 16px 16px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                  {row.categorie || '-'}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
-} 
+}

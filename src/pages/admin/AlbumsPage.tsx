@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface Album {
   id: string;
@@ -55,89 +56,86 @@ const AlbumsPage = () => {
   };
 
   if (loading) {
-    return <div style={{ padding: 32, textAlign: 'center' }}>Chargement...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20">
+        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+        Chargement des albums...
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: 32, fontFamily: 'Jost, sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h2>Gestion des albums</h2>
+    <div className="text-[var(--text-primary)]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+        <div>
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Gestion des albums</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">Organisez vos médias en galeries (Non supporté complètement en mode clair avant, maintenant unifié).</p>
+        </div>
+        
         <Link
           to="/admin/albums/add"
-          style={{
-            background: '#4f8cff',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: 8,
-            textDecoration: 'none',
-            fontWeight: 500
-          }}
+          className="bg-[var(--accent)] text-white px-5 py-2.5 rounded-xl hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[0_4px_16px_var(--accent-glow)] flex items-center gap-2 font-semibold w-fit"
         >
-          Ajouter un album
+          <PlusIcon className="w-5 h-5" /> Ajouter un album
         </Link>
       </div>
 
-      {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
+      {error && (
+        <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-xl border border-red-400/20 mb-8 animate-fadeIn">
+          {error}
+        </div>
+      )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
-        {albums.map((album) => (
-          <div
-            key={album.id}
-            style={{
-              background: '#fff',
-              borderRadius: 12,
-              overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}
-          >
-            <img
-              src={album.cover_url}
-              alt={album.title}
-              style={{ width: '100%', height: 200, objectFit: 'cover' }}
-            />
-            <div style={{ padding: 16 }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: 18 }}>{album.title}</h3>
-              <p style={{ color: '#666', margin: '0 0 16px 0', fontSize: 14 }}>
-                {album.description}
-              </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Link
-                  to={`/admin/albums/edit/${album.id}`}
-                  style={{
-                    background: '#e5e9f2',
-                    color: '#23272f',
-                    padding: '8px 16px',
-                    borderRadius: 6,
-                    textDecoration: 'none',
-                    fontSize: 14,
-                    flex: 1,
-                    textAlign: 'center'
-                  }}
-                >
-                  Éditer
-                </Link>
-                <button
-                  onClick={() => handleDelete(album.id)}
-                  style={{
-                    background: '#ff4d4f',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '8px 16px',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    flex: 1
-                  }}
-                >
-                  Supprimer
-                </button>
+      {albums.length === 0 && !error ? (
+        <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20 dark-card">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          <p className="text-lg font-medium">Aucun album trouvé.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {albums.map((album) => (
+            <div
+              key={album.id}
+              className="dark-card overflow-hidden group hover:-translate-y-1 transition-transform duration-300"
+              style={{ padding: 0 }}
+            >
+              <div className="relative h-48 w-full overflow-hidden">
+                <img
+                  src={album.cover_url}
+                  alt={album.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+              </div>
+              
+              <div className="p-5">
+                <h3 className="text-lg font-bold mb-2 truncate text-[var(--text-primary)]" title={album.title}>{album.title}</h3>
+                <p className="text-[var(--text-muted)] text-sm mb-5 line-clamp-2 min-h-[40px]">
+                  {album.description || 'Aucune description'}
+                </p>
+                
+                <div className="flex gap-3">
+                  <Link
+                    to={`/admin/albums/edit/${album.id}`}
+                    className="flex-1 bg-white/5 border border-white/10 text-[var(--text-primary)] px-4 py-2 rounded-lg hover:bg-white/10 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                  >
+                    <PencilSquareIcon className="w-4 h-4" /> Éditer
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(album.id)}
+                    className="flex-1 bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                  >
+                    <TrashIcon className="w-4 h-4" /> Supprimer
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-export default AlbumsPage; 
+export default AlbumsPage;

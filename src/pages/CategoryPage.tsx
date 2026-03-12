@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getArticlesByCategory, getTrendingArticles } from '@/data/articles';
+import { getArticlesByCategory } from '@/data/articles';
 import { Search, Facebook, Twitter, Instagram, Youtube, Globe } from 'lucide-react';
 import Banner from '@/components/Banner';
 import { supabase } from '@/lib/supabaseClient';
@@ -50,6 +50,9 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [trendingArticles, setTrendingArticles] = useState<any[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+
   useEffect(() => {
     if (!category) return;
     setLoading(true);
@@ -69,11 +72,22 @@ const CategoryPage = () => {
         }
         setLoading(false);
       });
+      
+    setLoadingTrending(true);
+    supabase
+      .from('articles')
+      .select('*')
+      .eq('statut', 'publie')
+      .order('date_publication', { ascending: false })
+      .limit(4)
+      .then(({ data }) => {
+        setTrendingArticles(data ? mapArticlesFromSupabase(data) : []);
+        setLoadingTrending(false);
+      });
   }, [category]);
 
   const mappedArticles = mapArticlesFromSupabase(articles || []);
 
-  const trendingArticles = getTrendingArticles(4);
   const categoryTitle = category ? category.charAt(0).toUpperCase() + category.slice(1) : '';
   if (!loading && !error && mappedArticles.length === 0) return <Navigate to="/not-found" replace />;
   
@@ -170,7 +184,8 @@ const CategoryPage = () => {
                 <h3 className="font-bold text-xl mb-2">Sujets populaires</h3>
                 <div className="h-1 w-24 bg-[#ff184e] mb-6" />
                 <div className="flex flex-col gap-6">
-                  {trendingArticles.map((topic, idx) => (
+                  {loadingTrending && <div>Chargement...</div>}
+                  {!loadingTrending && trendingArticles.map((topic, idx) => (
                     <div key={topic.id} className="flex items-center gap-4">
                       <div className="relative w-20 h-20 flex-shrink-0">
                         <img src={topic.image} alt={topic.title} className="w-20 h-20 object-cover rounded" />

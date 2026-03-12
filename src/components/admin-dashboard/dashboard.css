@@ -1,306 +1,310 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ─── Design Tokens ────────────────────────────────── */
+:root {
+  --bg-main:        #0d1021;
+  --bg-sidebar:     #0a0c16;
+  --bg-card:        rgba(255, 255, 255, 0.05);
+  --bg-card-hover:  rgba(255, 255, 255, 0.08);
+  --bg-input:       rgba(255, 255, 255, 0.07);
+  --accent:         #ff184e;
+  --accent-glow:    rgba(255, 24, 78, 0.35);
+  --accent-blue:    #4f8cff;
+  --blue-glow:      rgba(79, 140, 255, 0.3);
+  --border:         rgba(255, 255, 255, 0.08);
+  --text-primary:   #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted:     #4e5d78;
+  --radius-lg:      18px;
+  --radius-md:      12px;
+  --radius-sm:      8px;
+  --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-sidebar: 2px 0 32px rgba(0, 0, 0, 0.5);
+  --font:           'Inter', sans-serif;
+}
+
+/* ─── Global ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ─── Layout ───────────────────────────────────────── */
 .dashboard-container {
   display: flex;
   height: 100vh;
-  background: #f5f7fa;
-  font-family: 'Poppins', sans-serif;
+  background: var(--bg-main);
+  font-family: var(--font);
+  color: var(--text-primary);
 }
+
+/* ─── Sidebar ──────────────────────────────────────── */
 .dashboard-sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  width: 270px;
-  background: rgba(255,255,255,0.92);
-  color: #23272f;
+  width: 260px;
+  background: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 24px 0 16px 0;
-  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.10), 2px 0 16px #0001;
+  padding: 0 0 16px 0;
+  box-shadow: var(--shadow-sidebar);
   z-index: 100;
-  backdrop-filter: blur(18px);
-  border-right: 1.5px solid rgba(0,0,0,0.07);
+  border-right: 1px solid var(--border);
 }
+
 .dashboard-logo-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  font-size: 1.7rem;
-  font-weight: 700;
-  margin-bottom: 18px;
-  margin-left: 32px;
-  color: #23272f;
+  gap: 12px;
+  padding: 28px 24px 22px 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
 }
-.dashboard-logo-icon {
-  font-size: 2.1rem;
-  color: #ff4d4f;
-}
+
 .dashboard-logo {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
   letter-spacing: 0.3px;
+  line-height: 1.2;
 }
+
+.dashboard-logo span {
+  color: var(--accent);
+}
+
+/* ─── Sidebar Search ───────────────────────────────── */
 .dashboard-search {
   display: flex;
   align-items: center;
-  background: #f5f7fa;
-  margin: 0 20px 28px 20px;
-  border-radius: 10px;
-  padding: 8px 14px;
+  background: var(--bg-input);
+  margin: 0 16px 20px 16px;
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
 }
+
+.dashboard-search:focus-within {
+  border-color: var(--accent);
+}
+
 .dashboard-search input {
   background: transparent;
   border: none;
-  color: #23272f;
+  color: var(--text-primary);
   margin-left: 10px;
   width: 100%;
   outline: none;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 400;
-}
-.search-icon {
-  color: #aaa;
-  font-size: 1.1rem;
-}
-.sidebar-section-title {
-  color: #6b7280;
+  font-family: var(--font);
   font-size: 0.875rem;
-  margin: 20px 0 8px 36px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
 }
+
+.dashboard-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+/* ─── Sidebar Nav ──────────────────────────────────── */
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+.sidebar-section-title {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  margin: 16px 0 6px 20px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
 .dashboard-sidebar nav ul {
   padding: 0;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
+  list-style: none;
 }
+
 .dashboard-sidebar nav ul li {
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+  padding: 0 10px;
 }
+
 .dashboard-sidebar nav ul li a {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 32px 12px 36px;
-  font-size: 0.95rem;
-  font-family: 'Poppins', sans-serif;
+  gap: 12px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  font-family: var(--font);
   font-weight: 500;
-  color: #23272f;
-  border-left: 3px solid transparent;
-  border-radius: 0 8px 8px 0;
-  margin-right: 12px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   text-decoration: none;
   background: transparent;
 }
+
 .dashboard-sidebar nav ul li a .sidebar-icon {
-  font-size: 1.18rem;
-  min-width: 22px;
-  color: #6b7280;
+  font-size: 1rem;
+  min-width: 20px;
+  color: var(--text-muted);
   transition: color 0.18s;
+  flex-shrink: 0;
 }
+
 .dashboard-sidebar nav ul li a.active,
 .dashboard-sidebar nav ul li a:hover {
-  background: #ff4d4f;
-  border-left: 3px solid #ff4d4f;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.2);
+  background: rgba(255, 24, 78, 0.12);
+  color: var(--accent);
 }
+
 .dashboard-sidebar nav ul li a.active .sidebar-icon,
 .dashboard-sidebar nav ul li a:hover .sidebar-icon {
-  color: #fff;
+  color: var(--accent);
 }
+
+.dashboard-sidebar nav ul li a.active {
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* ─── User Info & Logout ───────────────────────────── */
 .dashboard-user-info {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 20px;
-  background: #ffffff;
-  border: 1px solid #e5e9f2;
-  border-radius: 10px;
-  margin: 24px 20px 20px 20px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.9rem;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: 0 10px 12px 10px;
+  font-family: var(--font);
+  font-size: 0.875rem;
   font-weight: 500;
-  color: #23272f;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
 }
+
 .dashboard-avatar {
-  background: #ff4d4f;
+  background: linear-gradient(135deg, var(--accent), #ff6b8a);
   color: #fff;
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 0.95rem;
-  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
   flex-shrink: 0;
+  box-shadow: 0 0 12px var(--accent-glow);
 }
+
+/* ─── Main Content ─────────────────────────────────── */
 .main-content {
   flex: 1;
-  padding: 40px 48px;
-  margin-left: 270px;
+  padding: 0;
+  margin-left: 260px;
   min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font);
+  overflow-y: auto;
+  background: var(--bg-main);
 }
+
+.main-content-inner {
+  padding: 32px 40px;
+}
+
+/* ─── Header ───────────────────────────────────────── */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 36px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e5e9f2;
+  padding: 20px 40px;
+  background: rgba(10, 12, 22, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
-.dashboard-header h1 {
-  font-size: 1.875rem;
-  font-weight: 600;
-  color: #23272f;
-  font-family: 'Poppins', sans-serif;
-  letter-spacing: -0.5px;
-}
-.screen-options {
-  background: #e5e9f2;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-}
+
+/* ─── Widgets ──────────────────────────────────────── */
 .dashboard-widgets {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
+  gap: 20px;
 }
+
+/* ─── Dark Glass Card ──────────────────────────────── */
+.dark-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.dark-card:hover {
+  background: var(--bg-card-hover);
+}
+
+.dark-card h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 18px;
+  letter-spacing: -0.2px;
+}
+
+/* ─── Legacy widget (compat) ───────────────────────── */
 .widget {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f0f0;
-  font-family: 'Poppins', sans-serif;
-  transition: box-shadow 0.2s ease;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: background 0.2s;
+  font-family: var(--font);
 }
+
 .widget:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--bg-card-hover);
 }
+
 .widget.alert {
-  background: #fffbe6;
-  color: #bfa100;
+  background: rgba(255, 193, 7, 0.1);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.2);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.widget.quick-access button {
-  margin-right: 12px;
-  background: #f5f7fa;
-  border: 1px solid #e5e9f2;
+
+/* ─── Scrollbar (main) ─────────────────────────────── */
+.main-content::-webkit-scrollbar { width: 6px; }
+.main-content::-webkit-scrollbar-track { background: transparent; }
+.main-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
   border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
 }
-.widget.stats .stat-value {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin: 16px 0;
-}
-.widget.site-health .health-status.good {
-  color: #2ecc40;
-  font-weight: bold;
-}
-.widget.recent-activity ul {
-  list-style: none;
-  padding: 0;
-}
-.widget.recent-activity li {
-  margin-bottom: 8px;
-  color: #333;
-}
-.widget.quick-draft input.quick-draft-title {
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #e5e9f2;
-  font-size: 1rem;
-}
-.widget.quick-draft textarea.quick-draft-content {
-  width: 100%;
-  min-height: 60px;
-  margin-bottom: 8px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #e5e9f2;
-  font-size: 1rem;
-  resize: vertical;
-}
-.widget.quick-draft button {
-  background: #4f8cff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-weight: 500;
-}
-.widget.recent-comments ul {
-  list-style: none;
-  padding: 0;
-}
-.widget.recent-comments li {
-  margin-bottom: 8px;
-  color: #333;
-}
-.widget.recent-comments a {
-  color: #4f8cff;
-  text-decoration: underline;
-  font-weight: 500;
-}
-.widget.recent-media .media-list {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.widget.recent-media img,
-.widget.recent-media video {
-  border-radius: 6px;
-  background: #eee;
-}
-.widget.recent-media audio {
-  width: 100px;
-}
-.widget.recent-users ul {
-  list-style: none;
-  padding: 0;
-}
-.widget.recent-users li {
-  margin-bottom: 8px;
-  color: #333;
-}
-.widget.active-plugins ul {
-  list-style: none;
-  padding: 0;
-}
-.widget.active-plugins li {
-  margin-bottom: 8px;
-  color: #333;
-}
-.widget.notifications ul {
-  list-style: none;
-  padding: 0;
-}
-.widget.notifications li {
-  margin-bottom: 8px;
-  color: #bfa100;
-  font-weight: 500;
-}
-.widget.stats .recharts-responsive-container {
-  margin-top: 8px;
-} 

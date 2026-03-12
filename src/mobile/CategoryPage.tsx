@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getArticlesByCategory, getTrendingArticles } from '@/data/articles';
+import { getArticlesByCategory } from '@/data/articles';
 import { Search, Facebook, Twitter, Instagram, Youtube, Globe } from 'lucide-react';
 import Banner from '@/components/Banner';
+import { supabase } from '@/lib/supabaseClient';
+import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 
 const socialLinks = [
   { name: 'Facebook', action: 'Follow', icon: Facebook },
@@ -45,12 +47,30 @@ const reviews = [
 const CategoryPage = () => {
   const { category } = useParams<{ category: string }>();
   const [showAll, setShowAll] = useState(false);
+  const [articles, setArticles] = useState<any[]>([]);
+  const [trendingArticles, setTrendingArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!category) return;
+    setLoading(true);
+    
+    const fetchCategoryData = async () => {
+      const [{ data: catsData }, { data: trendData }] = await Promise.all([
+        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', `%${category}%`).order('date_publication', { ascending: false }),
+        supabase.from('articles').select('*').eq('statut', 'publie').order('date_publication', { ascending: false }).limit(4)
+      ]);
+      setArticles(catsData ? mapArticlesFromSupabase(catsData) : []);
+      setTrendingArticles(trendData ? mapArticlesFromSupabase(trendData) : []);
+      setLoading(false);
+    };
+    
+    fetchCategoryData();
+  }, [category]);
 
   if (!category) return <Navigate to="/not-found" replace />;
-  const articles = getArticlesByCategory(category);
-  const trendingArticles = getTrendingArticles(4);
   const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
-  if (articles.length === 0) return <Navigate to="/not-found" replace />;
+  if (!loading && articles.length === 0) return <Navigate to="/not-found" replace />;
 
   const articlesToShow = showAll ? articles : articles.slice(0, 5);
   
@@ -66,7 +86,8 @@ const CategoryPage = () => {
             </nav>
             <h1 className="text-3xl font-poppins font-bold mb-6 text-[#1a2746]">{categoryTitle}</h1>
             <div className="space-y-10">
-              {articlesToShow.map((article, idx) => (
+              {loading && <div>Chargement...</div>}
+              {!loading && articlesToShow.map((article, idx) => (
                 <div key={article.id} className="flex flex-col gap-4">
                   {/* Title */}
                   <h2 className="font-bold text-2xl md:text-3xl font-poppins mb-2 leading-snug text-[#1a2746]">{article.title}</h2>
@@ -150,7 +171,8 @@ const CategoryPage = () => {
                 <h3 className="font-bold text-xl mb-2 text-[#1a2746]">Sujets populaires</h3>
                 <div className="h-1 w-24 bg-[#ff184e] mb-6" />
                 <div className="flex flex-col gap-6">
-                  {trendingArticles.map((topic, idx) => (
+                  {loading && <div>Chargement...</div>}
+                  {!loading && trendingArticles.map((topic, idx) => (
                     <div key={topic.id} className="flex items-center gap-4">
                       <div className="relative w-20 h-20 flex-shrink-0">
                         <img src={topic.image} alt={topic.title} className="w-20 h-20 object-cover rounded" />

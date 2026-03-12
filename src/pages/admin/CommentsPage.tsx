@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { getCommentUserInfo } from '../../lib/userHelper';
+import { MessageSquare, Trash2, User, FileText, Calendar, ShieldAlert } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -16,6 +17,7 @@ interface Comment {
   };
   article: {
     title: string;
+    titre?: string;
   };
 }
 
@@ -37,7 +39,6 @@ const CommentsPage = () => {
 
       if (error) throw error;
       
-      // Enrich comments with article information if article_id exists
       const enrichedComments = await Promise.all((data || []).map(async (comment) => {
         if (comment.article_id) {
           const { data: articleData } = await supabase
@@ -68,6 +69,7 @@ const CommentsPage = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Supprimer ce commentaire de façon permanente ?")) return;
     try {
       setLoading(true);
       const { error } = await supabase
@@ -84,104 +86,102 @@ const CommentsPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading && comments.length === 0) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-gray-500 font-poppins text-base">Chargement...</div>
+      <div className="flex flex-col items-center justify-center py-32 text-[var(--text-muted)] font-jost">
+        <svg className="animate-spin h-10 w-10 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+        <div className="text-lg font-medium">Chargement des commentaires...</div>
       </div>
     );
   }
 
   return (
-    <div className="font-poppins">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">Gestion des commentaires</h2>
-        <p className="text-sm text-gray-500">Gérez tous les commentaires de votre site</p>
+    <div className="font-jost text-[var(--text-primary)]">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Gestion des commentaires</h2>
+        <p className="text-[var(--text-muted)] mt-2">Gérez, modérez et supprimez les commentaires laissés par vos utilisateurs.</p>
       </div>
       
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
+        <div className="mb-6 flex items-center gap-3 text-red-400 font-medium bg-red-500/10 p-4 rounded-xl border border-red-500/20 animate-fadeIn">
+          <ShieldAlert className="w-5 h-5" /> {error}
         </div>
       )}
 
       {comments.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <p className="text-gray-500 font-medium">Aucun commentaire trouvé.</p>
+        <div className="dark-card text-center py-20">
+          <MessageSquare className="w-16 h-16 mx-auto mb-4 text-[var(--text-muted)] opacity-30" />
+          <h3 className="text-xl font-bold text-white mb-2">Aucun commentaire</h3>
+          <p className="text-[var(--text-muted)]">Il n'y a actuellement aucun commentaire sur vos articles.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Commentaire</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Utilisateur</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Article</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {comments.map((comment) => {
-                  const userInfo = getCommentUserInfo(comment);
-                  return (
-                    <tr key={comment.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 max-w-md">
-                        <p className="text-sm text-gray-800 break-words">{comment.content}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <img 
-                            src={userInfo.avatar} 
-                            alt={userInfo.name}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder.svg';
-                            }}
-                          />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{userInfo.name}</div>
-                            {comment.user?.email && comment.user.email !== userInfo.name && (
-                              <div className="text-xs text-gray-500 mt-0.5">{comment.user.email}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-700">
-                          {comment.article?.title || comment.article?.titre || comment.article_slug || 'N/A'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">
-                          {new Date(comment.created_at).toLocaleDateString('fr-FR', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleDelete(comment.id)}
-                          className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium text-sm hover:bg-red-100 transition-colors border border-red-200"
-                        >
-                          Supprimer
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid gap-4">
+          {/* Version style timeline/cartes au lieu du tableau classique pour plus de modernité */}
+          {comments.map((comment) => {
+            const userInfo = getCommentUserInfo(comment);
+            
+            return (
+              <div key={comment.id} className="dark-card p-5 hover:border-white/20 transition-colors group flex flex-col md:flex-row gap-6 relative overflow-hidden">
+                 {/* Decorative background accent */}
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 rounded-full blur-2xl -mt-10 -mr-10"></div>
+                 
+                 {/* Left Col: User Info & Source */}
+                 <div className="flex flex-col gap-4 w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-white/5 pb-4 md:pb-0 md:pr-6 relative z-10">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={userInfo.avatar} 
+                        alt={userInfo.name}
+                        className="w-10 h-10 rounded-full object-cover border border-white/10 ring-2 ring-black/50"
+                        onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+                      />
+                      <div className="overflow-hidden">
+                        <div className="font-bold text-white truncate">{userInfo.name}</div>
+                        {comment.user?.email && comment.user.email !== userInfo.name && (
+                          <div className="text-xs text-[var(--text-muted)] truncate">{comment.user.email}</div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 mt-auto">
+                       <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 w-fit max-w-full">
+                          <FileText className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{comment.article?.title || comment.article?.titre || comment.article_slug || 'Article Inconnu'}</span>
+                       </div>
+                       
+                       <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] px-1">
+                          <Calendar className="w-3 h-3 shrink-0" />
+                          <span>
+                            {new Date(comment.created_at).toLocaleDateString('fr-FR', {
+                              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                       </div>
+                    </div>
+                 </div>
+                 
+                 {/* Right Col: Content & Actions */}
+                 <div className="flex flex-col flex-1 justify-between gap-4 relative z-10">
+                    <div className="text-[var(--text-primary)] text-sm leading-relaxed bg-black/20 p-4 rounded-xl border border-white/5 italic">
+                       "{comment.content}"
+                    </div>
+                    
+                    <div className="flex justify-end mt-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                       <button
+                         onClick={() => handleDelete(comment.id)}
+                         className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500 rounded-lg font-semibold text-sm transition-all"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                         Supprimer
+                       </button>
+                    </div>
+                 </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 };
 
-export default CommentsPage; 
+export default CommentsPage;

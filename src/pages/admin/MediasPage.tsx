@@ -92,15 +92,15 @@ const MediasPage = () => {
   };
 
   if (loading) {
-    return <div style={{ padding: 32, textAlign: 'center' }}>Chargement...</div>;
+    return <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>Chargement...</div>;
   }
 
   return (
-    <div style={{ padding: 32, fontFamily: 'Jost, sans-serif' }}>
-      <h2 style={{ marginBottom: 24 }}>Gestion des médias</h2>
-      {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
+    <div>
+      <h2 style={{ marginBottom: 24, fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>Gestion des médias</h2>
+      {error && <div style={{ color: '#ff4d4f', background: 'rgba(255, 77, 79, 0.1)', padding: 12, borderRadius: 8, marginBottom: 16 }}>{error}</div>}
       
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 32 }}>
         <input
           type="file"
           onChange={handleUpload}
@@ -111,61 +111,61 @@ const MediasPage = () => {
         <label
           htmlFor="file-upload"
           style={{
-            background: '#4f8cff',
+            background: 'var(--accent)',
             color: '#fff',
             padding: '12px 24px',
-            borderRadius: 8,
+            borderRadius: 'var(--radius-sm)',
             cursor: 'pointer',
             display: 'inline-block',
-            fontWeight: 500
+            fontWeight: 600,
+            fontSize: 15,
+            boxShadow: '0 4px 12px var(--accent-glow)',
+            transition: 'all 0.2s'
           }}
+          className="hover:brightness-110 hover:-translate-y-0.5"
         >
           Ajouter un média
         </label>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 24 }}>
         {medias.map((media) => (
           <div
             key={media.id}
-            style={{
-              background: '#fff',
-              borderRadius: 12,
-              padding: 16,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}
+            className="dark-card"
+            style={{ padding: 16, display: 'flex', flexDirection: 'column' }}
           >
-            {media.type.startsWith('image/') ? (
-              <img
-                src={media.url}
-                alt={media.name}
-                style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }}
-              />
-            ) : media.type.startsWith('video/') ? (
-              <video
-                src={media.url}
-                controls
-                style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }}
-              />
-            ) : media.type.startsWith('audio/') ? (
-              <audio
-                src={media.url}
-                controls
-                style={{ width: '100%', marginBottom: 12 }}
-              />
-            ) : null}
-            <div style={{ fontSize: 14, color: '#666', marginBottom: 8 }}>{media.name}</div>
+            <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 8, overflow: 'hidden', marginBottom: 16, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 150 }}>
+              {media.type.startsWith('image/') ? (
+                <img src={media.url} alt={media.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : media.type.startsWith('video/') ? (
+                <video src={media.url} controls style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000' }} />
+              ) : media.type.startsWith('audio/') ? (
+                <audio src={media.url} controls style={{ width: '90%' }} />
+              ) : (
+                <div style={{ color: 'var(--text-muted)' }}>Fichier ({media.type})</div>
+              )}
+            </div>
+            
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 16, wordBreak: 'break-all', fontWeight: 500, lineHeight: 1.4 }}>
+              {media.name}
+            </div>
+            
             <button
               onClick={() => handleDelete(media.id)}
               style={{
-                background: '#ff4d4f',
-                color: '#fff',
-                border: 'none',
+                background: 'rgba(255, 24, 78, 0.1)',
+                color: '#ff184e',
+                border: '1px solid rgba(255,24,78,0.2)',
                 borderRadius: 6,
-                padding: '8px 16px',
+                padding: '10px 16px',
                 cursor: 'pointer',
-                width: '100%'
+                width: '100%',
+                fontWeight: 600,
+                fontSize: 14,
+                transition: 'all 0.2s'
               }}
+              className="hover:bg-[#ff184e] hover:text-white"
             >
               Supprimer
             </button>
@@ -176,4 +176,4 @@ const MediasPage = () => {
   );
 };
 
-export default MediasPage; 
+export default MediasPage;

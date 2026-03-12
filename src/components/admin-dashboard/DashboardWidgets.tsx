@@ -1,56 +1,117 @@
 import React from "react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, BarChart, Bar } from 'recharts';
-import { useDashboardStats } from './useDashboardStats';
-import "./dashboard.css";
+import { Link } from 'react-router-dom';
 import StatsCards from './StatsCards';
 import DashboardAreaChart from './DashboardAreaChart';
-import StatusBar from './StatusBar';
-import ModernTable from './ModernTable';
-import { useRecentArticles } from './useRecentArticles';
-import LocationUsersStatusBar from './LocationUsersStatusBar';
-import { useUsersByLocation } from './useUsersByLocation';
 import ArticlesByCategoryPie from './ArticlesByCategoryPie';
+import ModernTable from './ModernTable';
+import LocationUsersStatusBar from './LocationUsersStatusBar';
 import RecentUsersWidget from './RecentUsersWidget';
-
-const COLORS = ['#4f8cff', '#ff184e', '#ffc107', '#22c55e', '#a855f7', '#f59e42'];
+import { useDashboardStats } from './useDashboardStats';
+import { useRecentArticles } from './useRecentArticles';
+import { useUsersByLocation } from './useUsersByLocation';
+import "./dashboard.css";
 
 const DashboardWidgets = () => {
   const { stats, loading, error } = useDashboardStats();
   const { articles, loading: loadingArticles } = useRecentArticles(5);
   const { locations, total, loading: loadingLocations } = useUsersByLocation();
 
-  if (loading) return <div className="dashboard-widgets"><div className="widget">Chargement des statistiques…</div></div>;
-  if (error) return <div className="dashboard-widgets"><div className="widget alert">Erreur : {error}</div></div>;
+  if (loading) return (
+    <div className="dark-card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+      <div style={{ color: 'var(--text-muted)' }}>Chargement des statistiques…</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="dark-card" style={{ background: 'rgba(255,24,78,0.1)', borderColor: 'rgba(255,24,78,0.3)' }}>
+      <div style={{ color: '#ff184e' }}>Erreur : {error}</div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Section 1 : Stats + Localisation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StatsCards />
-        {loadingLocations ? (
-          <div className="dashboard-widgets"><div className="widget">Chargement des localisations…</div></div>
-        ) : (
-          <LocationUsersStatusBar locations={locations} total={total} />
-        )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      
+      {/* Quick Actions */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginBottom: 8 }}>
+        <Link 
+          to="/admin/categories" 
+          style={{
+            background: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            padding: '10px 20px',
+            borderRadius: 'var(--radius-sm)',
+            fontWeight: 500,
+            fontSize: '0.875rem',
+            textDecoration: 'none',
+            border: '1px solid var(--border)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-card)'}
+        >
+          Gérer les catégories
+        </Link>
+        <Link 
+          to="/admin/menu" 
+          style={{
+            background: 'var(--accent)',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: 'var(--radius-sm)',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            textDecoration: 'none',
+            boxShadow: '0 4px 12px var(--accent-glow)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.filter = 'brightness(1.1)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.filter = 'brightness(1)';
+            e.currentTarget.style.transform = 'none';
+          }}
+        >
+          Gérer le menu principal
+        </Link>
       </div>
-      {/* Section 2 : Graphiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      {/* Row 1 : Stats */}
+      <StatsCards />
+
+      {/* Row 2 : Charts */}
+      <div style={{ display: 'grid', gridTemplateColumns: '60% 1fr', gap: 24 }}>
         <DashboardAreaChart data={stats.articlesByMonth} title="Évolution des articles publiés" />
         <ArticlesByCategoryPie />
       </div>
-      {/* Section 3 : Widgets latéraux */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StatusBar />
-        <RecentUsersWidget />
+
+      {/* Row 3 : Lists & Tables */}
+      <div style={{ display: 'grid', gridTemplateColumns: '35% 1fr', gap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {loadingLocations ? (
+            <div className="dark-card" style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <div style={{ color: 'var(--text-muted)' }}>Chargement...</div>
+            </div>
+          ) : (
+            <LocationUsersStatusBar locations={locations} total={total} />
+          )}
+          <RecentUsersWidget />
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {loadingArticles ? (
+            <div className="dark-card" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <div style={{ color: 'var(--text-muted)' }}>Chargement des articles...</div>
+            </div>
+          ) : (
+             <ModernTable rows={articles} />
+          )}
+        </div>
       </div>
-      {/* Section 4 : Tableau articles */}
-      {loadingArticles ? (
-        <div className="bg-white/80 rounded-2xl shadow-lg p-6 mb-8 text-center text-gray-400">Chargement des articles…</div>
-      ) : (
-        <ModernTable rows={articles} />
-      )}
+      
     </div>
   );
 };
 
-export default DashboardWidgets; 
+export default DashboardWidgets;

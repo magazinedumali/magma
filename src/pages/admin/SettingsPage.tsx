@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { Mail, Lock, CheckCircle, Shield, User, Clock, ShieldCheck } from 'lucide-react';
 
 const SettingsPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -70,103 +71,185 @@ const SettingsPage = () => {
   };
 
   return (
-    <div style={{ padding: 32, fontFamily: 'Jost, sans-serif', maxWidth: 800 }}>
-      <h2 style={{ marginBottom: 32 }}>Paramètres</h2>
-      
-      {error && <div style={{ color: 'red', marginBottom: 16, padding: 12, background: '#fee', borderRadius: 6 }}>{error}</div>}
-      {success && <div style={{ color: 'green', marginBottom: 16, padding: 12, background: '#efe', borderRadius: 6 }}>{success}</div>}
-
-      {/* Section Email */}
-      <div style={{ marginBottom: 32, padding: 24, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001' }}>
-        <h3 style={{ marginBottom: 16 }}>Modifier l'email</h3>
-        <form onSubmit={handleUpdateEmail} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              required
-              style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #e5e9f2' }}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              background: '#4f8cff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '10px 20px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              alignSelf: 'flex-start'
-            }}
-          >
-            {loading ? 'Mise à jour...' : 'Mettre à jour l\'email'}
-          </button>
-        </form>
+    <div className="font-jost text-[var(--text-primary)] max-w-5xl mx-auto py-4">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Paramètres système</h2>
+        <p className="text-[var(--text-muted)] text-sm mt-2">Gérez vos informations personnelles et paramètres de sécurité</p>
       </div>
+      
+      {(error || success) && (
+        <div className="mb-8 flex flex-col gap-3">
+          {error && (
+             <div className="flex items-center gap-3 text-red-400 font-medium bg-red-500/10 p-4 rounded-2xl border border-red-500/20 animate-fadeIn shadow-[0_4px_16px_rgba(239,68,68,0.1)]">
+                <Shield className="w-5 h-5" /> {error}
+             </div>
+          )}
+          {success && (
+             <div className="flex items-center gap-3 text-emerald-400 font-medium bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20 animate-fadeIn shadow-[0_4px_16px_rgba(16,185,129,0.1)]">
+                <CheckCircle className="w-5 h-5" /> {success}
+             </div>
+          )}
+        </div>
+      )}
 
-      {/* Section Mot de passe */}
-      <div style={{ marginBottom: 32, padding: 24, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001' }}>
-        <h3 style={{ marginBottom: 16 }}>Modifier le mot de passe</h3>
-        <form onSubmit={handleUpdatePassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Nouveau mot de passe</label>
-            <input
-              type="password"
-              value={form.newPassword}
-              onChange={e => setForm(f => ({ ...f, newPassword: e.target.value }))}
-              required
-              minLength={6}
-              style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #e5e9f2' }}
-            />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
+        {/* Section Email */}
+        <div className="dark-card h-full flex flex-col hover:border-[var(--accent)] transition-colors duration-300">
+          <div className="flex items-center gap-3 mb-6">
+             <div className="bg-[var(--accent)]/10 p-2.5 rounded-xl border border-[var(--accent)]/20">
+                <Mail className="w-6 h-6 text-[var(--accent)]" />
+             </div>
+             <h3 className="text-xl font-bold text-white">Modifier l'email</h3>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Confirmer le nouveau mot de passe</label>
-            <input
-              type="password"
-              value={form.confirmPassword}
-              onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
-              required
-              minLength={6}
-              style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #e5e9f2' }}
-            />
+
+          <form onSubmit={handleUpdateEmail} className="flex flex-col gap-6 flex-1">
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">Adresse Email actuelle</label>
+              <div className="relative">
+                 <input
+                   type="email"
+                   value={form.email}
+                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                   required
+                   className="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all placeholder-[var(--text-muted)]"
+                   placeholder="votre@email.com"
+                 />
+                 <Mail className="w-5 h-5 text-[var(--text-muted)] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-auto w-full bg-white/5 border border-white/10 text-white px-6 py-3.5 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all font-semibold shadow-sm flex items-center justify-center gap-2 group"
+            >
+              {loading ? (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+              ) : (
+                 <>
+                   Mettre à jour l'email
+                   <CheckCircle className="w-4 h-4 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                 </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Section Mot de passe */}
+        <div className="dark-card h-full flex flex-col hover:border-[var(--accent)] transition-colors duration-300">
+          <div className="flex items-center gap-3 mb-6">
+             <div className="bg-purple-500/10 p-2.5 rounded-xl border border-purple-500/20">
+                <Lock className="w-6 h-6 text-purple-400" />
+             </div>
+             <h3 className="text-xl font-bold text-white">Sécurité</h3>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              background: '#4f8cff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              padding: '10px 20px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              alignSelf: 'flex-start'
-            }}
-          >
-            {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
-          </button>
-        </form>
+          
+          <form onSubmit={handleUpdatePassword} className="flex flex-col gap-5 flex-1">
+            <div>
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">Nouveau mot de passe</label>
+              <div className="relative">
+                 <input
+                   type="password"
+                   value={form.newPassword}
+                   onChange={e => setForm(f => ({ ...f, newPassword: e.target.value }))}
+                   required
+                   minLength={6}
+                   className="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 transition-all placeholder-[var(--text-muted)]"
+                   placeholder="••••••••"
+                 />
+                 <Lock className="w-5 h-5 text-[var(--text-muted)] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+              <p className="text-xs text-[var(--text-muted)] mt-2 ml-1">Au moins 6 caractères requis.</p>
+            </div>
+            
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-[var(--text-secondary)] mb-2">Confirmer le mot de passe</label>
+              <div className="relative">
+                 <input
+                   type="password"
+                   value={form.confirmPassword}
+                   onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                   required
+                   minLength={6}
+                   className="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-400 transition-all placeholder-[var(--text-muted)]"
+                   placeholder="••••••••"
+                 />
+                 <Lock className="w-5 h-5 text-[var(--text-muted)] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-auto w-full bg-purple-500 hover:brightness-110 shadow-[0_4px_16px_rgba(168,85,247,0.4)] text-white px-6 py-3.5 rounded-xl transition-all font-semibold flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+              ) : (
+                <>Modifier le mot de passe</>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Informations utilisateur */}
-      <div style={{ padding: 24, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px #0001' }}>
-        <h3 style={{ marginBottom: 16 }}>Informations du compte</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div>
-            <strong>Email:</strong> {user?.email || 'N/A'}
-          </div>
-          <div>
-            <strong>ID utilisateur:</strong> {user?.id || 'N/A'}
-          </div>
-          <div>
-            <strong>Dernière connexion:</strong> {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'N/A'}
-          </div>
+      <div className="dark-card lg:col-span-2 relative overflow-hidden group hover:border-[var(--accent)] transition-colors duration-300">
+        {/* Decorative background element */}
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-[var(--accent)]/10 rounded-full blur-3xl group-hover:bg-[var(--accent)]/20 transition-all duration-500"></div>
+        
+        <div className="relative z-10">
+           <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+              <div className="bg-sky-500/10 p-2.5 rounded-xl border border-sky-500/20">
+                 <ShieldCheck className="w-6 h-6 text-sky-400" />
+              </div>
+              <div>
+                 <h3 className="text-xl font-bold text-white">Détails du compte</h3>
+                 <p className="text-sm text-[var(--text-muted)]">Informations techniques de la session courante</p>
+              </div>
+           </div>
+           
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <div className="flex items-start gap-4 p-4 rounded-xl bg-black/20 border border-white/5">
+                <div className="p-2 bg-white/5 rounded-lg text-gray-400 mt-0.5">
+                   <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                   <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-1">Email Actuel</div>
+                   <div className="font-medium text-white truncate w-full max-w-[200px]" title={user?.email}>{user?.email || 'N/A'}</div>
+                </div>
+             </div>
+             
+             <div className="flex items-start gap-4 p-4 rounded-xl bg-black/20 border border-white/5">
+                <div className="p-2 bg-white/5 rounded-lg text-gray-400 mt-0.5">
+                   <User className="w-5 h-5" />
+                </div>
+                <div>
+                   <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-1">ID Utilisateur</div>
+                   <div className="font-mono text-xs text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-1 rounded border border-[var(--accent)]/20 break-all w-fit">
+                      {user?.id || 'N/A'}
+                   </div>
+                </div>
+             </div>
+             
+             <div className="flex items-start gap-4 p-4 rounded-xl bg-black/20 border border-white/5">
+                <div className="p-2 bg-white/5 rounded-lg text-gray-400 mt-0.5">
+                   <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                   <div className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-1">Dernière Connexion</div>
+                   <div className="font-medium text-white">
+                      {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('fr-FR', {
+                         day: 'numeric',
+                         month: 'long',
+                         year: 'numeric',
+                         hour: '2-digit',
+                         minute: '2-digit'
+                      }) : 'N/A'}
+                   </div>
+                </div>
+             </div>
+           </div>
         </div>
       </div>
     </div>
@@ -174,4 +257,3 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
-

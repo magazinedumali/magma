@@ -2,8 +2,8 @@ import React, { useState, useEffect, useLayoutEffect, memo } from 'react';
 import { Bell, Bookmark, User, Search as SearchIcon, PlayCircle, Sun, Moon } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getUserAvatar } from '@/lib/userHelper';
-import { getFeaturedArticles, getArticlesByCategory, getRecentArticles } from '@/data/articles';
-import { categories as siteCategories } from '@/components/Header';
+
+import { useCategories } from '@/hooks/useCategories';
 import { useNavigate } from 'react-router-dom';
 import Banner from '@/components/Banner';
 import { User as UserIcon } from 'lucide-react';
@@ -144,6 +144,7 @@ const ArticleCard = memo(function ArticleCard({ title, image, author, authorAvat
 });
 
 export default function MobileHome() {
+  const { categories: siteCategories } = useCategories();
   const [tab, setTab] = useState('latest');
   const [user, setUser] = useState<any>(null);
   const [slide, setSlide] = useState(0);
