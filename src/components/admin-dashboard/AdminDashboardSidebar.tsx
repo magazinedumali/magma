@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaSearch, FaHome, FaFileAlt, FaImages, FaComments, FaTools,
-  FaMusic, FaFire, FaSitemap, FaVideo, FaPoll, FaCog
+  FaMusic, FaFire, FaSitemap, FaVideo, FaPoll, FaCog, FaAd
 } from "react-icons/fa";
 import "./dashboard.css";
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,7 @@ const AdminDashboardSidebar = () => {
     getPollsPath,
     getPagesPath,
     getVideosPath,
+    getBannersPath,
     getMenuPath
   } = useAdminContext();
 
@@ -142,6 +143,12 @@ const AdminDashboardSidebar = () => {
               <NavLink to={getMenuPath()} className={({ isActive }) => isActive ? "active" : undefined}>
                 <FaSitemap className="sidebar-icon" />
                 <span>Menu principal</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to={getBannersPath()} className={({ isActive }) => isActive ? "active" : undefined}>
+                <FaAd className="sidebar-icon" />
+                <span>Publicités & Bannières</span>
               </NavLink>
             </li>
           </ul>

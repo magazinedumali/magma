@@ -22,6 +22,7 @@ import MainMenuPage from './admin/MainMenuPage';
 import PagesAdminPage from './admin/PagesAdminPage';
 import VideosPage from './admin/VideosPage';
 import SettingsPage from './admin/SettingsPage';
+import BannersPage from './admin/BannersPage';
 import { useAdminContext } from '@/hooks/use-admin-context';
 import { useNavigate } from 'react-router-dom';
 
@@ -65,6 +66,7 @@ const AdminDashboard = () => {
           <Route path="menu" element={<MainMenuPage />} />
           <Route path="pages" element={<PagesAdminPage />} />
           <Route path="videos" element={<VideosPage />} />
+          <Route path="bannieres" element={<BannersPage />} />
         </Route>
       </Route>
     </Routes>

@@ -24,6 +24,7 @@ export const useAdminContext = () => {
     getPollsPath: () => `${basePath}/polls`,
     getPagesPath: () => `${basePath}/pages`,
     getVideosPath: () => `${basePath}/videos`,
+    getBannersPath: () => `${basePath}/bannieres`,
     getMenuPath: () => `${basePath}/menu`,
     getDashboardPath: () => basePath,
   };
