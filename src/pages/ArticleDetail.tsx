@@ -289,28 +289,26 @@ const ArticleDetail = () => {
       </Helmet>
       <Header />
       
-      <main className="py-8">
+      <main className="py-8 bg-transparent text-gray-200">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
               <article>
-                <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white font-jost">
                   {article.title || article.titre}
                 </h1>
                 
-                <div className="flex items-center text-news-gray mb-6">
-                  <span className="mr-4">{article.author || article.auteur}</span>
-                  <span className="flex items-center">
-                    <Clock size={16} className="mr-1" />
-                    {article.date ? new Date(article.date).toLocaleDateString() : (article.date_publication ? new Date(article.date_publication).toLocaleDateString() : '')}
+                <div className="flex items-center text-gray-400 mb-6 text-sm font-medium">
+                  <span className="mr-4 text-white">{article.author || article.auteur}</span>
+                  <span className="flex items-center text-[#ff184e]">
+                    <Clock size={16} className="mr-1.5" />
+                    <span className="text-gray-400">{article.date ? new Date(article.date).toLocaleDateString() : (article.date_publication ? new Date(article.date_publication).toLocaleDateString() : '')}</span>
                   </span>
                 </div>
                 
-                <div className="mb-6">
-                  <span className="article-category">
-                    {article.category || article.categorie}
-                  </span>
+                <div className="mb-6 mb-8 inline-block bg-[#ff184e]/20 border border-[#ff184e]/50 text-[#ff184e] px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase shadow-[0_0_15px_rgba(255,24,78,0.2)]">
+                  {article.category || article.categorie}
                 </div>
                 
                 {(article.image || article.image_url) && (article.image !== '/placeholder.svg' && article.image_url !== '/placeholder.svg') && (
@@ -333,9 +331,9 @@ const ArticleDetail = () => {
                   </div>
                 )}
                 
-                <div className="prose max-w-none">
+                <div className="article-body prose prose-invert max-w-none prose-p:text-gray-300 prose-headings:text-white prose-a:text-[#ff184e] hover:prose-a:text-[#ff184e]/80">
                   {article.excerpt && (
-                    <p className="text-lg leading-relaxed mb-4">
+                    <p className="text-lg leading-relaxed mb-6 font-medium text-gray-200 border-l-4 border-[#ff184e] pl-4 italic bg-white/5 py-4 rounded-r-lg">
                       {article.excerpt}
                     </p>
                   )}
@@ -343,7 +341,7 @@ const ArticleDetail = () => {
                   {article.content ? (
                     <div dangerouslySetInnerHTML={{ __html: article.content }} />
                   ) : (
-                    <div className="text-gray-500 italic text-center py-8">
+                    <div className="text-gray-500 italic text-center py-8 glass-panel rounded-xl">
                       <p>Le contenu de cet article n'est pas disponible.</p>
                       <p className="text-sm mt-2">Veuillez contacter l'administrateur si ce problème persiste.</p>
                     </div>
@@ -351,10 +349,10 @@ const ArticleDetail = () => {
                 </div>
                 
                 {/* Bannière sous l'article, avant les commentaires */}
-                <div className="my-8">
+                <div className="my-8 glass-panel rounded-xl p-1 shadow-2xl overflow-hidden">
                   <Banner position="sous-article" width={1200} height={180} />
                 </div>
-                <div className="bg-white rounded-2xl shadow-lg p-8" id="comment-form">
+                <div className="glass-panel rounded-2xl shadow-xl p-8 border border-white/10" id="comment-form">
                   <CommentForm 
                     onAdd={handleAddComment} 
                     placeholder={t('Ajouter un commentaire…')} 
@@ -393,11 +391,11 @@ const ArticleDetail = () => {
             {/* Sidebar */}
             <div>
               {/* Reviews Section */}
-              <div className="bg-gray-50 rounded-2xl p-6 mb-8">
+              <div className="glass-panel rounded-2xl shadow-xl p-6 mb-8 border border-white/10">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-bold text-xl">{t('Avis')}</h3>
+                  <h3 className="font-bold text-xl text-white font-jost border-b border-[#ff184e] pb-1 inline-block">{t('Avis')}</h3>
                   <button
-                    className="text-gray-400 font-medium text-base hover:underline"
+                    className="text-gray-400 font-medium text-xs uppercase tracking-wider hover:text-white transition-colors"
                     onClick={() => navigate(`/article/${article.slug}/comments`)}
                   >
                     {t('Voir tout')}
@@ -405,19 +403,19 @@ const ArticleDetail = () => {
                 </div>
                 <div className="overflow-hidden" style={{ height: `${commentHeight * visibleCount}px` }}>
                   {commentsLoading ? (
-                    <div className="text-center text-gray-400 py-10">Chargement…</div>
+                    <div className="text-center text-gray-400 py-10 animate-pulse">Chargement…</div>
                   ) : comments.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full py-8">
-                      <div className="text-gray-500 text-base mb-3">Soyez le premier à commenter cet article!</div>
+                    <div className="flex flex-col items-center justify-center h-full py-8 border border-dashed border-white/20 rounded-xl bg-white/5">
+                      <div className="text-gray-400 text-sm mb-4 font-medium">Soyez le premier à commenter cet article!</div>
                       <button
-                        className="flex items-center gap-2 text-[#4f8cff] font-semibold hover:underline text-base"
+                        className="flex items-center gap-2 text-white bg-[#ff184e] hover:bg-[#ff184e]/80 transition-colors px-4 py-2 rounded-lg font-bold text-sm shadow-[0_0_15px_rgba(255,24,78,0.4)]"
                         onClick={() => {
                           const el = document.getElementById('comment-form');
                           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }}
                       >
                         <span>Commenter</span>
-                        <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                       </button>
                     </div>
                   ) : (
@@ -430,20 +428,20 @@ const ArticleDetail = () => {
                         return (
                           <div
                             key={review.id || idx}
-                            className="bg-white rounded-2xl shadow p-4 flex gap-4 items-start w-full max-w-full"
+                            className="bg-white/5 border border-white/10 rounded-xl shadow p-4 flex gap-4 items-start w-full max-w-full hover:bg-white/10 transition-colors"
                           >
                             <img 
                               src={userInfo.avatar} 
                               alt={userInfo.name} 
-                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                              className="w-10 h-10 rounded-full object-cover border border-white/20"
                               onError={(e) => {
                                 e.currentTarget.src = '/placeholder.svg';
                               }}
                             />
                             <div className="flex-1 min-w-0">
-                              <div className="font-bold text-base text-black">{userInfo.name}</div>
-                              <div className="text-gray-400 text-sm mb-2">{review.time}</div>
-                              <div className="text-gray-500 text-base leading-snug break-words max-w-full">{review.text}</div>
+                              <div className="font-bold text-sm text-gray-200">{userInfo.name}</div>
+                              <div className="text-[#ff184e] font-medium text-[10px] tracking-wider mb-1.5 uppercase">{review.time}</div>
+                              <div className="text-gray-400 text-sm leading-snug break-words max-w-full line-clamp-2">{review.text}</div>
                             </div>
                           </div>
                         );
@@ -452,16 +450,16 @@ const ArticleDetail = () => {
                   )}
                 </div>
               </div>
-              <div className="sticky top-8">
+              <div className="sticky top-24">
                 {/* Ad Banner */}
-                <div className="mb-8">
+                <div className="mb-8 glass-panel rounded-xl p-1 overflow-hidden shadow-2xl flex justify-center">
                   <Banner position="sidebar-article" width={300} height={250} />
                 </div>
-                <div className="bg-gray-50 p-6 mb-8">
-                  <h3 className="text-xl font-bold mb-4">{t('Articles récents')}</h3>
+                <div className="glass-panel border border-white/10 rounded-2xl shadow-xl p-6 mb-8">
+                  <h3 className="text-xl font-bold mb-6 font-jost text-white border-b border-[#ff184e] pb-1 inline-block">{t('Articles récents')}</h3>
                   <div className="space-y-4">
                     {loadingRecent ? (
-                      <div className="text-gray-400">Chargement...</div>
+                      <div className="text-gray-400 animate-pulse">Chargement...</div>
                     ) : (
                       recentArticles
                         .filter(recent => (recent.slug || recent.id) && (recent.slug || recent.id) !== (article.slug || article.id))
@@ -478,18 +476,19 @@ const ArticleDetail = () => {
                     )}
                   </div>
                 </div>
-                <div className="bg-gray-50 p-6">
-                  <h3 className="text-xl font-bold mb-4">{t('S\'abonner')}</h3>
-                  <p className="text-news-gray mb-4">
+                <div className="glass-panel border border-white/10 rounded-2xl shadow-xl p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff184e]/10 rounded-full blur-[40px] pointer-events-none"></div>
+                  <h3 className="text-xl font-bold mb-4 font-jost text-white border-b border-[#ff184e] pb-1 inline-block">{t('S\'abonner')}</h3>
+                  <p className="text-gray-400 text-sm mb-6 leading-relaxed">
                     {t('Restez informé de nos dernières actualités et articles directement dans votre boîte mail.')}
                   </p>
-                  <div className="space-y-3">
+                  <div className="space-y-3 relative z-10">
                     <input 
                       type="email" 
                       placeholder={t('Votre adresse e-mail')} 
-                      className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-news-red"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-[#ff184e] focus:border-[#ff184e] placeholder-gray-500 text-sm"
                     />
-                    <button className="w-full bg-news-red hover:bg-red-700 text-white py-2 px-4 rounded font-medium">
+                    <button className="w-full bg-[#ff184e] hover:bg-[#ff184e]/80 transition-colors text-white py-3 px-4 rounded-lg font-bold shadow-[0_0_15px_rgba(255,24,78,0.4)]">
                       {t('S\'abonner')}
                     </button>
                   </div>

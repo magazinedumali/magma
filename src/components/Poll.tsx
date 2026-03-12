@@ -90,7 +90,7 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
   if (!poll) return null;
 
   return (
-    <div className={compact ? "bg-gray-50 rounded-xl p-4 flex flex-col items-center shadow-md" : "bg-gray-50 rounded-xl p-8 flex flex-col items-center shadow-md"}>
+    <div className={compact ? "glass-panel border-white/10 rounded-xl p-4 flex flex-col items-center shadow-lg" : "glass-panel border-white/10 rounded-xl p-8 flex flex-col items-center shadow-xl"}>
       {poll.image_url && (
         <img
           src={poll.image_url}
@@ -98,7 +98,7 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
           style={{ width: '100%', height: compact ? 120 : 180, objectFit: 'cover', borderRadius: 16, marginBottom: 20 }}
         />
       )}
-      <div className={compact ? "text-center text-gray-700 mb-4 font-semibold text-base" : "text-center text-gray-700 mb-6 font-semibold text-lg"}>{poll.question}</div>
+      <div className={compact ? "text-center text-gray-200 mb-4 font-semibold text-base" : "text-center text-gray-200 mb-6 font-semibold text-lg"}>{poll.question}</div>
       <div className="flex w-full justify-center gap-4">
         {options.map(option => {
           const isYes = option.label.trim().toLowerCase() === 'oui' || option.label.trim().toLowerCase() === 'yes';
@@ -144,8 +144,8 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
               </button>
               <div
                 style={{
-                  background: '#f5f6fa',
-                  color: '#232b46',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
                   fontWeight: 500,
                   fontSize: compact ? 18 : 20,
                   padding: compact ? '0 14px' : '0 18px',
@@ -166,7 +166,7 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
       </div>
       {voted && <div className="mt-4 text-green-600 font-medium">Merci pour votre vote !</div>}
       {totalVotes > 0 && (
-        <div className="mt-2 text-xs text-gray-500 text-center w-full">Total&nbsp;: {totalVotes} vote{totalVotes > 1 ? 's' : ''}</div>
+        <div className="mt-2 text-xs text-gray-400 text-center w-full">Total&nbsp;: {totalVotes} vote{totalVotes > 1 ? 's' : ''}</div>
       )}
     </div>
   );

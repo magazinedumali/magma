@@ -74,7 +74,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, noCard }) => {
   };
 
   return (
-    <div className={noCard ? "w-full flex flex-col items-center px-0 py-0 gap-2 bg-transparent shadow-none" : "w-full bg-white rounded-xl shadow flex flex-col items-center px-4 py-3 gap-2"}>
+    <div className={noCard ? "w-full flex flex-col items-center px-0 py-0 gap-2 bg-transparent shadow-none" : "w-full glass-panel rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col items-center px-4 py-3 gap-2"}>
       <audio
         ref={audioRef}
         src={src}
@@ -95,7 +95,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, noCard }) => {
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24"><path d="M7 5v14l11-7L7 5z" fill="currentColor"/></svg>
           )}
         </button>
-        <span className="text-xs text-gray-500 w-10 text-right">{formatTime(currentTime)}</span>
+        <span className="text-xs text-gray-400 font-medium w-10 text-right">{formatTime(currentTime)}</span>
         <div className="relative flex-1 flex items-center">
         <input
           type="range"
@@ -109,11 +109,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, noCard }) => {
             }}
         />
         </div>
-        <span className="text-xs text-gray-500 w-10">{formatTime(duration)}</span>
+        <span className="text-xs text-gray-400 font-medium w-10">{formatTime(duration)}</span>
         <div className="relative flex items-center gap-2">
           <button
             onClick={() => setShowVolume(!showVolume)}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1 hover:bg-white/10 rounded-full transition-colors"
           >
             {volume === 0 ? (
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M9 9v6h4l5 5V4l-5 5H9z" stroke="#ff184e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="19" y1="5" x2="5" y2="19" stroke="#ff184e" strokeWidth="2"/></svg>
@@ -125,7 +125,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, noCard }) => {
           </button>
           {showVolume && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-30 animate-slideup origin-bottom transition-transform duration-300">
-              <div className="flex flex-col items-center gap-2 bg-white rounded-xl shadow-lg p-2">
+              <div className="flex flex-col items-center gap-2 glass-panel border border-white/10 rounded-xl shadow-[0_5px_15px_rgba(0,0,0,0.5)] p-2">
                 <span className="text-xs font-semibold text-[#ff184e] mb-1">{Math.round(volume * 100)}%</span>
               <input
                 type="range"

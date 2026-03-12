@@ -43,7 +43,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ onAdd, placeholder = 'Ajouter
       <img 
         src={userAvatar} 
         alt={displayName} 
-        className="w-12 h-12 rounded-full object-cover mt-1 border-2 border-gray-200"
+        className="w-12 h-12 rounded-full object-cover mt-1 border border-white/20 shadow-md"
         onError={(e) => {
           e.currentTarget.src = '/placeholder.svg';
         }}
@@ -52,7 +52,7 @@ const CommentForm: React.FC<CommentFormProps> = ({ onAdd, placeholder = 'Ajouter
         {user ? (
           <>
             <textarea
-              className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-[#ff184e] focus:ring-2 focus:ring-[#ff184e] transition mb-2 resize-none text-base"
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl p-4 focus:border-[#ff184e] focus:ring-1 focus:ring-[#ff184e] transition mb-3 resize-none text-sm"
               rows={3}
               placeholder={placeholder}
               value={text}
@@ -63,20 +63,20 @@ const CommentForm: React.FC<CommentFormProps> = ({ onAdd, placeholder = 'Ajouter
               <button 
                 type="submit" 
                 disabled={loading || !text.trim()}
-                className="bg-[#ff184e] hover:bg-red-600 text-white px-6 py-2 rounded-xl font-semibold shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#ff184e] hover:bg-[#ff184e]/80 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(255,24,78,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Envoi...' : sendLabel}
               </button>
             </div>
           </>
         ) : (
-          <div className="border-2 border-gray-200 rounded-xl p-4 text-center">
-            <p className="text-gray-600 mb-3">Connectez-vous pour commenter</p>
-            <div className="flex gap-2 justify-center">
-              <a href="/login" className="bg-[#4f8cff] hover:bg-[#2563eb] text-white px-4 py-2 rounded-lg font-semibold transition">
+          <div className="border border-white/10 bg-white/5 rounded-xl p-6 text-center shadow-inner">
+            <p className="text-gray-300 font-medium mb-4">Connectez-vous pour commenter cet article</p>
+            <div className="flex gap-3 justify-center">
+              <a href="/login" className="bg-white/10 hover:bg-white/20 border border-white/10 text-white px-5 py-2.5 rounded-lg font-bold transition-colors text-sm">
                 Se connecter
               </a>
-              <a href="/register" className="bg-[#ff184e] hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition">
+              <a href="/register" className="bg-[#ff184e] hover:bg-[#ff184e]/80 shadow-[0_0_15px_rgba(255,24,78,0.4)] text-white px-5 py-2.5 rounded-lg font-bold transition-all text-sm">
                 Créer un compte
               </a>
             </div>

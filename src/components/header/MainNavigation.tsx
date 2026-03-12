@@ -69,13 +69,20 @@ const MainNavigation = () => {
 
   // Fonction pour rendre un lien selon le type
   function renderMenuLink(item: MainMenuItem, children?: React.ReactNode) {
+    const cls = cn(
+      "flex items-center gap-1 px-1 py-1.5 text-[13px] font-semibold tracking-wide text-gray-300 hover:text-white",
+      "relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-[#ff184e] after:transition-all after:duration-300 hover:after:w-full",
+      "transition-colors duration-200 rounded-md"
+    );
     if (item.link_type === 'external') {
       return (
-        <a href={item.path} target={item.target_blank ? '_blank' : undefined} rel={item.target_blank ? 'noopener noreferrer' : undefined} className={cn("flex items-center p-2 hover:text-[#ff184e] transition-colors")}>{item.name}{children}</a>
+        <a href={item.path} target={item.target_blank ? '_blank' : undefined} rel={item.target_blank ? 'noopener noreferrer' : undefined} className={cls}>
+          {item.name}{children}
+        </a>
       );
     }
     return (
-      <Link to={item.path} className={cn("flex items-center p-2 hover:text-[#ff184e] transition-colors")}>{item.name}{children}</Link>
+      <Link to={item.path} className={cls}>{item.name}{children}</Link>
     );
   }
 
@@ -84,29 +91,37 @@ const MainNavigation = () => {
   return (
     <div className="hidden md:block">
       <NavigationMenu>
-        <NavigationMenuList>
+        <NavigationMenuList className="gap-0.5">
           {menuTree.map((item) => (
             <NavigationMenuItem key={item.id}>
               {item.has_dropdown && item.children && item.children.length > 0 ? (
                 <>
-                  <NavigationMenuTrigger className="relative">
+                  <NavigationMenuTrigger
+                    className="relative h-auto bg-transparent hover:bg-white/5 data-[state=open]:bg-white/5 text-gray-300 hover:text-white data-[state=open]:text-white text-[13px] font-semibold tracking-wide px-3 py-2 rounded-md transition-colors focus:outline-none"
+                  >
                     {item.name}
                     {item.hot && (
-                      <span className="absolute -top-1 -right-8 bg-[#ff184e] text-white text-xs px-1 rounded">
-                        Hot
+                      <span className="ml-2 bg-[#ff184e] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        HOT
                       </span>
                     )}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                      <div className="p-4 min-w-[200px]">
-                        <ul className="space-y-2">
+                    <div className="glass-panel border-white/10 p-3 min-w-[200px] rounded-xl shadow-2xl">
+                      <ul className="space-y-0.5">
                         {item.children.map((subitem) => (
                           <li key={subitem.id}>
-                            {renderMenuLink(subitem)}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                            <Link
+                              to={subitem.path}
+                              className="flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors duration-200 group"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#ff184e]/60 group-hover:bg-[#ff184e] transition-colors flex-shrink-0"></span>
+                              {subitem.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </NavigationMenuContent>
                 </>
               ) : (

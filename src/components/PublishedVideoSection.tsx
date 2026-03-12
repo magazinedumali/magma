@@ -151,7 +151,7 @@ const PublishedVideoSection: React.FC = () => {
   };
 
   return (
-    <section className="py-16 bg-[#101021]">
+    <section className="py-16 bg-transparent">
       {/* Style global pour masquer les trois points sur tous les players vidéo */}
       <style>{hideVideoMenuDotsStyle}</style>
       <VideoModal open={modalOpen} onOpenChange={setModalOpen} video={selectedVideo} />
@@ -162,7 +162,7 @@ const PublishedVideoSection: React.FC = () => {
           {/* Left column (2 stacked small videos) */}
           <div className="flex flex-col gap-6">
               {[videos[0], videos[1]].map((video, idx) => (
-                <div key={video.id} className="relative rounded-lg overflow-hidden h-60 group shadow-lg flex">
+                <div key={video.id} className="relative rounded-2xl overflow-hidden h-60 group shadow-lg flex glass-panel border border-white/10 hover:shadow-[0_0_20px_rgba(255,24,78,0.3)] transition-all">
                   <video
                     src={video.video_url}
                     controls

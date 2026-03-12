@@ -77,10 +77,16 @@ export default {
         },
       },
       fontFamily: {
-        jost: ["Jost", "sans-serif"],
-        roboto: ["Roboto", "sans-serif"],
-        playfair: ["Playfair Display", "serif"],
-        poppins: ["Poppins", "sans-serif"],
+        // Primary modern stack
+        sans:     ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        syne:     ["Syne", "sans-serif"],
+        inter:    ["Inter", "sans-serif"],
+        mono:     ["DM Mono", "ui-monospace", "monospace"],
+        // Legacy aliases kept so existing className="font-jost / font-poppins" still work
+        jost:     ["Syne", "sans-serif"],
+        poppins:  ["Inter", "sans-serif"],
+        roboto:   ["Inter", "sans-serif"],
+        playfair: ["Syne", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

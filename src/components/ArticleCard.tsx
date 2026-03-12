@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import { Clock, Eye, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ArticleCardProps {
   slug: string;
@@ -35,46 +36,65 @@ const ArticleCard = ({
   comments_count = 0
 }: ArticleCardProps) => {
   return (
-    <article className={`bg-white ${featured ? '' : 'h-full'}`}>
-      <Link to={`/article/${slug}`} className="block relative">
-        <img 
+    <motion.article 
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.3 }}
+      className={`glass-panel rounded-xl overflow-hidden flex flex-col ${featured ? '' : 'h-full'}`}
+    >
+      <Link to={`/article/${slug}`} className="block relative overflow-hidden group">
+        <motion.img 
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.5 }}
           src={image} 
           alt={title} 
-          className="w-full h-48 object-cover"
+          className="w-full h-56 object-cover transition-transform duration-500"
           onError={(e) => {
             e.currentTarget.src = '/placeholder.svg';
           }}
           loading="lazy"
         />
-        <span className="article-category absolute top-4 left-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+        <span className="absolute top-4 left-4 bg-[#ff184e]/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_10px_rgba(255,24,78,0.5)]">
           {category}
         </span>
       </Link>
-      <div className="p-4">
-        <h3 className={`font-bold mb-2 line-clamp-2 ${featured ? 'text-2xl md:text-3xl' : 'text-lg'}`}>
-          <Link to={`/article/${slug}`} className="hover:text-news-red transition-colors">
+      
+      <div className="p-5 flex flex-col flex-1 relative z-10 bg-gradient-to-b from-white/5 to-transparent">
+        <h3 className={`font-bold mb-3 line-clamp-2 text-white group-hover:text-[#ff184e] transition-colors ${featured ? 'text-2xl md:text-3xl' : 'text-xl'}`}>
+          <Link to={`/article/${slug}`} className="hover:text-[#ff184e] transition-colors">
             {title}
           </Link>
         </h3>
+        
         {featured && (
-          <p className="text-news-gray mb-4 line-clamp-3">{excerpt}</p>
+          <p className="text-gray-400 mb-5 line-clamp-3 text-sm leading-relaxed">{excerpt}</p>
         )}
-        <div className="flex items-center text-xs text-news-gray mt-2">
-          <span className="mr-3">{author}</span>
-          <span className="flex items-center mr-3">
-            <Clock size={14} className="mr-1" />
-            {date}
-          </span>
-          <span className="flex items-center mr-3">
-            <svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'><path fill='currentColor' d='M12 5c-7.633 0-10 6.833-10 7.5S4.367 20 12 20s10-6.833 10-7.5S19.633 5 12 5Zm0 13c-5.94 0-8.5-5.13-8.958-6C3.5 11.13 6.06 6 12 6s8.5 5.13 8.958 6C20.5 12.87 17.94 18 12 18Zm0-10a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 6.5A2.5 2.5 0 1 1 12 9a2.5 2.5 0 0 1 0 5Z'/></svg>
-            {views}
-          </span>
-          <span className="flex items-center">
-            Commentaire ({comments_count})
-          </span>
+        
+        <div className="mt-auto pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-y-2">
+          <div className="flex items-center space-x-3">
+            <span className="flex items-center font-medium text-gray-300">
+              <img src={getAuthorAvatar(author, authorAvatar)} alt={author} className="w-5 h-5 rounded-full mr-2 border border-white/20"/>
+              {author}
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <span className="flex items-center">
+              <Clock size={12} className="mr-1 text-[#ff184e]" />
+              {new Date(date).toLocaleDateString()}
+            </span>
+            <span className="flex items-center">
+              <Eye size={12} className="mr-1 text-[#ff184e]" />
+              {views}
+            </span>
+            <span className="flex items-center">
+              <MessageCircle size={12} className="mr-1 text-[#ff184e]" />
+              {comments_count}
+            </span>
+          </div>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };
 

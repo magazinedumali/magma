@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Send, Trash2 } from 'lucide-react';
@@ -165,9 +165,14 @@ const ArticleCommentsWeb: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafd] flex flex-col transition-colors duration-300">
-      <div className="max-w-2xl mx-auto w-full pt-8 pb-32 px-4">
-        <h1 className="text-2xl font-bold mb-2">Commentaires <span className="text-[#ff184e]">({total})</span></h1>
+    <div className="min-h-screen bg-[#0B0F19] flex flex-col transition-colors duration-300 relative text-white">
+      {/* Background decorations */}
+      <div className="fixed top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#ff184e]/30 to-transparent z-0"></div>
+      <div className="fixed top-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#ff184e]/5 blur-[120px] pointer-events-none z-0"></div>
+      <div className="fixed bottom-[-20%] left-[-10%] w-[30%] h-[40%] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none z-0"></div>
+
+      <div className="max-w-2xl mx-auto w-full pt-12 pb-32 px-4 relative z-10">
+        <h1 className="text-3xl font-bold mb-8 font-jost">Commentaires <span className="text-[#ff184e]">({total})</span></h1>
         <div ref={listRef} className="space-y-6">
           {loading ? (
             <div className="text-center text-gray-400 mt-10">Chargement...</div>
@@ -177,22 +182,22 @@ const ArticleCommentsWeb: React.FC = () => {
             comments.map((comment, idx) => {
               const userInfo = getCommentUserInfo(comment);
               return (
-                <div key={comment.id || idx} className="flex items-start gap-3 bg-white rounded-2xl px-4 py-3 shadow relative group">
+                <div key={comment.id || idx} className="flex items-start gap-4 glass-panel rounded-2xl p-5 shadow-xl border border-white/10 relative group hover:bg-white/5 transition-colors">
                   <img 
                     src={userInfo.avatar} 
                     alt={userInfo.name} 
-                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200" 
+                    className="w-12 h-12 rounded-full object-cover border border-white/20 shadow-md" 
                     loading="lazy"
                     onError={(e) => {
                       e.currentTarget.src = '/placeholder.svg';
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-[#1a2746]">{userInfo.name}</span>
-                      <span className="text-xs text-gray-400">{comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}</span>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="font-bold text-gray-200">{userInfo.name}</span>
+                      <span className="text-[10px] text-[#ff184e] uppercase tracking-wider font-medium">{comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}</span>
                     </div>
-                    <div className="text-gray-700 text-base break-words">{comment.content}</div>
+                    <div className="text-gray-400 text-sm leading-relaxed break-words">{comment.content}</div>
                   </div>
                   {/* Poubelle visible seulement pour l'auteur */}
                   {user && comment.user_id === user.id && (
@@ -214,42 +219,44 @@ const ArticleCommentsWeb: React.FC = () => {
         </div>
       </div>
       {/* Barre d'ajout de commentaire en bas */}
-      <form onSubmit={handleAddComment} className="flex items-center bg-white rounded-xl px-4 py-4 shadow-lg mt-8 sticky bottom-0 z-10">
-        <img
-          src={user ? getUserAvatar(user) : '/placeholder.svg'}
-          alt={user ? getUserDisplayName(user) : 'Avatar'}
-          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 mr-4"
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder.svg';
-          }}
-        />
-        {user ? (
-          <>
-            <input
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-full border border-gray-200 focus:border-[#4f8cff] outline-none text-base"
-              placeholder="Ajouter un commentaire…"
-              disabled={sending}
-            />
-            <button
-              type="submit"
-              className="ml-4 px-6 py-3 rounded-full bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition"
-              disabled={sending || !inputValue.trim()}
-            >
-              Envoyer
-            </button>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center gap-2">
-            <div className="text-gray-500 text-sm mb-2">Connectez-vous ou créez un compte pour commenter</div>
-            <div className="flex gap-2 w-full">
-              <a href="/login" className="flex-1 px-4 py-2 rounded-full bg-[#4f8cff] text-white font-bold text-center shadow hover:bg-[#2563eb] transition">Se connecter</a>
-              <a href="/register" className="flex-1 px-4 py-2 rounded-full bg-[#ff184e] text-white font-bold text-center shadow hover:bg-red-600 transition">Créer un compte</a>
+      <div className="fixed bottom-0 left-0 right-0 z-20 p-4 bg-black/40 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <form onSubmit={handleAddComment} className="max-w-2xl mx-auto flex items-center glass-panel rounded-2xl px-4 py-3 border border-white/10">
+          <img
+            src={user ? getUserAvatar(user) : '/placeholder.svg'}
+            alt={user ? getUserDisplayName(user) : 'Avatar'}
+            className="w-12 h-12 rounded-full object-cover border border-white/20 mr-4 shadow-md"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg';
+            }}
+          />
+          {user ? (
+            <>
+              <input
+                value={inputValue}
+                onChange={e => setInputValue(e.target.value)}
+                className="flex-1 px-5 py-3.5 bg-white/5 rounded-xl border border-white/10 focus:border-[#ff184e] focus:ring-1 focus:ring-[#ff184e] outline-none text-sm text-white placeholder-gray-500 transition-all"
+                placeholder="Ajouter un commentaire…"
+                disabled={sending}
+              />
+              <button
+                type="submit"
+                className="ml-4 px-8 py-3.5 rounded-xl bg-[#ff184e] text-white font-bold shadow-[0_0_15px_rgba(255,24,78,0.4)] hover:bg-[#ff184e]/80 transition-all disabled:opacity-50 text-sm"
+                disabled={sending || !inputValue.trim()}
+              >
+                Envoyer
+              </button>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-gray-300 text-sm font-medium">Connectez-vous pour participer</div>
+              <div className="flex gap-3 w-full sm:w-auto">
+                <a href="/login" className="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-white/10 text-white font-bold text-center border border-white/10 hover:bg-white/20 transition-all text-sm">Connexion</a>
+                <a href="/register" className="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-[#ff184e] text-white font-bold text-center shadow-[0_0_15px_rgba(255,24,78,0.4)] hover:bg-[#ff184e]/80 transition-all text-sm">Inscription</a>
+              </div>
             </div>
-          </div>
-        )}
-      </form>
+          )}
+        </form>
+      </div>
     </div>
   );
 };

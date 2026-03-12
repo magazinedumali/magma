@@ -46,68 +46,93 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f5f7' }}>
+    <div className="min-h-screen bg-transparent text-gray-200 relative flex flex-col">
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-[#0B0F19]">
+        <div className="absolute top-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-[#ff184e]/10 blur-[120px]"></div>
+        <div className="absolute bottom-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/10 blur-[120px]"></div>
+      </div>
       <Header />
-      <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', minHeight: 'calc(100vh - 80px)' }}>
-        {/* Left side - Testimonial and image */}
-        <div style={{ flex: 1, background: '#e9eaf0', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '3rem 2rem', minWidth: 0 }}>
-          <div style={{ maxWidth: 400, textAlign: 'left' }}>
-            <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=facearea&w=400&q=80" alt="Témoignage" style={{ width: '100%', borderRadius: '8px', marginBottom: 24, objectFit: 'cover', height: 260 }} />
-            <blockquote style={{ fontSize: 22, fontWeight: 500, color: '#222', marginBottom: 24, lineHeight: 1.3 }}>
-              « Nous utilisons Untitled pour démarrer chaque nouveau projet et nous ne pouvons plus nous en passer. »
-            </blockquote>
-            <div style={{ color: '#444', fontWeight: 600 }}>Olivia Rhye</div>
-            <div style={{ color: '#888', fontSize: 14 }}>Lead Designer, Layers<br />Web Development Agency</div>
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="glass-panel border-white/10 rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col md:flex-row overflow-hidden relative z-10">
+          
+          {/* Left side / Image & Testimonial */}
+          <div className="md:w-1/2 p-8 md:p-12 bg-black/20 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#ff184e]/10 to-transparent pointer-events-none"></div>
+            <div className="relative z-10">
+              <img 
+                src="https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=facearea&w=600&q=80" 
+                alt="Communauté" 
+                className="w-full h-48 md:h-64 object-cover rounded-xl mb-6 shadow-lg border border-white/10" 
+              />
+              <blockquote className="text-xl md:text-2xl font-jost font-medium text-white mb-6 leading-relaxed italic">
+                « Rejoignez la première communauté tech et culture au Mali. Une mine d'informations et d'inspiration au quotidien. »
+              </blockquote>
+              <div className="font-bold text-[#ff184e] tracking-wider uppercase text-sm">Mariam T.</div>
+              <div className="text-gray-400 text-sm">Rédactrice en chef</div>
+            </div>
           </div>
-        </div>
-        {/* Right side - Register form */}
-        <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '3rem 2rem', minWidth: 0 }}>
-          <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 350 }}>
-            <h2 style={{ marginBottom: 8, fontSize: 28, fontWeight: 700, color: '#222' }}>Créer un compte</h2>
-            <p style={{ color: '#888', marginBottom: 24, fontSize: 15 }}>Rejoignez-nous et profitez de tous les avantages.</p>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="name" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Nom</label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-                style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc', fontSize: 16 }}
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="email" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Adresse e-mail</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc', fontSize: 16 }}
-              />
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label htmlFor="password" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Mot de passe</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc', fontSize: 16 }}
-              />
-            </div>
-            <button type="submit" style={{ width: '100%', padding: 12, borderRadius: 6, background: '#ff184e', color: '#fff', border: 'none', fontWeight: 600, fontSize: 16, marginBottom: 16 }}>
-              S'inscrire
-            </button>
-            <div style={{ textAlign: 'center', color: '#888', fontSize: 15 }}>
-              Déjà un compte ?{' '}
-              <Link to="/login" style={{ color: '#ff184e', textDecoration: 'underline' }}>Connectez-vous</Link>
-            </div>
-            {error && <div style={{ color: 'red', marginBottom: 10 }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: 10 }}>{success}</div>}
-          </form>
+
+          {/* Right side / Form */}
+          <div className="md:w-1/2 p-8 md:p-12 bg-white/5 flex flex-col justify-center">
+            <form onSubmit={handleSubmit} className="w-full max-w-sm mx-auto">
+              <h2 className="text-3xl font-jost font-bold text-white mb-2">Créer un compte</h2>
+              <p className="text-gray-400 mb-8 text-sm">Rejoignez-nous et profitez de tous les avantages.</p>
+              
+              <div className="space-y-5 mb-8">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">Nom complet</label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#ff184e] focus:border-[#ff184e] placeholder-gray-500 transition-all text-sm"
+                    placeholder="Votre nom"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Adresse e-mail</label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#ff184e] focus:border-[#ff184e] placeholder-gray-500 transition-all text-sm"
+                    placeholder="vous@exemple.com"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">Mot de passe</label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#ff184e] focus:border-[#ff184e] placeholder-gray-500 transition-all text-sm"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                className="w-full bg-[#ff184e] text-white font-bold py-3 px-4 rounded-lg shadow-[0_0_15px_rgba(255,24,78,0.4)] hover:shadow-[0_0_25px_rgba(255,24,78,0.6)] hover:bg-[#ff184e]/90 transition-all mb-6 text-sm"
+              >
+                S'inscrire
+              </button>
+
+              <div className="text-center text-sm text-gray-400">
+                Déjà un compte ?{' '}
+                <Link to="/login" className="text-[#ff184e] hover:text-[#ff184e]/80 font-semibold transition-colors">Connectez-vous</Link>
+              </div>
+              
+              {error && <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-500 text-sm text-center">{error}</div>}
+              {success && <div className="mt-4 p-3 bg-green-500/10 border border-green-500/50 rounded-lg text-green-500 text-sm text-center">{success}</div>}
+            </form>
+          </div>
         </div>
       </div>
     </div>

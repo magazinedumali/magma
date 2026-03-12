@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Menu, X, Bell, ChevronDown, UserCircle } from 'lucide-react';
+import { Search, Menu, X, Bell, ChevronDown, UserCircle, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   NavigationMenu,
   NavigationMenuContent,
@@ -24,16 +25,18 @@ import { getUserAvatar } from '@/lib/userHelper';
 import MainNavigation from './header/MainNavigation';
 import HeaderLogo from './header/HeaderLogo';
 import { useCategories } from '@/hooks/useCategories';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Header = () => {
   const { categories } = useCategories();
+  const { isDark, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [currentArticleTitle, setCurrentArticleTitle] = useState("");
   const [showTitle, setShowTitle] = useState(true);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const { t, i18n } = useTranslation();
   
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
@@ -93,21 +96,6 @@ const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleSearch = () => setIsSearchOpen(!isSearchOpen);
 
-  // Render dropdown content for category menu
-  const renderCategoryDropdown = () => (
-    <div className="p-4 grid grid-cols-3 gap-4 min-w-[600px]">
-      {categories.map((category) => (
-        <Link 
-          key={category.name} 
-          to={category.path}
-          className="block p-2 hover:bg-gray-100 hover:text-news-red transition-colors"
-        >
-          {t(category.name)}
-        </Link>
-      ))}
-    </div>
-  );
-
   useEffect(() => {
     if (!isSearchOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -119,7 +107,7 @@ const Header = () => {
 
   // Add state for search query and results
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Instant search handler
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,18 +124,19 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm">
-      {/* Main header (not fixed) */}
-      <div className="w-full bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-2 flex justify-between items-center mb-8">
+    <header className="glass-header text-white transition-all duration-300 relative z-50">
+      <div className="w-full">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center mb-0">
           <div className="flex items-center">
             <button 
-              className="md:hidden text-news-dark mr-3"
+              className="md:hidden text-gray-300 mr-3 hover:text-white transition-colors"
               onClick={toggleMenu}
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
-            <HeaderLogo />
+            <motion.div whileHover={{ scale: 1.02 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
+              <HeaderLogo />
+            </motion.div>
           </div>
           
           {/* Main Navigation - Desktop */}
@@ -155,59 +144,66 @@ const Header = () => {
             <MainNavigation />
           </div>
           
-          {/* Language Switcher */}
-          <div className="flex items-center space-x-4">
+          {/* Right section with language, login and notifications */}
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center text-sm px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-[#ff184e] bg-white">
-                  <img src="https://flagcdn.com/w20/fr.png" alt="Français" className="h-4 mr-2" />
-                  {i18n.language === 'fr' ? 'Français' : 'English'}
-                  <ChevronDown size={16} className="ml-2" />
+                <button className="flex items-center text-sm px-2 sm:px-3 py-1.5 border border-white/20 rounded-md bg-white/5 hover:bg-white/10 transition-colors focus:outline-none focus:ring-1 focus:ring-[#ff184e]">
+                  <img src={i18n.language === 'fr' ? "https://flagcdn.com/w20/fr.png" : "https://flagcdn.com/w20/us.png"} alt="Flag" className="h-4 mr-0 sm:mr-2 rounded-sm" />
+                  <span className="hidden sm:inline">{i18n.language === 'fr' ? 'FR' : 'EN'}</span>
+                  <ChevronDown size={14} className="ml-1 sm:ml-2 text-gray-400" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40 bg-white">
-                <DropdownMenuItem onClick={() => i18n.changeLanguage('fr')} className="flex items-center cursor-pointer">
+              <DropdownMenuContent align="end" className="w-40 glass-panel border-white/10 text-white">
+                <DropdownMenuItem onClick={() => i18n.changeLanguage('fr')} className="flex items-center cursor-pointer hover:bg-white/10 focus:bg-white/10 focus:text-white">
                   <img src="https://flagcdn.com/w20/fr.png" alt="Français" className="h-4 mr-2" />
                   Français
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => i18n.changeLanguage('en')} className="flex items-center cursor-pointer">
+                <DropdownMenuItem onClick={() => i18n.changeLanguage('en')} className="flex items-center cursor-pointer hover:bg-white/10 focus:bg-white/10 focus:text-white">
                   <img src="https://flagcdn.com/w20/us.png" alt="English" className="h-4 mr-2" />
                   English
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-          
-          {/* Right section with language, login and notifications */}
-          <div className="flex items-center space-x-4">
-            {/* Afficher le menu utilisateur si connecté, sinon le bouton Connexion */}
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all duration-300 hover:shadow-[0_0_10px_rgba(255,24,78,0.3)] focus:outline-none"
+            >
+              {isDark 
+                ? <Sun size={16} className="text-amber-300" />
+                : <Moon size={16} className="text-slate-600" />}
+            </button>
+
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-1 rounded hover:bg-gray-100 transition">
+                  <button className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/10 transition-colors border border-transparent hover:border-white/10">
                     {getUserAvatar(user) !== '/placeholder.svg' ? (
                       <img 
                         src={getUserAvatar(user)} 
                         alt="avatar" 
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-8 h-8 rounded-full object-cover border border-white/20"
                         onError={(e) => {
                           e.currentTarget.src = '/placeholder.svg';
                         }}
                       />
                     ) : (
-                      <UserCircle size={32} className="text-gray-400" />
+                      <UserCircle size={28} className="text-gray-300" />
                     )}
-                    <span className="font-medium text-sm text-gray-700">{user.user_metadata?.name || user.email}</span>
-                    <ChevronDown size={16} />
+                    <span className="font-medium text-sm hidden md:block text-gray-200">{user.user_metadata?.name || user.email?.split('@')[0]}</span>
+                    <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-white">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="block w-full text-left px-4 py-2 hover:bg-gray-100">Mon profil</Link>
+                <DropdownMenuContent align="end" className="w-48 glass-panel border-white/10 text-white">
+                  <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 focus:text-white cursor-pointer">
+                    <Link to="/profile" className="block w-full text-left">Mon profil</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 focus:text-white cursor-pointer">
                     <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                      className="block w-full text-left text-[#ff184e] font-medium"
                       onClick={async () => { await supabase.auth.signOut(); }}
                     >
                       Déconnexion
@@ -217,23 +213,22 @@ const Header = () => {
               </DropdownMenu>
             ) : (
               <Link to="/login">
-            <Button 
-              variant="destructive" 
-              className="hidden md:flex text-white bg-[#ff184e] hover:bg-red-700"
-              size="sm"
-            >
+                <Button 
+                  className="hidden md:flex text-white font-medium bg-[#ff184e] hover:bg-[#ff184e]/80 shadow-[0_0_15px_rgba(255,24,78,0.5)] transition-all duration-300 border-none px-6"
+                  size="sm"
+                >
                   Connexion
-            </Button>
+                </Button>
               </Link>
             )}
             
             <Button
               variant="ghost" 
               size="icon"
-              className="relative"
+              className="relative hover:bg-white/10 text-gray-300 hover:text-white"
             >
               <Bell size={20} />
-              <span className="absolute -top-1 -right-1 bg-[#ff184e] text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+              <span className="absolute top-1 right-1 sm:top-0 sm:right-0 bg-[#ff184e] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(255,24,78,0.8)]">
                 2
               </span>
             </Button>
@@ -242,205 +237,110 @@ const Header = () => {
       </div>
 
       {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-b">
-          <div className="container mx-auto px-4">
-            <ul className="flex flex-col space-y-2 py-4 text-sm font-medium">
-              {categories.map((item) => (
-                <li key={item.name}>
-                  <Link 
-                    to={item.path} 
-                    className="nav-link block py-1 flex items-center"
-                  >
-                    {t(item.name)}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden glass-panel border-b border-t border-white/10 overflow-hidden"
+          >
+            <div className="container mx-auto px-4 py-4">
+              <ul className="flex flex-col space-y-2 text-sm font-medium">
+                {categories.map((item) => (
+                  <li key={item.name}>
+                    <Link 
+                      to={item.path} 
+                      className="block py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded px-3 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {t(item.name)}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    <Button 
+                      className="w-full mt-4 text-white bg-[#ff184e] hover:bg-[#ff184e]/80 border-none shadow-[0_0_10px_rgba(255,24,78,0.4)]"
+                      size="sm"
+                    >
+                      Connexion
+                    </Button>
                   </Link>
                 </li>
-              ))}
-              
-              <li className="mt-4">
-                <span className="font-bold block mb-2">Categories</span>
-                <ul className="pl-4 space-y-1">
-                  {categories.map((category) => (
-                    <li key={category.name}>
-                      <Link 
-                        to={category.path} 
-                        className="block py-1 hover:text-[#ff184e]"
-                      >
-                        {t(category.name)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              
-              <li>
-                <Link to="/login">
-                <Button 
-                  variant="destructive" 
-                  className="w-full mt-4 text-white bg-[#ff184e] hover:bg-red-700"
-                  size="sm"
-                >
-                    Connexion
-                </Button>
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+              </ul>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Category Browse Section */}
-      <div className="border-t border-gray-200 py-1">
-        <div className="container mx-auto px-4 flex items-center gap-4 min-h-0" style={{height: 'auto'}}>
+      <div className="border-t border-white/10 py-2 bg-black/20 backdrop-blur-md">
+        <div className="container mx-auto px-4 flex items-center justify-between min-h-0">
           <div className="flex items-center flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex items-center cursor-pointer">
-                  <Menu size={18} className="mr-2" />
-                  <span className="font-medium mr-2">Sujets</span>
-                  <ChevronDown size={16} />
+                <div className="flex items-center cursor-pointer text-gray-300 hover:text-white transition-colors bg-white/5 px-4 py-1.5 rounded-md border border-white/10 hover:bg-white/10">
+                  <Menu size={16} className="mr-2" />
+                  <span className="font-semibold mr-2 text-sm tracking-wide uppercase">Sujets</span>
+                  <ChevronDown size={14} />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white p-4 shadow-lg rounded-md w-60">
-                <div className="grid gap-4">
-                  <Link to="/category/business" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                        <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Économie')}</span>
-                  </Link>
-                  
-                  <Link to="/category/fashion" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1z"></path>
-                        <path d="M4 5V3h16v2"></path>
-                        <path d="M12 17V9"></path>
-                        <path d="M8 13h8"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Mode')}</span>
-                  </Link>
-                  
-                  <Link to="/category/food" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                        <path d="M6 1v3"></path>
-                        <path d="M10 1v3"></path>
-                        <path d="M14 1v3"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Alimentation')}</span>
-                  </Link>
-                  
-                  <Link to="/category/lifestyle" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 20h9"></path>
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Art de vivre')}</span>
-                  </Link>
-                  
-                  <Link to="/category/politics" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M2 20h.01"></path>
-                        <path d="M7 20v-4"></path>
-                        <path d="M12 20v-8"></path>
-                        <path d="M17 20V8"></path>
-                        <path d="M22 4v16"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Politique')}</span>
-                  </Link>
-                  
-                  <Link to="/category/sports" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 8v8"></path>
-                        <path d="M8 12h8"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Sport')}</span>
-                  </Link>
-                  
-                  <Link to="/category/tech" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                        <rect x="9" y="9" width="6" height="6"></rect>
-                        <line x1="9" y1="2" x2="9" y2="4"></line>
-                        <line x1="15" y1="2" x2="15" y2="4"></line>
-                        <line x1="9" y1="20" x2="9" y2="22"></line>
-                        <line x1="15" y1="20" x2="15" y2="22"></line>
-                        <line x1="20" y1="9" x2="22" y2="9"></line>
-                        <line x1="20" y1="14" x2="22" y2="14"></line>
-                        <line x1="2" y1="9" x2="4" y2="9"></line>
-                        <line x1="2" y1="14" x2="4" y2="14"></line>
-                      </svg>
-                    </div>
-                    <span>{t('Actualité Tech')}</span>
-                  </Link>
-                  
-                  <Link to="/category/travel" className="flex items-center hover:text-[#ff184e]">
-                    <div className="w-6 h-6 mr-3 text-gray-500">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="11" r="3"></circle>
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      </svg>
-                    </div>
-                    <span>{t('Voyage')}</span>
-                  </Link>
+              <DropdownMenuContent className="glass-panel border-white/10 p-3 shadow-2xl rounded-xl w-64 z-50 mt-2">
+                <div className="grid gap-1">
+                  {categories.map((cat, idx) => (
+                    <Link key={idx} to={cat.path} className="flex items-center text-gray-300 hover:text-white hover:bg-white/10 p-2.5 rounded-lg transition-colors">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#ff184e] mr-3 shadow-[0_0_5px_#ff184e]"></div>
+                      <span className="font-medium">{t(cat.name)}</span>
+                    </Link>
+                  ))}
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           
           {/* Sliding Article Titles dynamique et cliquable */}
-          <div className="hidden md:flex flex-1 items-center justify-center max-w-[700px]">
-            <div className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 flex items-center overflow-hidden min-w-0" style={{height: '38px'}}>
+          <div className="hidden md:flex flex-1 items-center justify-center max-w-[700px] mx-4">
+            <div className="flex-1 bg-black/30 border border-white/10 rounded-full px-3 flex items-center overflow-hidden h-9 shadow-inner relative">
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/60 to-transparent z-10 pointer-events-none"></div>
               <div
-                className="whitespace-nowrap animate-marquee text-sm font-roboto font-medium text-black flex items-center h-8"
+                className="whitespace-nowrap animate-marquee text-sm font-medium text-gray-300 flex items-center h-full"
                 style={{ display: 'inline-block', minWidth: '100%' }}
               >
                 {loadingRecent ? (
-                  <span className="mx-4 text-gray-400">Chargement...</span>
+                  <span className="mx-4 text-gray-500">Chargement...</span>
                 ) : (
                   mappedArticles.concat(mappedArticles).map((article, idx) => (
-                    <span key={idx} className="mx-4 inline-flex items-center">
-                      <span className="w-2 h-2 rounded-full bg-[#ff184e] inline-block mr-2"></span>
-                      <Link to={`/article/${article.slug}`} className="hover:underline font-semibold" style={{maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
-                        {article.title.length > 32 ? article.title.slice(0, 29) + '...' : article.title}
+                    <span key={idx} className="mx-6 inline-flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#ff184e] shadow-[0_0_5px_#ff184e] inline-block mr-3"></span>
+                      <Link to={`/article/${article.slug}`} className="hover:text-white transition-colors" style={{maxWidth: 250, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                        {article.title}
                       </Link>
                     </span>
                   ))
                 )}
               </div>
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/60 to-transparent z-10 pointer-events-none"></div>
             </div>
           </div>
           
           {/* Right section with tags and search */}
-          <div className="flex items-center flex-shrink-0 ml-4" style={{ marginLeft: '13rem' }}>
+          <div className="flex items-center flex-shrink-0">
             {!isSearchOpen && (
-              <div className="hidden md:flex items-center mr-4">
-                <span className="bg-[#ff184e] text-white px-2 py-1 rounded-sm text-xs font-bold mr-2"># Mots-clés</span>
-                <div className="flex space-x-2 text-sm">
-                  <Link to="/tag/brave" className="hover:text-[#ff184e]">Courageux</Link> • 
-                  <Link to="/tag/business" className="hover:text-[#ff184e] ml-1">Économie</Link>
+              <div className="hidden lg:flex items-center mr-4">
+                <span className="bg-[#ff184e]/20 border border-[#ff184e]/50 text-[#ff184e] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase mr-3">Trending</span>
+                <div className="flex space-x-3 text-sm font-medium text-gray-400">
+                  <Link to="/tag/brave" className="hover:text-white transition-colors">#Courage</Link>
+                  <Link to="/tag/business" className="hover:text-white transition-colors">#Économie</Link>
                 </div>
               </div>
             )}
-            <div className="relative flex items-center">
-              <button className="ml-2 flex items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-100 transition-colors w-12 h-12" onClick={toggleSearch}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div className="relative flex items-center justify-end w-full">
+              <button 
+                className="flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/15 text-gray-300 hover:text-white transition-all w-9 h-9 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]" 
+                onClick={toggleSearch}
+              >
+                <Search size={16} />
               </button>
             </div>
           </div>
@@ -448,47 +348,85 @@ const Header = () => {
       </div>
 
       {/* Add overlay and search bar when isSearchOpen is true */}
-      {isSearchOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center bg-black bg-opacity-70" onClick={toggleSearch}>
-          <div className="w-full max-w-4xl mx-4 mt-20 bg-white rounded-full flex items-center px-4 py-2 relative" onClick={e => e.stopPropagation()}>
-            <input
-              type="text"
-              autoFocus
-              placeholder="Rechercher..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="flex-1 bg-transparent outline-none text-lg px-2"
-            />
-            <button className="ml-2 text-gray-500 hover:text-[#ff184e]" onClick={toggleSearch}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </button>
-          </div>
-          {/* Search results with images and titles */}
-          {searchQuery && (
-            <div className="w-full max-w-4xl mx-4 bg-white rounded-lg shadow mt-2 p-4" style={{ maxHeight: '320px', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-              {searchResults.length ? (
-                <ul>
-                  {searchResults.map((article, idx) => (
-                    <li
-                      key={article.id}
-                      className="flex items-center gap-4 py-2 border-b last:border-b-0 cursor-pointer hover:bg-gray-100 rounded"
-                      onClick={() => navigate(`/article/${article.id}`)}
-                    >
-                      <img src={article.image} alt={article.title} className="w-20 h-20 object-cover" />
-                      <div>
-                        <h3 className="text-sm font-medium leading-6 text-gray-900">{article.title}</h3>
-                        <p className="text-sm leading-6 text-gray-500">{article.summary}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No results found.</p>
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center bg-black/80 backdrop-blur-sm" 
+            onClick={toggleSearch}
+          >
+            <motion.div 
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -50, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="w-full max-w-3xl mx-4 mt-24 glass-panel border border-white/20 rounded-2xl flex items-center px-4 py-3 relative shadow-2xl" 
+              onClick={e => e.stopPropagation()}
+            >
+              <Search className="text-gray-400 mr-3" size={24} />
+              <input
+                type="text"
+                autoFocus
+                placeholder="Rechercher des articles..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="flex-1 bg-transparent border-none outline-none text-xl text-white placeholder-gray-500"
+              />
+              <button className="ml-3 text-gray-400 hover:text-[#ff184e] transition-colors p-2 bg-white/5 rounded-full hover:bg-white/10" onClick={toggleSearch}>
+                <X size={20} />
+              </button>
+            </motion.div>
+            
+            {/* Search results */}
+            <AnimatePresence>
+              {searchQuery && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="w-full max-w-3xl mx-4 mt-4 glass-panel border-white/10 rounded-xl shadow-2xl overflow-hidden" 
+                  style={{ maxHeight: '60vh', overflowY: 'auto' }} 
+                  onClick={e => e.stopPropagation()}
+                >
+                  {searchResults.length ? (
+                    <ul className="divide-y divide-white/10">
+                      {searchResults.map((article, idx) => (
+                        <motion.li
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          key={article.id}
+                          className="flex items-center gap-4 py-3 px-4 cursor-pointer hover:bg-white/5 transition-colors"
+                          onClick={() => {
+                            toggleSearch();
+                            navigate(`/article/${article.id}`);
+                          }}
+                        >
+                          <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 bg-black/50">
+                            <img src={article.image || '/placeholder.svg'} alt={article.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-bold text-gray-200 truncate">{article.title}</h3>
+                            <p className="text-xs text-gray-400 truncate mt-1">{article.excerpt || article.category}</p>
+                          </div>
+                          <ChevronDown className="text-gray-600 -rotate-90 hidden sm:block" size={16} />
+                        </motion.li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="py-12 text-center text-gray-400">
+                      <Search className="mx-auto mb-3 opacity-20" size={48} />
+                      <p>Aucun résultat trouvé pour "{searchQuery}"</p>
+                    </div>
+                  )}
+                </motion.div>
               )}
-            </div>
-          )}
-        </div>
-      )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

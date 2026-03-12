@@ -7,14 +7,13 @@ import ArticleCard from '@/components/ArticleCard';
 import SmallArticleCard from '@/components/SmallArticleCard';
 import MostReadingSection from '@/components/MostReadingSection';
 import PublishedVideoSection, { Video } from '@/components/PublishedVideoSection';
-
 import Banner from '@/components/Banner';
 import { Button } from '@/components/ui/button';
 import Poll from '@/components/Poll';
 import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
+import { motion } from 'framer-motion';
 
-// Titres de sections factorisés pour faciliter la traduction
 const SECTION_TITLES = {
   selectedNews: 'Actualités sélectionnées',
   travelBlogs: 'Blogs de voyage',
@@ -25,13 +24,16 @@ const SECTION_TITLES = {
   entertainment: 'Divertissement',
 };
 
+const fadeUpVariant: any = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
 const Index = () => {
-  // Remplacement de la logique statique pour la section Technologie
   const [technologyArticles, setTechnologyArticles] = useState<any[]>([]);
   const [loadingTech, setLoadingTech] = useState(true);
   const [errorTech, setErrorTech] = useState<string | null>(null);
 
-  // --- Section Business dynamique ---
   const [businessArticles, setBusinessArticles] = useState<any[]>([]);
   const [loadingBusiness, setLoadingBusiness] = useState(true);
   const [errorBusiness, setErrorBusiness] = useState<string | null>(null);
@@ -74,7 +76,6 @@ const Index = () => {
       setLoadingTech(true);
       setErrorTech(null);
 
-      // Récupérer les articles de la catégorie 'Technologie' (case-insensitive)
       const { data, error } = await supabase
         .from('articles')
         .select('*')
@@ -94,7 +95,6 @@ const Index = () => {
     fetchTechArticles();
   }, []);
 
-  // Mapping des articles Supabase vers les props attendues par les composants d'affichage
   const mappedTechArticles = (technologyArticles || []).map(a => ({
     slug: a.slug || a.id,
     title: a.titre,
@@ -106,7 +106,6 @@ const Index = () => {
     featured: false,
   }));
 
-  // --- Section Sport dynamique ---
   const [sportsArticles, setSportsArticles] = useState<any[]>([]);
   const [loadingSports, setLoadingSports] = useState(true);
   const [errorSports, setErrorSports] = useState<string | null>(null);
@@ -116,7 +115,6 @@ const Index = () => {
       setLoadingSports(true);
       setErrorSports(null);
 
-      // Récupérer les articles de la catégorie 'Sport' (case-insensitive, matches 'Sport' or 'Sports')
       const { data, error } = await supabase
         .from('articles')
         .select('*')
@@ -150,7 +148,6 @@ const Index = () => {
     };
   });
   
-  // --- Section Articles Récents dynamique ---
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [errorRecent, setErrorRecent] = useState<string | null>(null);
@@ -178,7 +175,6 @@ const Index = () => {
 
   const mappedRecentArticles = mapArticlesFromSupabase(recentArticles || []);
 
-  // --- Section Additional dynamique (News, Travel, Entertainment) ---
   const [additionalData, setAdditionalData] = useState({
     selectedNews: [] as any[],
     travelBlogs: [] as any[],
@@ -216,114 +212,123 @@ const Index = () => {
   }));
   
   return (
-    <div>
+    <div className="min-h-screen bg-transparent text-gray-200 selection:bg-[#ff184e]/30 selection:text-white relative">
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-[#0B0F19]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#ff184e]/5 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]"></div>
+      </div>
+      
       <TopBar />
       <Header />
-      <main>
+      <main className="overflow-hidden">
         <HeroSection />
         
-        {/* Section MostReadingSection dynamique */}
-        {loadingRecent && <div className="py-12 text-center">Chargement des articles récents...</div>}
+        {loadingRecent && <div className="py-12 text-center text-gray-400">Chargement des articles récents...</div>}
         {errorRecent && <div className="py-12 text-center text-red-500">{errorRecent}</div>}
         {!loadingRecent && !errorRecent && mappedRecentArticles.length === 0 && (
-          <div className="py-12 text-center">Aucun article récent trouvé.</div>
+          <div className="py-12 text-center text-gray-400">Aucun article récent trouvé.</div>
         )}
         {!loadingRecent && !errorRecent && mappedRecentArticles.length > 0 && (
-          <MostReadingSection articles={mappedRecentArticles} />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
+            <MostReadingSection articles={mappedRecentArticles} />
+          </motion.div>
         )}
         
-        <PublishedVideoSection />
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
+          <PublishedVideoSection />
+        </motion.div>
         
-        {/* Latest & Trending */}
-        <section className="py-12">
+        <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Selected News */}
-              <div>
-                <h2 className="text-2xl font-jost font-bold mb-4" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.selectedNews}</h2>
-                <div className="space-y-6">
-                  {loadingAdditional && <div>Chargement...</div>}
-                  {!loadingAdditional && additionalData.selectedNews.length === 0 && <div>Aucun article.</div>}
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUpVariant}>
+                <h2 className="text-2xl font-jost font-bold mb-6 text-white" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.selectedNews}</h2>
+                <div className="space-y-4">
+                  {loadingAdditional && <div className="text-gray-400">Chargement...</div>}
+                  {!loadingAdditional && additionalData.selectedNews.length === 0 && <div className="text-gray-400">Aucun article.</div>}
                   {!loadingAdditional && additionalData.selectedNews.map((item, idx) => (
-                    <div key={idx} className="flex gap-4 items-start cursor-pointer hover:bg-gray-50 p-2 -ml-2 rounded transition-colors" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
-                      <div className="relative min-w-[140px] w-[140px] h-[90px] rounded-lg overflow-hidden">
+                    <motion.div whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }} key={idx} className="flex gap-4 items-center cursor-pointer p-3 rounded-xl transition-colors glass-panel" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
+                      <div className="relative min-w-[120px] w-[120px] h-[80px] rounded-lg overflow-hidden border border-white/10 shadow-lg">
                         <img 
                           src={item.image_url || '/placeholder.svg'} 
                           alt={item.titre} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder.svg';
                           }}
                           loading="lazy"
                         />
-                        <span className={`absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold ${item.categorie === 'Mode' || item.categorie === 'Fashion' ? 'bg-pink-600' : 'bg-red-600'}`}>{item.categorie || 'Actualités'}</span>
+                        <span className={`absolute top-1 left-1 px-2 py-0.5 rounded text-white text-[10px] uppercase font-bold tracking-wider ${item.categorie === 'Mode' || item.categorie === 'Fashion' ? 'bg-pink-600' : 'bg-[#ff184e]'}`}>{item.categorie || 'Actualités'}</span>
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center text-gray-500 text-sm mb-1">
-                          <span className="mr-2">📅 {new Date(item.date_publication).toLocaleDateString()}</span>
+                        <div className="flex items-center text-gray-400 text-xs mb-1.5 font-medium">
+                          <span className="mr-2">🕒 {new Date(item.date_publication).toLocaleDateString()}</span>
                         </div>
-                        <h3 className="font-bold text-lg font-jost mb-2 line-clamp-2">{item.titre}</h3>
+                        <h3 className="font-bold text-sm text-gray-100 font-jost line-clamp-2 hover:text-[#ff184e] transition-colors">{item.titre}</h3>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
-              {/* Travel Blogs */}
-              <div>
-                <h2 className="text-2xl font-jost font-bold mb-4" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.travelBlogs}</h2>
-                <div className="space-y-6">
-                  {loadingAdditional && <div>Chargement...</div>}
-                  {!loadingAdditional && additionalData.travelBlogs.length === 0 && <div>Aucun article.</div>}
+              </motion.div>
+
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUpVariant}>
+                <h2 className="text-2xl font-jost font-bold mb-6 text-white" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.travelBlogs}</h2>
+                <div className="space-y-4">
+                  {loadingAdditional && <div className="text-gray-400">Chargement...</div>}
+                  {!loadingAdditional && additionalData.travelBlogs.length === 0 && <div className="text-gray-400">Aucun article.</div>}
                   {!loadingAdditional && additionalData.travelBlogs.map((item, idx) => (
-                    <div key={idx} className="flex gap-4 items-start cursor-pointer hover:bg-gray-50 p-2 -ml-2 rounded transition-colors" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
-                      <div className="relative min-w-[140px] w-[140px] h-[90px] rounded-lg overflow-hidden">
+                    <motion.div whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }} key={idx} className="flex gap-4 items-center cursor-pointer p-3 rounded-xl transition-colors glass-panel" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
+                      <div className="relative min-w-[120px] w-[120px] h-[80px] rounded-lg overflow-hidden border border-white/10 shadow-lg">
                         <img 
                           src={item.image_url || '/placeholder.svg'} 
                           alt={item.titre} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder.svg';
                           }}
                           loading="lazy"
                         />
-                        <span className="absolute top-2 left-2 px-3 py-1 rounded text-white text-xs font-bold bg-lime-600">{item.categorie || 'Voyage'}</span>
+                        <span className="absolute top-1 left-1 px-2 py-0.5 rounded text-white text-[10px] uppercase font-bold tracking-wider bg-lime-500">{item.categorie || 'Voyage'}</span>
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center text-gray-500 text-sm mb-1">
-                          <span className="mr-2">📅 {new Date(item.date_publication).toLocaleDateString()}</span>
+                        <div className="flex items-center text-gray-400 text-xs mb-1.5 font-medium">
+                          <span className="mr-2">🕒 {new Date(item.date_publication).toLocaleDateString()}</span>
                         </div>
-                        <h3 className="font-bold text-lg font-jost mb-2 line-clamp-2">{item.titre}</h3>
+                        <h3 className="font-bold text-sm text-gray-100 font-jost line-clamp-2 hover:text-[#ff184e] transition-colors">{item.titre}</h3>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
-              {/* Online Voting */}
-              <div>
-                <h2 className="text-2xl font-jost font-bold mb-4" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.onlineVoting}</h2>
-                <Poll />
-              </div>
+              </motion.div>
+
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUpVariant}>
+                <h2 className="text-2xl font-jost font-bold mb-6 text-white" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.onlineVoting}</h2>
+                <div className="glass-panel p-6 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff184e]/10 rounded-full blur-[40px] pointer-events-none"></div>
+                  <Poll />
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>
         
-        {/* Banner Image Section */}
-        <div className="container mx-auto px-4 my-8">
-          <Banner position="accueil-sous-votes" width={1200} height={120} />
-        </div>
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="container mx-auto px-4 my-8 relative">
+          <div className="glass-panel rounded-2xl p-1 overflow-hidden shadow-2xl">
+            <Banner position="accueil-sous-votes" width={1200} height={120} />
+          </div>
+        </motion.div>
         
-        {/* Category Sections */}
-        <section className="py-12 bg-gray-50">
+        <section className="py-16 relative">
+          <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl -z-10"></div>
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Technology Section */}
-              <div>
-                <h2 className="section-title">{SECTION_TITLES.technology}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
+                <h2 className="section-title text-white">{SECTION_TITLES.technology}</h2>
                 <div className="space-y-6">
-                  {loadingTech && <div>Chargement...</div>}
-                  {errorTech && <div className="text-red-500">{errorTech}</div>}
+                  {loadingTech && <div className="text-gray-400">Chargement...</div>}
+                  {errorTech && <div className="text-red-400 bg-red-400/10 p-4 rounded-xl">{errorTech}</div>}
                   {!loadingTech && !errorTech && technologyArticles.length === 0 && (
-                    <div>Aucun article dans cette catégorie.</div>
+                    <div className="text-gray-400">Aucun article dans cette catégorie.</div>
                   )}
                   {!loadingTech && !errorTech && mappedTechArticles[0] && (
                     <ArticleCard {...mappedTechArticles[0]} />
@@ -332,16 +337,15 @@ const Index = () => {
                     <SmallArticleCard {...mappedTechArticles[1]} />
                   )}
                 </div>
-              </div>
+              </motion.div>
               
-              {/* Business Section */}
-              <div>
-                <h2 className="section-title">{SECTION_TITLES.business}</h2>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant} transition={{ delay: 0.2 }}>
+                <h2 className="section-title text-white">{SECTION_TITLES.business}</h2>
                 <div className="space-y-6">
-                  {loadingBusiness && <div>Chargement...</div>}
-                  {errorBusiness && <div className="text-red-500">{errorBusiness}</div>}
+                  {loadingBusiness && <div className="text-gray-400">Chargement...</div>}
+                  {errorBusiness && <div className="text-red-400 bg-red-400/10 p-4 rounded-xl">{errorBusiness}</div>}
                   {!loadingBusiness && !errorBusiness && mappedBusinessArticles.length === 0 && (
-                    <div>Aucun article dans cette catégorie.</div>
+                    <div className="text-gray-400">Aucun article dans cette catégorie.</div>
                   )}
                   {!loadingBusiness && !errorBusiness && mappedBusinessArticles.map((article, index) => (
                     index === 0 ? (
@@ -357,33 +361,30 @@ const Index = () => {
                     )
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
         
-        {/* More Categories */}
-        <section className="py-12">
+        <section className="py-16">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Sports Section */}
-              <div>
-                <h2 className="section-title">{SECTION_TITLES.sport}</h2>
-                {loadingSports && <div>Chargement...</div>}
-                {errorSports && <div className="text-red-500">{errorSports}</div>}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
+                <h2 className="section-title text-white">{SECTION_TITLES.sport}</h2>
+                {loadingSports && <div className="text-gray-400">Chargement...</div>}
+                {errorSports && <div className="text-red-400 bg-red-400/10 p-4 rounded-xl">{errorSports}</div>}
                 {!loadingSports && !errorSports && mappedSportsArticles[0] && (
                   <ArticleCard {...mappedSportsArticles[0]} />
                 )}
                 {!loadingSports && !errorSports && mappedSportsArticles.length === 0 && (
-                  <div>Aucun article dans cette catégorie.</div>
+                  <div className="text-gray-400">Aucun article dans cette catégorie.</div>
                 )}
-              </div>
+              </motion.div>
               
-              {/* Entertainment Section */}
-              <div>
-                <h2 className="section-title">{SECTION_TITLES.entertainment}</h2>
-                {loadingAdditional && <div>Chargement...</div>}
-                {!loadingAdditional && mappedEntertainmentArts.length === 0 && <div>Aucun article.</div>}
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant} transition={{ delay: 0.2 }}>
+                <h2 className="section-title text-white">{SECTION_TITLES.entertainment}</h2>
+                {loadingAdditional && <div className="text-gray-400">Chargement...</div>}
+                {!loadingAdditional && mappedEntertainmentArts.length === 0 && <div className="text-gray-400">Aucun article.</div>}
                 {!loadingAdditional && mappedEntertainmentArts.map((article) => (
                   <ArticleCard
                     key={article.id}
@@ -397,7 +398,7 @@ const Index = () => {
                     featured={true}
                   />
                 ))}
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>

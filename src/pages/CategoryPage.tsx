@@ -94,67 +94,68 @@ const CategoryPage = () => {
   return (
     <>
       <Header />
-      <main className="py-8">
+      <main className="py-8 bg-transparent text-gray-200">
         <div className="container mx-auto px-4 flex flex-col md:flex-row gap-8">
             {/* Main Content */}
           <div className="w-full md:w-2/3">
             <nav className="text-sm text-gray-500 mb-2">
-              <span>Accueil</span> &gt; <span>Blog</span> &gt; <span className="text-news-red font-bold">{categoryTitle}</span>
+              <span>Accueil</span> &gt; <span>Blog</span> &gt; <span className="text-[#ff184e] font-bold">{categoryTitle}</span>
             </nav>
-            <h1 className="text-3xl font-jost font-bold mb-6">{categoryTitle}</h1>
+            <h1 className="text-3xl font-jost font-bold mb-6 text-white">{categoryTitle}</h1>
             <div className="space-y-10">
               {loading && <div>Chargement...</div>}
               {error && <div className="text-red-500">{error}</div>}
               {!loading && !error && mappedArticles.map((article, idx) => (
                 <div key={article.id} className="flex flex-col gap-4">
                   {/* Title */}
-                  <h2 className="font-bold text-2xl md:text-3xl font-jost mb-2 leading-snug">
+                  <h2 className="font-bold text-2xl md:text-3xl font-jost mb-2 leading-snug text-white hover:text-[#ff184e] transition-colors">
                     <Link to={`/article/${article.slug}`}>{article.title}</Link>
                   </h2>
                   {/* Card with image */}
-                  <Link to={`/article/${article.slug}`} className="bg-white rounded-2xl shadow p-0 overflow-hidden block">
+                  <Link to={`/article/${article.slug}`} className="glass-panel rounded-2xl p-0 overflow-hidden block shadow-xl border border-white/10 relative group">
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10 pointer-events-none"></div>
                     <img
                       src={article.image}
                       alt={article.title}
-                      className="w-full h-72 object-cover rounded-2xl"
+                      className="w-full h-72 object-cover rounded-t-2xl transition-transform duration-500 group-hover:scale-105"
                       onError={(e) => {
                         e.currentTarget.src = '/placeholder.svg';
                       }}
                       loading="lazy"
                     />
-                    <div className="flex justify-between items-center px-6 py-4">
+                    <div className="flex justify-between items-center px-6 py-4 bg-white/5 relative z-10">
                       <div>
-                        <div className="text-gray-400 text-base">{article.author}</div>
-                        <div className="text-gray-400 text-base">{article.date}</div>
+                        <div className="text-gray-300 font-medium text-sm mb-1">{article.author}</div>
+                        <div className="text-gray-500 text-xs">{article.date}</div>
                       </div>
                     </div>
                   </Link>
                   {/* Excerpt */}
-                  <p className="text-gray-500 text-lg mt-2">{article.excerpt}</p>
+                  <p className="text-gray-400 text-lg mt-2 mb-8">{article.excerpt}</p>
                 </div>
               ))}
             </div>
           </div>
             {/* Sidebar */}
           <aside className="w-full md:w-1/3">
-            <div className="bg-white rounded-2xl shadow p-6 flex flex-col gap-8">
+            <div className="glass-panel border-white/10 rounded-2xl shadow-xl p-6 flex flex-col gap-8">
               {/* Search */}
               <div>
-                <h3 className="font-bold text-lg mb-2">Recherche</h3>
+                <h3 className="font-bold text-lg mb-2 text-white">Recherche</h3>
                 <div className="h-1 w-24 bg-[#ff184e] mb-4" />
                 <div className="relative">
                   <input 
                     type="text"
                     placeholder="Rechercher..."
-                    className="w-full px-4 py-3 bg-gray-50 rounded focus:outline-none focus:ring-2 focus:ring-news-red pr-10"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-[#ff184e] pr-10 placeholder-gray-500"
                   />
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={22} />
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" size={22} />
                 </div>
               </div>
-              <div className="border-t border-gray-100" />
+              <div className="border-t border-white/10" />
               {/* Social Links */}
               <div>
-                <h3 className="font-bold text-lg mb-2">Restez connecté</h3>
+                <h3 className="font-bold text-lg mb-2 text-white">Restez connecté</h3>
                 <div className="h-1 w-40 bg-[#ff184e] mb-4" />
                 <div className="flex flex-col gap-4">
                   {socialLinks.map(link => {
@@ -165,12 +166,12 @@ const CategoryPage = () => {
                     return (
                       <div key={link.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 text-gray-700 bg-white">
-                            <Icon size={22} />
+                          <span className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-gray-300 bg-white/5">
+                            <Icon size={20} />
                           </span>
-                          <span className="font-medium text-base text-black">{link.name}</span>
+                          <span className="font-medium text-base text-gray-200">{link.name}</span>
                         </div>
-                        <button className="px-6 py-1 rounded-full border border-gray-300 text-gray-500 font-semibold bg-white hover:bg-gray-100 transition-all">
+                        <button className="px-5 py-1.5 text-sm rounded-full border border-white/20 text-gray-300 font-semibold hover:bg-white/10 hover:text-white transition-all">
                           {actionFr}
                   </button>
                       </div>
@@ -178,30 +179,30 @@ const CategoryPage = () => {
                   })}
                 </div>
               </div>
-              <div className="border-t border-gray-100" />
+              <div className="border-t border-white/10" />
               {/* Hot Topics */}
               <div>
-                <h3 className="font-bold text-xl mb-2">Sujets populaires</h3>
+                <h3 className="font-bold text-xl mb-2 text-white">Sujets populaires</h3>
                 <div className="h-1 w-24 bg-[#ff184e] mb-6" />
                 <div className="flex flex-col gap-6">
                   {loadingTrending && <div>Chargement...</div>}
                   {!loadingTrending && trendingArticles.map((topic, idx) => (
-                    <div key={topic.id} className="flex items-center gap-4">
-                      <div className="relative w-20 h-20 flex-shrink-0">
-                        <img src={topic.image} alt={topic.title} className="w-20 h-20 object-cover rounded" />
-                        <div className="absolute top-1 left-1 bg-[#ff184e] text-white font-bold rounded w-8 h-8 flex items-center justify-center text-sm shadow">
+                    <div key={topic.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => window.location.href = `/article/${topic.slug || topic.id}`}>
+                      <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded shadow-lg">
+                        <img src={topic.image} alt={topic.title} className="w-20 h-20 object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <div className="absolute top-0 left-0 bg-[#ff184e] text-white font-bold rounded-br w-7 h-7 flex items-center justify-center text-xs shadow">
                           {String(idx+1).padStart(2, '0')}
                         </div>
                       </div>
                       <div className="flex-1 ml-2">
-                        <div className="uppercase text-gray-400 text-xs font-semibold mb-1 tracking-wider">{topic.category}</div>
-                        <div className="font-bold text-base text-black leading-snug">{topic.title}</div>
+                        <div className="uppercase text-[#ff184e] text-[10px] font-bold mb-1 tracking-wider">{topic.category}</div>
+                        <div className="font-bold text-sm text-gray-200 leading-snug group-hover:text-[#ff184e] transition-colors line-clamp-2">{topic.title}</div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="border-t border-gray-100" />
+              <div className="border-t border-white/10" />
               {/* Ad Banner */}
               <div>
                 <Banner position="sidebar-categorie" width={300} height={250} />

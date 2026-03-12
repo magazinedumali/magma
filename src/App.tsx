@@ -33,6 +33,7 @@ import routes from "tempo-routes";
 import './lib/i18n';
 import { useEffect } from 'react';
 import React from 'react';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ function MobileRedirector({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
+  <ThemeProvider>
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -106,6 +108,7 @@ const App = () => (
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
+  </ThemeProvider>
 );
 
 export default App;
