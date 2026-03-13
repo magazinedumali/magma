@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Album {
   id: string;
@@ -57,9 +58,25 @@ const AlbumsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20">
-        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-        Chargement des albums...
+      <div className="text-[var(--text-primary)] space-y-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+          <div>
+            <Skeleton className="h-8 w-56 mb-2" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+          <Skeleton className="h-11 w-44 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="dark-card !p-0 overflow-hidden">
+              <Skeleton className="w-full aspect-video rounded-t-xl rounded-b-none" />
+              <div className="p-4 space-y-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

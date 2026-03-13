@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Navigate, Link } from 'react-router-dom';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getArticlesByCategory } from '@/data/articles';
 import { Icon } from '@iconify/react';
 import Banner from '@/components/Banner';
 import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 import { motion } from 'framer-motion';
+import { useCategories } from '@/hooks/useCategories';
 
 const socialLinks = [
   { name: 'Facebook', action: 'Follow', icon: 'solar:facebook-bold-duotone' },
@@ -54,15 +54,25 @@ const CategoryPage = () => {
   const [trendingArticles, setTrendingArticles] = useState<any[]>([]);
   const [loadingTrending, setLoadingTrending] = useState(true);
 
+  const { categories: siteCategories } = useCategories();
+
+  const activeCategory = useMemo(() => {
+    if (!category || !siteCategories?.length) return null;
+    return siteCategories.find((c: any) => c.path.split('/').pop() === category) || null;
+  }, [category, siteCategories]);
+
   useEffect(() => {
     if (!category) return;
     setLoading(true);
     setError(null);
+
+    const dbCategory = activeCategory?.name || category;
+
     supabase
       .from('articles')
       .select('*')
       .eq('statut', 'publie')
-      .ilike('categorie', `%${category}%`)
+      .ilike('categorie', `%${dbCategory}%`)
       .order('date_publication', { ascending: false })
       .then(({ data, error }) => {
         if (error) {
@@ -85,12 +95,11 @@ const CategoryPage = () => {
         setTrendingArticles(data ? mapArticlesFromSupabase(data) : []);
         setLoadingTrending(false);
       });
-  }, [category]);
+  }, [category, activeCategory]);
 
   const mappedArticles = mapArticlesFromSupabase(articles || []);
 
-  const categoryTitle = category ? category.charAt(0).toUpperCase() + category.slice(1) : '';
-  if (!loading && !error && mappedArticles.length === 0) return <Navigate to="/not-found" replace />;
+  const categoryTitle = activeCategory?.name || (category ? category.charAt(0).toUpperCase() + category.slice(1) : '');
   
   return (
     <>
@@ -112,6 +121,14 @@ const CategoryPage = () => {
             <div className="space-y-10">
               {loading && <div>Chargement...</div>}
               {error && <div className="text-red-500">{error}</div>}
+              {!loading && !error && mappedArticles.length === 0 && (
+                <div className="glass-panel rounded-2xl p-8 border border-white/10 text-gray-300">
+                  <h2 className="text-2xl font-bold mb-3">Aucun article trouvé</h2>
+                  <p>
+                    Il n'y a pas encore d'articles publiés pour cette catégorie. Revenez plus tard ou explorez d'autres rubriques.
+                  </p>
+                </div>
+              )}
               {!loading && !error && mappedArticles.map((article, idx) => (
                 <div key={article.id} className="flex flex-col gap-4">
                   {/* Title */}

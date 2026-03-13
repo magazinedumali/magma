@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useAdminContext } from '@/hooks/use-admin-context';
 import { Image as ImageIcon, Save, X } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 interface Story {
   id: string;
@@ -93,9 +95,19 @@ const EditStoryPage = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)] font-jost">
-        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-        Chargement de la story...
+      <div className="font-jost text-[var(--text-primary)] max-w-3xl mx-auto py-8 space-y-6">
+        <div className="mb-8">
+          <Skeleton className="h-9 w-56 mb-2" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <div className="dark-card p-6 flex flex-col gap-6">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-6 w-32" />
+        </div>
+        <div className="flex gap-4 mt-6">
+          <LoadingBar variant="inline" className="flex-1 max-w-xs" />
+          <span className="text-[var(--text-muted)]">Chargement de la story...</span>
+        </div>
       </div>
     );
   }
@@ -222,7 +234,7 @@ const EditStoryPage = () => {
             className="flex-1 bg-[var(--accent)] shadow-[0_4px_16px_var(--accent-glow)] text-white px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all hover:-translate-y-0.5"
           >
             {saving ? (
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+              <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
             ) : (
               <>
                 <Save className="w-5 h-5" />

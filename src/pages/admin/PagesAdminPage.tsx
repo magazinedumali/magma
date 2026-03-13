@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Plus, Edit2, Trash2, X, Link as LinkIcon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 type Page = {
   id: string;
@@ -128,14 +130,14 @@ const PagesAdminPage = () => {
             </thead>
             <tbody>
               {loading && pages.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-[var(--text-muted)]">
-                     <div className="flex flex-col items-center justify-center">
-                        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-                        Chargement...
-                     </div>
-                  </td>
-                </tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="border-b border-white/5">
+                    <td className="p-4"><Skeleton className="h-5 w-48" /></td>
+                    <td className="p-4"><Skeleton className="h-4 w-24 font-mono" /></td>
+                    <td className="p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="p-4 w-32"><Skeleton className="h-9 w-20 mx-auto rounded-lg" /></td>
+                  </tr>
+                ))
               ) : pages.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="p-12 text-center text-[var(--text-muted)]">
@@ -254,7 +256,7 @@ const PagesAdminPage = () => {
                   disabled={loading}
                 >
                   {loading ? (
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                    <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
                   ) : (
                     editPage ? 'Enregistrer' : 'Ajouter'
                   )}

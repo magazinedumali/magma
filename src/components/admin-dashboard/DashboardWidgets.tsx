@@ -9,6 +9,7 @@ import RecentUsersWidget from './RecentUsersWidget';
 import { useDashboardStats } from './useDashboardStats';
 import { useRecentArticles } from './useRecentArticles';
 import { useUsersByLocation } from './useUsersByLocation';
+import { Skeleton } from '@/components/ui/skeleton';
 import "./dashboard.css";
 
 const DashboardWidgets = () => {
@@ -17,8 +18,16 @@ const DashboardWidgets = () => {
   const { locations, total, loading: loadingLocations } = useUsersByLocation();
 
   if (loading) return (
-    <div className="dark-card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
-      <div style={{ color: 'var(--text-muted)' }}>Chargement des statistiques…</div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-24 rounded-xl" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl" />
+      </div>
     </div>
   );
   
@@ -90,8 +99,11 @@ const DashboardWidgets = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '35% 1fr', gap: 24 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {loadingLocations ? (
-            <div className="dark-card" style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               <div style={{ color: 'var(--text-muted)' }}>Chargement...</div>
+            <div className="dark-card p-6 space-y-3" style={{ height: 180 }}>
+              <Skeleton className="h-4 w-3/4" />
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-6 w-full rounded-full" />
+              ))}
             </div>
           ) : (
             <LocationUsersStatusBar locations={locations} total={total} />
@@ -101,8 +113,16 @@ const DashboardWidgets = () => {
         
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {loadingArticles ? (
-            <div className="dark-card" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               <div style={{ color: 'var(--text-muted)' }}>Chargement des articles...</div>
+            <div className="dark-card p-4 space-y-3" style={{ flex: 1 }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <Skeleton className="h-10 w-10 rounded shrink-0" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
              <ModernTable rows={articles} />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Mail, Lock, CheckCircle, Shield, User, Clock, ShieldCheck } from 'lucide-react';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 const SettingsPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -124,7 +125,7 @@ const SettingsPage = () => {
               className="mt-auto w-full bg-white/5 border border-white/10 text-white px-6 py-3.5 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all font-semibold shadow-sm flex items-center justify-center gap-2 group"
             >
               {loading ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
               ) : (
                  <>
                    Mettre à jour l'email
@@ -184,7 +185,7 @@ const SettingsPage = () => {
               className="mt-auto w-full bg-purple-500 hover:brightness-110 shadow-[0_4px_16px_rgba(168,85,247,0.4)] text-white px-6 py-3.5 rounded-xl transition-all font-semibold flex items-center justify-center gap-2"
             >
               {loading ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
               ) : (
                 <>Modifier le mot de passe</>
               )}

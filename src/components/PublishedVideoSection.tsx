@@ -110,14 +110,62 @@ const PublishedVideoSection: React.FC = () => {
       if (!error && data) setVideos(data);
       setLoading(false);
     };
+
     fetchVideos();
+
+    const channel = supabase
+      .channel('realtime-videos')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'videos' },
+        payload => {
+          const newVideo = payload.new as Video;
+          setVideos(prev => {
+            // évite doublons si déjà présent
+            if (prev.some(v => v.id === newVideo.id)) return prev;
+            // on garde le tri par date desc en réinsérant proprement
+            const updated = [newVideo, ...prev];
+            return updated.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'videos' },
+        payload => {
+          const updatedVideo = payload.new as Video;
+          setVideos(prev => {
+            const updated = prev.map(v => (v.id === updatedVideo.id ? updatedVideo : v));
+            return updated.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'videos' },
+        payload => {
+          const deletedId = (payload.old as { id: string }).id;
+          setVideos(prev => prev.filter(v => v.id !== deletedId));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
-    // Génère les thumbnails pour les vidéos sans image
-    if (videos.length < 4) return;
+    // Génère les thumbnails pour les vidéos sans image, en utilisant l'ordre (plus récentes d'abord)
+    if (videos.length === 0) return;
+    const baseVideos = [...videos].sort((a, b) => {
+      const da = new Date(a.date || '').getTime();
+      const db = new Date(b.date || '').getTime();
+      return db - da;
+    });
+
     const newThumbnails: (string | null)[] = [null, null, null, null];
-    videos.slice(0, 4).forEach((video, idx) => {
+    baseVideos.slice(0, 4).forEach((video, idx) => {
       if (!video.image) {
         const videoEl = document.createElement('video');
         videoEl.src = video.video_url;
@@ -142,7 +190,13 @@ const PublishedVideoSection: React.FC = () => {
   if (loading) return <div className="text-center py-16 text-white">Chargement des vidéos...</div>;
   if (!videos || videos.length === 0) return null;
 
-  const hasEditorialLayout = videos.length >= 4;
+  const orderedVideos = [...videos].sort((a, b) => {
+    const da = new Date(a.date || '').getTime();
+    const db = new Date(b.date || '').getTime();
+    return db - da; // plus récent en premier
+  });
+
+  const hasEditorialLayout = orderedVideos.length >= 4;
 
   // Gestion du clic Play
   const handlePlay = (video: Video) => {
@@ -161,7 +215,7 @@ const PublishedVideoSection: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Left column (2 stacked small videos) */}
           <div className="flex flex-col gap-6">
-              {[videos[0], videos[1]].map((video, idx) => (
+              {[orderedVideos[0], orderedVideos[1]].map((video, idx) => (
                 <div key={video.id} className="relative rounded-2xl overflow-hidden h-60 group shadow-lg flex glass-panel border border-white/10 hover:shadow-[0_0_20px_rgba(255,24,78,0.3)] transition-all">
                   <video
                     src={video.video_url}
@@ -188,22 +242,22 @@ const PublishedVideoSection: React.FC = () => {
           {/* Center large video */}
             <div className="relative rounded-lg overflow-hidden md:col-span-2 h-96 group shadow-lg flex">
               <video
-                src={videos[2].video_url}
+                src={orderedVideos[2].video_url}
                 controls
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12, background: '#000' }}
-                poster={videos[2].image || thumbnails[2] || undefined}
+                poster={orderedVideos[2].image || thumbnails[2] || undefined}
               />
             <div className="absolute inset-0 bg-black bg-opacity-40" />
-              <PlayButton onClick={() => handlePlay(videos[2])} />
+              <PlayButton onClick={() => handlePlay(orderedVideos[2])} />
             <div className="absolute left-0 bottom-0 p-6 z-20">
               <div className="flex items-center gap-2 mb-2">
-                  <img src={getAuthorAvatar(videos[2].author, videos[2].author_avatar)} alt="author" className="w-6 h-6 rounded-full border-2 border-white" onError={e => { e.currentTarget.src = '/logo.png'; }} />
-                <span className="text-white text-sm font-medium">{videos[2].author}</span>
+                  <img src={getAuthorAvatar(orderedVideos[2].author, orderedVideos[2].author_avatar)} alt="author" className="w-6 h-6 rounded-full border-2 border-white" onError={e => { e.currentTarget.src = '/logo.png'; }} />
+                <span className="text-white text-sm font-medium">{orderedVideos[2].author}</span>
                 <span className="text-[#ff184e] mx-2">|</span>
-                <span className="text-white text-xs flex items-center"><span className="mr-1">📅</span>{videos[2].date}</span>
+                <span className="text-white text-xs flex items-center"><span className="mr-1">📅</span>{orderedVideos[2].date}</span>
               </div>
               <div className="text-white text-2xl font-bold font-roboto leading-tight drop-shadow-md">
-                {videos[2].title}
+                {orderedVideos[2].title}
               </div>
             </div>
           </div>
@@ -211,30 +265,30 @@ const PublishedVideoSection: React.FC = () => {
           <div className="flex flex-col gap-6">
               <div className="relative rounded-lg overflow-hidden h-full min-h-60 group shadow-lg flex" style={{height: '100%'}}>
                 <video
-                  src={videos[3].video_url}
+                  src={orderedVideos[3].video_url}
                   controls
                   style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12, background: '#000' }}
-                  poster={videos[3].image || thumbnails[3] || undefined}
+                  poster={orderedVideos[3].image || thumbnails[3] || undefined}
                 />
               <div className="absolute inset-0 bg-black bg-opacity-40" />
-                <PlayButton onClick={() => handlePlay(videos[3])} />
+                <PlayButton onClick={() => handlePlay(orderedVideos[3])} />
               <div className="absolute left-0 bottom-0 p-4 z-20">
                 <div className="flex items-center gap-2 mb-2">
-                    <img src={getAuthorAvatar(videos[3].author, videos[3].author_avatar)} alt="author" className="w-6 h-6 rounded-full border-2 border-white" onError={e => { e.currentTarget.src = '/logo.png'; }} />
-                  <span className="text-white text-sm font-medium">{videos[3].author}</span>
+                    <img src={getAuthorAvatar(orderedVideos[3].author, orderedVideos[3].author_avatar)} alt="author" className="w-6 h-6 rounded-full border-2 border-white" onError={e => { e.currentTarget.src = '/logo.png'; }} />
+                  <span className="text-white text-sm font-medium">{orderedVideos[3].author}</span>
                   <span className="text-[#ff184e] mx-2">|</span>
-                  <span className="text-white text-xs flex items-center"><span className="mr-1">📅</span>{videos[3].date}</span>
+                  <span className="text-white text-xs flex items-center"><span className="mr-1">📅</span>{orderedVideos[3].date}</span>
                 </div>
                 <div className="text-white text-lg font-bold font-roboto leading-tight drop-shadow-md">
-                  {videos[3].title}
+                  {orderedVideos[3].title}
                 </div>
               </div>
             </div>
           </div>
         </div>
         ) : (
-          <div className={`grid grid-cols-1 md:grid-cols-${Math.min(4, videos.length)} gap-6`}>
-            {videos.map((video, idx) => (
+          <div className={`grid grid-cols-1 md:grid-cols-${Math.min(4, orderedVideos.length)} gap-6`}>
+            {orderedVideos.map((video, idx) => (
               <div key={video.id} className="relative rounded-lg overflow-hidden h-60 group shadow-lg flex">
                 <video
                   src={video.video_url}

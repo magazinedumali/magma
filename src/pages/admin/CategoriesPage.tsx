@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Plus, Edit2, Trash2, Check, X, Tag } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Category {
   id: string;
@@ -99,9 +100,26 @@ const CategoriesPage = () => {
 
   if (loading && categories.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-        Chargement des catégories...
+      <div className="max-w-4xl mx-auto py-6 font-jost text-[var(--text-primary)]">
+        <div className="mb-8">
+          <Skeleton className="h-9 w-64 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="flex gap-4 mb-8">
+          <Skeleton className="h-12 flex-1 rounded-xl" />
+          <Skeleton className="h-12 w-28 rounded-xl" />
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="dark-card p-4 flex items-center justify-between">
+              <Skeleton className="h-6 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-20 rounded-lg" />
+                <Skeleton className="h-9 w-20 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

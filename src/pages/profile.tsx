@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { getUserAvatar } from '@/lib/userHelper';
+import { LoadingBar } from '@/components/ui/loading-bar';
 import { motion } from 'framer-motion';
 
 const Profile: React.FC = () => {
@@ -208,7 +209,7 @@ const Profile: React.FC = () => {
                     disabled={loading}
                     className="w-full bg-[#ff184e] hover:bg-[#ff184e]/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff184e]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {loading && <Icon icon="solar:refresh-line-duotone" className="animate-spin" />}
+                    {loading && <LoadingBar variant="inline" className="h-0.5 min-w-[40px] max-w-12 bg-white/30" />}
                     Mettre à jour le profil
                   </button>
                   {success && <div className="text-green-400 text-sm font-medium bg-green-400/10 p-3 rounded-lg text-center border border-green-400/20">{success}</div>}

@@ -3,19 +3,11 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Facebook, Twitter, Instagram, Youtube, Mail, MapPin, Phone } from 'lucide-react';
+import { useCategories } from '@/hooks/useCategories';
 
 const Footer = () => {
   const { t } = useTranslation();
-  const categories = [
-    { name: t('Monde'), path: '/category/world' },
-    { name: t('Politique'), path: '/category/politics' },
-    { name: t('Économie'), path: '/category/business' },
-    { name: t('Technologie'), path: '/category/technology' },
-    { name: t('Science'), path: '/category/science' },
-    { name: t('Santé'), path: '/category/health' },
-    { name: t('Sport'), path: '/category/sports' },
-    { name: t('Divertissement'), path: '/category/entertainment' }
-  ];
+  const { categories, loading } = useCategories();
 
   return (
     <footer className="relative bg-[#0B0F19] border-t border-white/10 text-white pt-16 pb-8 overflow-hidden z-20">
@@ -38,7 +30,7 @@ const Footer = () => {
               <div className="w-10 h-10 bg-[#ff184e] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,24,78,0.5)]">
                 <span className="font-bold text-xl text-white">M</span>
               </div>
-              <h3 className="text-2xl font-bold font-jost">MagezNews</h3>
+              <h3 className="text-2xl font-bold">MagezNews</h3>
             </div>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               {t('Le Magazine du Mali vous propose les dernières actualités, météo, économie, divertissement, politique, et plus encore. Restez informé avec des informations fiables et de qualité.')}
@@ -66,7 +58,7 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <h3 className="text-xl font-bold mb-6 font-jost border-b border-white/10 pb-3 inline-block relative">
+            <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-3 inline-block relative">
               {t('Liens rapides')}
               <div className="absolute -bottom-[1px] left-0 w-1/2 h-[2px] bg-[#ff184e]"></div>
             </h3>
@@ -95,20 +87,26 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <h3 className="text-xl font-bold mb-6 font-jost border-b border-white/10 pb-3 inline-block relative">
+            <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-3 inline-block relative">
               {t('Catégories')}
               <div className="absolute -bottom-[1px] left-0 w-1/2 h-[2px] bg-[#ff184e]"></div>
             </h3>
-            <ul className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm text-gray-400 font-medium">
-              {categories.slice(0, 8).map((category) => (
-                <li key={category.name}>
-                  <Link to={category.path} className="hover:text-[#ff184e] transition-colors flex items-center group">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mr-2 group-hover:bg-[#ff184e] transition-colors"></span>
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {loading ? (
+              <p className="text-sm text-gray-500">{t('Chargement des catégories...')}</p>
+            ) : categories && categories.length > 0 ? (
+              <ul className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm text-gray-400 font-medium">
+                {categories.slice(0, 8).map((category) => (
+                  <li key={category.id}>
+                    <Link to={category.path} className="hover:text-[#ff184e] transition-colors flex items-center group">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mr-2 group-hover:bg-[#ff184e] transition-colors"></span>
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500">{t('Aucune catégorie disponible pour le moment.')}</p>
+            )}
           </motion.div>
 
           {/* Contact INFO */}
@@ -118,7 +116,7 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <h3 className="text-xl font-bold mb-6 font-jost border-b border-white/10 pb-3 inline-block relative">
+            <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-3 inline-block relative">
               {t('Contact')}
               <div className="absolute -bottom-[1px] left-0 w-1/2 h-[2px] bg-[#ff184e]"></div>
             </h3>

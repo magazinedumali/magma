@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useCategories } from '@/components/admin-dashboard/useCategories';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
+import { LoadingBar } from '@/components/ui/loading-bar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CategoriesPage() {
   const { categories, loading, error } = useCategories();
@@ -125,11 +127,14 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
-      {/* Loader animé global */}
-      {loadingAction && <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50"><span className="loader"></span></div>}
+      {loadingAction && (
+        <div className="fixed inset-0 bg-black/10 flex flex-col items-center justify-center z-50 gap-4">
+          <LoadingBar variant="full" />
+          <LoadingBar variant="inline" className="w-48 bg-white/80" />
+          <span className="text-gray-700 font-medium">Enregistrement...</span>
+        </div>
+      )}
       <style>{`
-        .loader { border: 4px solid #e5e7eb; border-top: 4px solid #4f8cff; border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
         .animate-fadeIn { animation: fadeIn .2s; } @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-popIn { animation: popIn .2s; } @keyframes popIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
       `}</style>

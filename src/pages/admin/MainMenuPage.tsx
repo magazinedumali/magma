@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Plus, Edit2, Trash2, X, GripVertical, Link as LinkIcon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 // Type du menu principal
 export type MainMenuItem = {
@@ -193,9 +195,15 @@ const MainMenuPage = () => {
       )}
 
       {loading && items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-          <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-          Chargement du menu...
+        <div className="grid grid-cols-1 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="dark-card p-4 flex items-center gap-4">
+              <Skeleton className="h-5 w-5 rounded" />
+              <Skeleton className="h-4 flex-1 max-w-[200px]" />
+              <Skeleton className="h-4 flex-1 max-w-[280px]" />
+              <Skeleton className="h-8 w-20 rounded" />
+            </div>
+          ))}
         </div>
       ) : items.length === 0 ? (
         <div className="dark-card p-12 text-center text-[var(--text-muted)] mt-4">
@@ -465,7 +473,7 @@ const MainMenuPage = () => {
                 >
                   {loading ? (
                     <>
-                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                      <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
                       Sauvegarde...
                     </>
                   ) : (

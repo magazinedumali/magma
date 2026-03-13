@@ -67,8 +67,17 @@ const MainNavigation = () => {
     fetchMenu();
   }, []);
 
+  // Remplacer /apropos ou /apropos/ par /about dans la barre de navigation
+  function normalizePath(path: string): string {
+    if (!path || typeof path !== 'string') return path;
+    const p = path.trim().toLowerCase().replace(/^\/+|\/+$/g, '');
+    if (p === 'apropos' || p === 'about') return '/about';
+    return path.startsWith('/') ? path : `/${path}`;
+  }
+
   // Fonction pour rendre un lien selon le type
   function renderMenuLink(item: MainMenuItem, children?: React.ReactNode) {
+    const path = item.link_type === 'external' ? item.path : normalizePath(item.path);
     const cls = cn(
       "flex items-center gap-1 px-1 py-1.5 text-[13px] font-semibold tracking-wide text-gray-300 hover:text-white",
       "relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-[#ff184e] after:transition-all after:duration-300 hover:after:w-full",
@@ -76,13 +85,13 @@ const MainNavigation = () => {
     );
     if (item.link_type === 'external') {
       return (
-        <a href={item.path} target={item.target_blank ? '_blank' : undefined} rel={item.target_blank ? 'noopener noreferrer' : undefined} className={cls}>
+        <a href={path} target={item.target_blank ? '_blank' : undefined} rel={item.target_blank ? 'noopener noreferrer' : undefined} className={cls}>
           {item.name}{children}
         </a>
       );
     }
     return (
-      <Link to={item.path} className={cls}>{item.name}{children}</Link>
+      <Link to={path} className={cls}>{item.name}{children}</Link>
     );
   }
 
@@ -112,7 +121,7 @@ const MainNavigation = () => {
                         {item.children.map((subitem) => (
                           <li key={subitem.id}>
                             <Link
-                              to={subitem.path}
+                              to={subitem.link_type === 'external' ? subitem.path : normalizePath(subitem.path)}
                               className="flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors duration-200 group"
                             >
                               <span className="w-1.5 h-1.5 rounded-full bg-[#ff184e]/60 group-hover:bg-[#ff184e] transition-colors flex-shrink-0"></span>

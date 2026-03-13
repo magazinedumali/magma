@@ -105,22 +105,56 @@ const Header = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSearchOpen]);
 
-  // Add state for search query and results
+  // Search query and results with debounced database searching
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Instant search handler
+  useEffect(() => {
+    const searchArticles = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const { data, error } = await supabase
+          .from('articles')
+          .select('*')
+          .eq('statut', 'publie')
+          .ilike('titre', `%${searchQuery}%`)
+          .order('date_publication', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        if (data) {
+          setSearchResults(data.map((a: any) => ({
+            id: a.id,
+            slug: a.slug || a.id,
+            title: a.titre ?? a.title ?? '',
+            excerpt: a.meta_description ?? a.excerpt ?? '',
+            image: a.image_url ?? a.image ?? '',
+            category: a.categorie ?? a.category ?? '',
+            date: a.date_publication ?? a.date ?? '',
+            author: a.auteur ?? a.author ?? '',
+          })));
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchArticles, 400);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    if (value.trim()) {
-      const filtered = mappedArticles.filter(article =>
-        article.title.toLowerCase().includes(value.toLowerCase())
-      );
-      setSearchResults(filtered);
-    } else {
-      setSearchResults([]);
-    }
+    setSearchQuery(e.target.value);
   };
 
   return (
@@ -374,7 +408,12 @@ const Header = () => {
                 onChange={handleSearch}
                 className="flex-1 bg-transparent border-none outline-none text-xl text-white placeholder-gray-500"
               />
-              <button className="ml-3 text-gray-400 hover:text-[#ff184e] transition-colors p-2 bg-white/5 rounded-full hover:bg-white/10" onClick={toggleSearch}>
+              {isSearching && (
+                <div className="mr-3">
+                  <div className="w-5 h-5 border-2 border-[#ff184e]/20 border-t-[#ff184e] rounded-full animate-spin" />
+                </div>
+              )}
+              <button className="text-gray-400 hover:text-[#ff184e] transition-colors p-2 bg-white/5 rounded-full hover:bg-white/10" onClick={toggleSearch}>
                 <X size={20} />
               </button>
             </motion.div>
@@ -390,7 +429,12 @@ const Header = () => {
                   style={{ maxHeight: '60vh', overflowY: 'auto' }} 
                   onClick={e => e.stopPropagation()}
                 >
-                  {searchResults.length ? (
+                  {isSearching ? (
+                    <div className="py-16 text-center text-gray-400">
+                      <div className="w-12 h-12 border-4 border-[#ff184e]/20 border-t-[#ff184e] rounded-full animate-spin mx-auto mb-4" />
+                      <p className="animate-pulse">{t("Recherche en cours...")}</p>
+                    </div>
+                  ) : searchResults.length ? (
                     <ul className="divide-y divide-white/10">
                       {searchResults.map((article, idx) => (
                         <motion.li

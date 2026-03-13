@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Plus, Edit2, Trash2, X, UploadCloud, Video as VideoIcon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 type Video = {
   id: string;
@@ -43,6 +45,8 @@ const VideosPage = () => {
   const [form, setForm] = useState(emptyVideo);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [thumbnailOptions, setThumbnailOptions] = useState<string[]>([]);
+  const [generatingThumbnails, setGeneratingThumbnails] = useState(false);
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -66,7 +70,94 @@ const VideosPage = () => {
       setEditVideo(null);
       setForm(emptyVideo);
     }
+    setThumbnailOptions([]);
+    setGeneratingThumbnails(false);
     setModalOpen(true);
+  };
+
+  const generateThumbnailFromVideo = (file: File, fraction: number) => {
+    return new Promise<File>((resolve, reject) => {
+      const videoElement = document.createElement('video');
+      const objectUrl = URL.createObjectURL(file);
+      let done = false;
+
+      const cleanUp = () => {
+        if (!done) {
+          done = true;
+          URL.revokeObjectURL(objectUrl);
+          videoElement.src = '';
+        }
+      };
+
+      videoElement.preload = 'auto';
+      videoElement.src = objectUrl;
+      videoElement.muted = true;
+      videoElement.playsInline = true;
+
+      const handleError = () => {
+        if (done) return;
+        cleanUp();
+        reject(new Error('Erreur lecture vidéo pour miniature'));
+      };
+
+      videoElement.onerror = handleError;
+
+      videoElement.onloadeddata = () => {
+        if (done) return;
+        const duration = videoElement.duration || 0;
+        const captureTime = Math.min(
+          Math.max(duration * fraction, 0.5),
+          duration > 1 ? duration - 0.5 : duration || 0.5
+        );
+        videoElement.currentTime = captureTime;
+      };
+
+      videoElement.onseeked = () => {
+        if (done) return;
+        if (!videoElement.videoWidth || !videoElement.videoHeight) {
+          // Si les dimensions ne sont pas encore dispo, on réessaie un peu plus tard
+          setTimeout(() => {
+            if (done) return;
+            videoElement.currentTime = videoElement.currentTime;
+          }, 100);
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          cleanUp();
+          reject(new Error('Impossible de générer la miniature'));
+          return;
+        }
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+          if (!blob) {
+            cleanUp();
+            reject(new Error('Erreur lors de la création de la miniature'));
+            return;
+          }
+          const thumbFile = new File([blob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          cleanUp();
+          resolve(thumbFile);
+        }, 'image/jpeg', 0.85);
+      };
+    });
+  };
+
+  const generateThumbnailsFromVideo = async (file: File) => {
+    const fractions = [0.2, 0.5, 0.8];
+    const files: File[] = [];
+    for (const fraction of fractions) {
+      try {
+        const thumbFile = await generateThumbnailFromVideo(file, fraction);
+        files.push(thumbFile);
+      } catch (_) {
+        // ignore individual failures, we'll just have fewer options
+      }
+    }
+    return files;
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -75,6 +166,12 @@ const VideosPage = () => {
     setError(null);
     setSuccess(null);
     try {
+      if (!form.video_url) {
+        throw new Error('Veuillez téléverser une vidéo avant d’enregistrer.');
+      }
+      if (!form.image) {
+        throw new Error('Veuillez choisir une couverture générée à partir de la vidéo.');
+      }
       if (editVideo) {
         const { error } = await supabase
           .from('videos')
@@ -161,14 +258,15 @@ const VideosPage = () => {
             </thead>
             <tbody>
               {loading && videos.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-[var(--text-muted)]">
-                     <div className="flex flex-col items-center justify-center">
-                        <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-                        Chargement...
-                     </div>
-                  </td>
-                </tr>
+                [...Array(5)].map((_, i) => (
+                  <tr key={i} className="border-b border-white/5">
+                    <td className="p-4 w-24"><Skeleton className="w-24 h-16 rounded-lg" /></td>
+                    <td className="p-4"><Skeleton className="h-5 w-40" /></td>
+                    <td className="p-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-4"><Skeleton className="h-4 w-20" /></td>
+                    <td className="p-4 w-32"><Skeleton className="h-9 w-20 mx-auto rounded-lg" /></td>
+                  </tr>
+                ))
               ) : videos.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-[var(--text-muted)]">
@@ -284,33 +382,43 @@ const VideosPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Image de couverture</label>
-                <div className="w-full border-2 border-dashed border-white/10 rounded-xl bg-black/20 hover:bg-black/40 hover:border-[var(--accent)] transition-all flex flex-col items-center justify-center p-4 relative cursor-pointer">
-                   <UploadCloud className="w-6 h-6 mb-2 text-white/40" />
-                   <span className="text-sm text-[var(--text-muted)]">Cliquer pour uploader une image</span>
-                   <input 
-                     type="file" 
-                     accept="image/*" 
-                     onChange={async e => {
-                       if (e.target.files && e.target.files[0]) {
-                         setLoading(true);
-                         try {
-                           const url = await uploadToStorage(e.target.files[0], 'images');
-                           setForm(f => ({ ...f, image: url }));
-                         } catch (err: any) {
-                           setError('Erreur upload image : ' + (err?.message || JSON.stringify(err)));
-                         }
-                         setLoading(false);
-                       }
-                     }} 
-                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                   />
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+                  Images de couverture (générées automatiquement)
+                </label>
+                <div className="w-full border-2 border-dashed border-white/10 rounded-xl bg-black/20 p-4">
+                  {generatingThumbnails && (
+                    <div className="flex flex-col gap-2 text-[var(--text-muted)] text-sm">
+                      <LoadingBar variant="inline" className="w-full max-w-xs" />
+                      <span>Génération de suggestions de miniatures à partir de la vidéo…</span>
+                    </div>
+                  )}
+                  {!generatingThumbnails && thumbnailOptions.length === 0 && !form.image && (
+                    <div className="text-sm text-[var(--text-muted)]">
+                      Après le téléversement de la vidéo, plusieurs miniatures seront proposées automatiquement, comme sur YouTube.
+                    </div>
+                  )}
+                  {!generatingThumbnails && (thumbnailOptions.length > 0 || form.image) && (
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {(thumbnailOptions.length > 0 ? thumbnailOptions : [form.image]).map((url) => (
+                        <button
+                          key={url}
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, image: url }))}
+                          className={`relative rounded-xl overflow-hidden border transition-all ${
+                            form.image === url ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/40' : 'border-white/10 hover:border-[var(--accent)]/60'
+                          }`}
+                        >
+                          <img src={url} alt="miniature" className="w-full h-20 object-cover" />
+                          {form.image === url && (
+                            <div className="absolute bottom-1 right-1 bg-[var(--accent)] text-white text-[10px] px-2 py-0.5 rounded-full">
+                              Sélectionnée
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {form.image && (
-                  <div className="mt-3 relative rounded-lg overflow-hidden border border-white/10 w-fit">
-                     <img src={form.image} alt="preview" className="h-24 object-cover" />
-                  </div>
-                )}
               </div>
 
               <div>
@@ -327,20 +435,41 @@ const VideosPage = () => {
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Fichier vidéo</label>
                 <div className="w-full border-2 border-dashed border-white/10 rounded-xl bg-black/20 hover:bg-black/40 hover:border-[var(--accent)] transition-all flex flex-col items-center justify-center p-4 relative cursor-pointer">
                    <VideoIcon className="w-6 h-6 mb-2 text-white/40" />
-                   <span className="text-sm text-[var(--text-muted)]">Cliquer pour uploader une vidéo</span>
+                   <span className="text-sm text-[var(--text-muted)]">
+                     Cliquer pour uploader une vidéo (les miniatures seront générées automatiquement)
+                   </span>
                    <input 
                      type="file" 
                      accept="video/*" 
                      onChange={async e => {
                        if (e.target.files && e.target.files[0]) {
-                         setLoading(true);
+                        setLoading(true);
+                        setGeneratingThumbnails(true);
                          try {
-                           const url = await uploadToStorage(e.target.files[0], 'videos');
-                           setForm(f => ({ ...f, video_url: url }));
+                          const file = e.target.files[0];
+                          const url = await uploadToStorage(file, 'videos');
+                          setForm(f => ({ ...f, video_url: url }));
+
+                          const thumbFiles = await generateThumbnailsFromVideo(file);
+                          const urls: string[] = [];
+                          for (const thumbFile of thumbFiles) {
+                            try {
+                              const thumbUrl = await uploadToStorage(thumbFile, 'images');
+                              urls.push(thumbUrl);
+                            } catch (_) {
+                              // ignore single thumbnail upload failure
+                            }
+                          }
+                          if (urls.length > 0) {
+                            setThumbnailOptions(urls);
+                            setForm(f => ({ ...f, image: f.image || urls[0] }));
+                          }
                          } catch (err: any) {
-                           setError('Erreur upload vidéo : ' + (err?.message || JSON.stringify(err)));
+                          setError('Erreur upload vidéo / génération miniatures : ' + (err?.message || JSON.stringify(err)));
+                          setThumbnailOptions([]);
                          }
-                         setLoading(false);
+                        setLoading(false);
+                        setGeneratingThumbnails(false);
                        }
                      }} 
                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
@@ -368,7 +497,7 @@ const VideosPage = () => {
                   disabled={loading}
                 >
                   {loading ? (
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                    <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
                   ) : (
                     editVideo ? 'Enregistrer' : 'Ajouter'
                   )}

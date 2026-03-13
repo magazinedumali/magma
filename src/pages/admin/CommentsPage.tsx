@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { getCommentUserInfo } from '../../lib/userHelper';
 import { MessageSquare, Trash2, User, FileText, Calendar, ShieldAlert } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Comment {
   id: string;
@@ -88,9 +89,21 @@ const CommentsPage = () => {
 
   if (loading && comments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 text-[var(--text-muted)] font-jost">
-        <svg className="animate-spin h-10 w-10 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-        <div className="text-lg font-medium">Chargement des commentaires...</div>
+      <div className="font-jost text-[var(--text-primary)] space-y-4">
+        <div className="mb-8">
+          <Skeleton className="h-9 w-72 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <div key={i} className="dark-card p-4 flex gap-4">
+            <Skeleton className="w-12 h-12 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

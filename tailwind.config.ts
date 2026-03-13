@@ -78,7 +78,7 @@ export default {
       },
       fontFamily: {
         // Primary modern stack
-        sans:     ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans:     ["Syne", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
         syne:     ["Syne", "sans-serif"],
         inter:    ["Inter", "sans-serif"],
         mono:     ["DM Mono", "ui-monospace", "monospace"],

@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import ArticleImageDebug from '@/components/ArticleImageDebug';
 import { useAdminContext } from '@/hooks/use-admin-context';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface Article {
   id: string;
@@ -306,9 +307,17 @@ const ArticleList: React.FC = () => {
       )}
       
       {loading ? (
-        <div className="flex flex-col items-center justify-center text-[var(--text-muted)] py-20">
-          <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-          Chargement des articles...
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="dark-card p-4 flex gap-4 items-start">
+              <Skeleton className="w-24 h-24 rounded-lg shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : error ? (
         <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-lg border border-red-400/20">{error}</div>

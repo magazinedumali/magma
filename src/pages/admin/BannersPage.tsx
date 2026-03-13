@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Link as LinkIcon, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 type Banner = {
   id: string;
@@ -284,7 +285,7 @@ const BannersPage = () => {
                         />
                         <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl text-[var(--text-primary)] font-semibold transition-all flex items-center gap-2 whitespace-nowrap">
                           {uploading ? (
-                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                            <LoadingBar variant="inline" className="h-0.5 min-w-[24px] w-12" />
                           ) : <Plus className="w-5 h-5" />}
                           Téleverser
                           <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} className="hidden" />
@@ -357,7 +358,7 @@ const BannersPage = () => {
                     disabled={loading || uploading}
                   >
                     {loading ? (
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+                      <LoadingBar variant="inline" className="h-0.5 min-w-[60px] flex-1 max-w-16 bg-white/30" />
                     ) : (
                       editBanner ? 'Mettre à jour' : 'Enregistrer'
                     )}

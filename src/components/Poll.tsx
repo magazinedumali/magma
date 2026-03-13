@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PollOption {
   id: number;
@@ -79,7 +80,17 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
   const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
   const percent = (n: number) => totalVotes ? Math.round((n / totalVotes) * 100) : 0;
 
-  if (loading) return <div className="text-center py-8">Chargement du sondage…</div>;
+  if (loading) return (
+    <div className={compact ? "glass-panel border-white/10 rounded-xl p-4 flex flex-col items-center shadow-lg" : "glass-panel border-white/10 rounded-xl p-8 flex flex-col items-center shadow-xl"}>
+      <Skeleton className="w-full rounded-2xl mb-6" style={{ height: compact ? 120 : 180 }} />
+      <Skeleton className="h-6 w-3/4 mb-6 rounded" />
+      <div className="flex w-full flex-col gap-3 max-w-sm">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-12 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
   if (error) return (
     <div className="flex flex-col items-center justify-center py-12">
       <svg width="64" height="64" fill="none" viewBox="0 0 24 24"><path d="M12 20h9" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="10" r="6" stroke="#ff184e" strokeWidth="2"/><path d="M9.5 9.5h.01M14.5 9.5h.01" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/><path d="M9.5 13c.5.5 1.5.5 2 0" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/></svg>

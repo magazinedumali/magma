@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { LoadingBar } from "@/components/ui/loading-bar";
 
 export default function RequireAdminAuth({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true);
@@ -33,10 +34,11 @@ export default function RequireAdminAuth({ children }: { children: React.ReactNo
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center font-jost text-[var(--text-muted)]">
-        <div className="flex flex-col items-center">
-           <svg className="animate-spin h-10 w-10 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-           <div className="font-medium text-lg">Vérification de l'accès...</div>
+      <div className="min-h-screen bg-[var(--bg-base)] flex flex-col items-center justify-center font-jost text-[var(--text-muted)] gap-4">
+        <LoadingBar variant="full" />
+        <div className="flex flex-col items-center mt-8">
+           <LoadingBar variant="inline" className="w-48 mt-2" />
+           <div className="font-medium text-lg mt-4">Vérification de l'accès...</div>
         </div>
       </div>
     );

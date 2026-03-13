@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function RecentUsersWidget() {
   const [users, setUsers] = useState<any[]>([]);
@@ -23,7 +24,17 @@ export default function RecentUsersWidget() {
     <div className="dark-card" style={{ marginBottom: 0 }}>
       <h2>Utilisateurs récents</h2>
       {loading ? (
-        <div style={{ color: 'var(--text-muted)', fontFamily: 'var(--font)' }}>Chargement…</div>
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {users.map(u => {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getArticlesByCategory } from '@/data/articles';
@@ -7,6 +7,7 @@ import { Search, Facebook, Twitter, Instagram, Youtube, Globe } from 'lucide-rea
 import Banner from '@/components/Banner';
 import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
+import { useCategories } from '@/hooks/useCategories';
 
 const socialLinks = [
   { name: 'Facebook', action: 'Follow', icon: Facebook },
@@ -51,13 +52,21 @@ const CategoryPage = () => {
   const [trendingArticles, setTrendingArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { categories: siteCategories } = useCategories();
+
+  const activeCategory = useMemo(() => {
+    if (!category || !siteCategories?.length) return null;
+    return siteCategories.find((c: any) => c.path.split('/').pop() === category) || null;
+  }, [category, siteCategories]);
+
   useEffect(() => {
     if (!category) return;
     setLoading(true);
     
     const fetchCategoryData = async () => {
+      const dbCategory = activeCategory?.name || category;
       const [{ data: catsData }, { data: trendData }] = await Promise.all([
-        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', `%${category}%`).order('date_publication', { ascending: false }),
+        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', `%${dbCategory}%`).order('date_publication', { ascending: false }),
         supabase.from('articles').select('*').eq('statut', 'publie').order('date_publication', { ascending: false }).limit(4)
       ]);
       setArticles(catsData ? mapArticlesFromSupabase(catsData) : []);
@@ -66,11 +75,10 @@ const CategoryPage = () => {
     };
     
     fetchCategoryData();
-  }, [category]);
+  }, [category, activeCategory]);
 
-  if (!category) return <Navigate to="/not-found" replace />;
-  const categoryTitle = category.charAt(0).toUpperCase() + category.slice(1);
-  if (!loading && articles.length === 0) return <Navigate to="/not-found" replace />;
+  if (!category) return null;
+  const categoryTitle = activeCategory?.name || (category.charAt(0).toUpperCase() + category.slice(1));
 
   const articlesToShow = showAll ? articles : articles.slice(0, 5);
   
@@ -87,6 +95,14 @@ const CategoryPage = () => {
             <h1 className="text-3xl font-poppins font-bold mb-6 text-[#1a2746]">{categoryTitle}</h1>
             <div className="space-y-10">
               {loading && <div>Chargement...</div>}
+              {!loading && articles.length === 0 && (
+                <div className="bg-white rounded-2xl shadow p-6 text-gray-600">
+                  <h2 className="text-2xl font-bold mb-3">Aucun article trouvé</h2>
+                  <p>
+                    Il n'y a pas encore d'articles publiés pour cette catégorie. Revenez plus tard ou explorez d'autres rubriques.
+                  </p>
+                </div>
+              )}
               {!loading && articlesToShow.map((article, idx) => (
                 <div key={article.id} className="flex flex-col gap-4">
                   {/* Title */}

@@ -7,6 +7,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useNavigate } from 'react-router-dom';
 import { useCategories } from '@/components/admin-dashboard/useCategories';
 import { useAdminContext } from '@/hooks/use-admin-context';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
 interface ArticleFormProps {
   initialValues?: any;
@@ -289,11 +290,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     <div className="flex w-full min-h-screen">
       {/* Loader central lors du chargement de l'article */}
       {loadingArticle && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md z-50">
-          <div className="flex flex-col items-center gap-2">
-            <svg className="animate-spin h-10 w-10 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-            <span className="text-[var(--text-primary)] font-semibold">Chargement de l'article...</span>
-          </div>
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-md z-50 gap-4">
+          <LoadingBar variant="full" />
+          <LoadingBar variant="inline" className="w-64 mt-4" />
+          <span className="text-[var(--text-primary)] font-semibold">Chargement de l'article...</span>
         </div>
       )}
       {/* Confirmation visuelle après enregistrement */}

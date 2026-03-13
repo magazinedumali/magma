@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Edit2, Trash2, Plus, CheckCircle, Image as ImgIcon, Search, UploadCloud, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const BUCKET = 'stories';
 const PAGE_SIZE = 8;
@@ -200,9 +201,16 @@ const StoriesPage = () => {
       )}
       
       {loading && !stories.length ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-          <svg className="animate-spin h-8 w-8 mb-4 text-[var(--accent)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-          Chargement des stories...
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="dark-card !p-0 overflow-hidden flex flex-col border border-white/10">
+              <Skeleton className="w-full h-56 rounded-none" />
+              <div className="p-4 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <>
