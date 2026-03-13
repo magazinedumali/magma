@@ -207,14 +207,26 @@ const Stories = () => {
 
   useEffect(() => {
     const fetchStories = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('stories')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-      setStories(data || []);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Erreur chargement stories:', error);
+          setStories([]);
+        } else {
+          setStories(data || []);
+        }
+      } catch (e) {
+        console.error('Exception chargement stories:', e);
+        setStories([]);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchStories();
   }, []);
@@ -240,7 +252,11 @@ const Stories = () => {
   };
 
   if (loading) {
-    return <div className="py-4 text-center text-gray-400 text-sm">Chargement des stories...</div>;
+    return (
+      <div className="py-4 text-center text-gray-400 text-sm">
+        Chargement des stories...
+      </div>
+    );
   }
 
   if (!stories.length) {

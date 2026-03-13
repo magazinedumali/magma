@@ -1,5 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Icon } from "@iconify/react";
+import { motion } from "framer-motion";
 
 const featuredMovie = {
   title: "Avengers : Endgame",
@@ -11,70 +15,64 @@ const featuredMovie = {
 
 export default function Streaming() {
   return (
-    <div className="min-h-screen bg-[#18181b] text-white">
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-6">
-        <div className="flex items-center gap-4">
-          <img src="/logo.png" alt="StreamVibe" className="h-10" />
-          <span className="text-2xl font-bold text-white">StreamVibe</span>
-        </div>
-        <nav className="flex gap-2 bg-[#232329] rounded-xl px-4 py-2">
-          <Link to="/" className="px-4 py-2 rounded text-gray-300 hover:bg-[#232329] hover:text-white transition">Home</Link>
-          <Link to="/streaming" className="px-4 py-2 rounded bg-[#232329] text-white font-semibold">Movies & Shows</Link>
-          <Link to="/support" className="px-4 py-2 rounded text-gray-300 hover:bg-[#232329] hover:text-white transition">Support</Link>
-          <Link to="/subscriptions" className="px-4 py-2 rounded text-gray-300 hover:bg-[#232329] hover:text-white transition">Subscriptions</Link>
-        </nav>
-        <div className="flex gap-4">
-          <button className="text-gray-300 hover:text-white">
-            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </button>
-          <button className="text-gray-300 hover:text-white">
-            <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-transparent text-white font-jost">
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-[#0B0F19]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#ff184e]/5 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]"></div>
+      </div>
+      <Header />
 
-      {/* Hero Section */}
-      <main className="flex flex-col items-center justify-center mt-8">
-        <div className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-lg">
-          <img
-            src={featuredMovie.image}
-            alt={featuredMovie.title}
-            className="w-full h-[420px] object-cover"
-            style={{ filter: "brightness(0.7)" }}
-          />
-          {/* Overlay content */}
-          <div className="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-black/80 to-transparent">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{featuredMovie.title}</h1>
-            <p className="mb-6 text-gray-200 max-w-2xl">{featuredMovie.description}</p>
-            <div className="flex gap-4">
-              <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded flex items-center gap-2">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Play Now
-              </button>
-              <button className="bg-[#232329] hover:bg-[#2c2c31] text-white px-4 py-2 rounded flex items-center gap-2">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              </button>
-              <button className="bg-[#232329] hover:bg-[#2c2c31] text-white px-4 py-2 rounded flex items-center gap-2">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18.364 5.636l-1.414 1.414A9 9 0 1 0 12 21v-2a7 7 0 1 1 7-7h2a9 9 0 0 0-2.636-6.364z"/></svg>
-              </button>
-            </div>
+      <main className="container mx-auto px-4 py-12">
+        <div className="relative w-full max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10 glass-panel">
+          <div className="relative h-[500px] w-full">
+            <img
+              src={featuredMovie.image}
+              alt={featuredMovie.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-[#0B0F19]/40 to-transparent"></div>
           </div>
-          {/* Left/Right arrows */}
-          <button className="absolute left-4 bottom-4 bg-[#232329] bg-opacity-80 rounded p-2 text-white hover:bg-opacity-100">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button className="absolute right-4 bottom-4 bg-[#232329] bg-opacity-80 rounded p-2 text-white hover:bg-opacity-100">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          {/* Pagination dots */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            <span className="w-3 h-1 rounded bg-red-600"></span>
-            <span className="w-3 h-1 rounded bg-gray-500"></span>
-            <span className="w-3 h-1 rounded bg-gray-500"></span>
+          
+          {/* Overlay content */}
+          <div className="absolute inset-x-0 bottom-0 p-8 md:p-12 flex flex-col justify-end">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="mb-4 inline-block bg-[#ff184e] text-white px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(255,24,78,0.5)]">
+                Featured Content
+              </div>
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white tracking-tighter leading-none">{featuredMovie.title}</h1>
+              <p className="mb-8 text-gray-300 max-w-2xl text-lg leading-relaxed">{featuredMovie.description}</p>
+              <div className="flex flex-wrap gap-4">
+                <button className="bg-[#ff184e] hover:bg-[#ff184e]/80 text-white font-bold px-8 py-3 rounded-xl flex items-center gap-3 transition-all shadow-lg hover:shadow-[#ff184e]/30 group">
+                  <Icon icon="solar:play-bold" className="text-2xl group-hover:scale-110 transition-transform" />
+                  <span>Regarder maintenant</span>
+                </button>
+                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white px-5 py-3 rounded-xl flex items-center gap-2 transition-all">
+                  <Icon icon="solar:add-circle-bold-duotone" className="text-2xl text-[#ff184e]" />
+                </button>
+                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white px-5 py-3 rounded-xl flex items-center gap-2 transition-all">
+                  <Icon icon="solar:info-circle-bold-duotone" className="text-2xl text-[#ff184e]" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+          
+          {/* Navigation Controls */}
+          <div className="absolute right-8 bottom-8 flex gap-3">
+             <button className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white transition-colors backdrop-blur-sm">
+               <Icon icon="solar:alt-arrow-left-line-duotone" className="text-2xl" />
+             </button>
+             <button className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white transition-colors backdrop-blur-sm">
+               <Icon icon="solar:alt-arrow-right-line-duotone" className="text-2xl" />
+             </button>
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 } 

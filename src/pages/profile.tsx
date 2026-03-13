@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
-import { Camera } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { getUserAvatar } from '@/lib/userHelper';
+import { motion } from 'framer-motion';
 
 const Profile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -17,6 +19,7 @@ const Profile: React.FC = () => {
   const [pwSuccess, setPwSuccess] = useState('');
   const [pwError, setPwError] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -28,7 +31,7 @@ const Profile: React.FC = () => {
       }
       setUser(data.user);
       setName(data.user.user_metadata?.name || '');
-      setEmail(data.user.email);
+      setEmail(data.user.email || '');
       setAvatar(getUserAvatar(data.user));
     });
 
@@ -47,7 +50,7 @@ const Profile: React.FC = () => {
   };
 
   const uploadAvatar = async () => {
-    if (!avatarFile) return null;
+    if (!avatarFile || !user) return null;
     const fileExt = avatarFile.name.split('.').pop();
     const fileName = `${user.id}_${Date.now()}.${fileExt}`;
     const { data, error } = await supabase.storage.from('avatars').upload(fileName, avatarFile, { upsert: true });
@@ -63,23 +66,35 @@ const Profile: React.FC = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    if (!avatar && !avatarFile) {
-      setError('La photo de profil est obligatoire.');
-      return;
+    setLoading(true);
+    
+    try {
+      if (!avatar && !avatarFile) {
+        setError('La photo de profil est obligatoire.');
+        setLoading(false);
+        return;
+      }
+      let avatarUrl = avatar;
+      if (avatarFile) {
+        const uploadedUrl = await uploadAvatar();
+        if (!uploadedUrl) {
+          setLoading(false);
+          return;
+        }
+        avatarUrl = uploadedUrl;
+        setAvatar(avatarUrl);
+      }
+      const { error } = await supabase.auth.updateUser({ data: { name, avatar_url: avatarUrl } });
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess('Profil mis à jour !');
+      }
+    } catch (err) {
+      setError("Une erreur inattendue est survenue.");
+    } finally {
+      setLoading(false);
     }
-    let avatarUrl = avatar;
-    if (avatarFile) {
-      const uploadedUrl = await uploadAvatar();
-      if (!uploadedUrl) return;
-      avatarUrl = uploadedUrl;
-      setAvatar(avatarUrl);
-    }
-    const { error } = await supabase.auth.updateUser({ data: { name, avatar_url: avatarUrl } });
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    setSuccess('Profil mis à jour !');
   };
 
   const handleLogout = async () => {
@@ -95,16 +110,17 @@ const Profile: React.FC = () => {
       setPwError('Les deux champs sont obligatoires.');
       return;
     }
-    // Vérifier le mot de passe actuel
+    
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password: currentPassword,
     });
+    
     if (signInError) {
       setPwError('Le mot de passe actuel est incorrect.');
       return;
     }
-    // Changer le mot de passe
+    
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
       setPwError(error.message);
@@ -118,136 +134,140 @@ const Profile: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f5f7' }}>
-      <Header />
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)' }}>
-        <div style={{ background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', minWidth: 340 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24, position: 'relative' }}>
-            {avatar && avatar !== '/placeholder.svg' ? (
-              <div style={{ position: 'relative', width: 80, height: 80 }}>
-                <img 
-                  src={avatar} 
-                  alt="avatar" 
-                  style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 12, objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    position: 'absolute',
-                    bottom: 8,
-                    right: 8,
-                    background: '#fff',
-                    border: 'none',
-                    borderRadius: '50%',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                  title="Changer la photo"
-                >
-                  <Camera size={18} color="#ff184e" />
-                </button>
-              </div>
-            ) : (
-              <div style={{ position: 'relative', width: 80, height: 80 }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, color: '#bbb', marginBottom: 12 }}>👤</div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    position: 'absolute',
-                    bottom: 8,
-                    right: 8,
-                    background: '#fff',
-                    border: 'none',
-                    borderRadius: '50%',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                  title="Ajouter une photo"
-                >
-                  <Camera size={18} color="#ff184e" />
-                </button>
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleAvatarChange}
-            />
-            <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 4 }}>{name || 'Utilisateur'}</div>
-            <div style={{ color: '#888', fontSize: 15 }}>{email}</div>
-          </div>
-          <form onSubmit={handleUpdate} style={{ marginBottom: 16 }}>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="name" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Nom</label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc', fontSize: 16 }}
-              />
-            </div>
-            {success && <div style={{ color: 'green', marginTop: 10 }}>{success}</div>}
-            {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
-          </form>
-          <form onSubmit={handlePasswordChange} style={{ marginBottom: 16 }}>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="currentPassword" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Mot de passe actuel</label>
-              <input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc', fontSize: 16 }}
-                required
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="password" style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Nouveau mot de passe</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                style={{ width: '100%', padding: 10, borderRadius: 6, border: '1px solid #ccc', fontSize: 16 }}
-                required
-              />
-            </div>
-            <button type="submit" style={{ width: '100%', padding: 12, borderRadius: 6, background: '#222', color: '#fff', border: 'none', fontWeight: 600, fontSize: 16 }}>
-              Changer le mot de passe
-            </button>
-            {pwSuccess && <div style={{ color: 'green', marginTop: 10 }}>{pwSuccess}</div>}
-            {pwError && <div style={{ color: 'red', marginTop: 10 }}>{pwError}</div>}
-          </form>
-          <button onClick={handleLogout} style={{ width: '100%', padding: 12, borderRadius: 6, background: '#eee', color: '#ff184e', border: 'none', fontWeight: 600, fontSize: 16, marginBottom: 16 }}>
-            Déconnexion
-          </button>
-          <button type="submit" form="" onClick={handleUpdate} style={{ width: '100%', padding: 12, borderRadius: 6, background: '#ff184e', color: '#fff', border: 'none', fontWeight: 600, fontSize: 16 }} disabled={!avatar && !avatarFile}>
-            Mettre à jour
-          </button>
-        </div>
+    <div className="min-h-screen bg-transparent text-gray-200 font-jost selection:bg-[#ff184e]/30">
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-[#0B0F19]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#ff184e]/5 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]"></div>
       </div>
+      
+      <Header />
+      
+      <main className="container mx-auto px-4 py-16 flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-xl glass-panel rounded-3xl shadow-2xl overflow-hidden border border-white/10"
+        >
+          <div className="p-8 md:p-12">
+            <div className="flex flex-col items-center mb-10 text-center">
+              <div className="relative mb-6">
+                <div className="w-28 h-28 rounded-3xl overflow-hidden border-2 border-white/10 p-1 bg-white/5 shadow-2xl relative group">
+                  <img 
+                    src={avatar || '/placeholder.svg'} 
+                    alt={name} 
+                    className="w-full h-full object-cover rounded-2xl transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <Icon icon="solar:camera-bold-duotone" className="text-white text-3xl" />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 bg-[#ff184e] text-white p-2.5 rounded-xl shadow-lg border-2 border-[#0B0F19] hover:scale-110 transition-transform shadow-[#ff184e]/30"
+                >
+                  <Icon icon="solar:camera-bold-duotone" className="text-lg" />
+                </button>
+              </div>
+              
+              <h1 className="text-3xl font-bold text-white mb-1 uppercase tracking-tighter">{name || 'Utilisateur'}</h1>
+              <p className="text-gray-400 font-medium">{email}</p>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+
+            <div className="space-y-10">
+              {/* Profile Settings */}
+              <section>
+                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <Icon icon="solar:user-bold-duotone" className="text-[#ff184e] text-lg" />
+                  Informations Personnelles
+                </h2>
+                <form onSubmit={handleUpdate} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Nom complet</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-1 focus:ring-[#ff184e] transition-all"
+                      placeholder="Votre nom"
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full bg-[#ff184e] hover:bg-[#ff184e]/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff184e]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loading && <Icon icon="solar:refresh-line-duotone" className="animate-spin" />}
+                    Mettre à jour le profil
+                  </button>
+                  {success && <div className="text-green-400 text-sm font-medium bg-green-400/10 p-3 rounded-lg text-center border border-green-400/20">{success}</div>}
+                  {error && <div className="text-red-400 text-sm font-medium bg-red-400/10 p-3 rounded-lg text-center border border-red-400/20">{error}</div>}
+                </form>
+              </section>
+
+              {/* Password Settings */}
+              <section className="pt-8 border-t border-white/5">
+                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <Icon icon="solar:lock-password-bold-duotone" className="text-[#ff184e] text-lg" />
+                  Sécurité du compte
+                </h2>
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Mot de passe actuel</label>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={e => setCurrentPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-1 focus:ring-[#ff184e] transition-all"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-1 focus:ring-[#ff184e] transition-all"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-4 rounded-xl transition-all">
+                    Changer le mot de passe
+                  </button>
+                  {pwSuccess && <div className="text-green-400 text-sm font-medium bg-green-400/10 p-3 rounded-lg text-center border border-green-400/20">{pwSuccess}</div>}
+                  {pwError && <div className="text-red-400 text-sm font-medium bg-red-400/10 p-3 rounded-lg text-center border border-red-400/20">{pwError}</div>}
+                </form>
+              </section>
+
+              <button 
+                onClick={handleLogout} 
+                className="w-full py-4 text-gray-500 font-bold hover:text-[#ff184e] transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-widest"
+              >
+                <Icon icon="solar:logout-bold-duotone" className="text-xl" />
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };
 
-export default Profile; 
+export default Profile;

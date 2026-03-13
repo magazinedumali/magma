@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Eye, MessageCircle } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
+import { stripHtml } from '@/lib/htmlUtils';
 
 interface ArticleCardProps {
   slug: string;
@@ -35,11 +36,13 @@ const ArticleCard = ({
   views = 0,
   comments_count = 0
 }: ArticleCardProps) => {
+  const cleanExcerpt = stripHtml(excerpt);
+
   return (
     <motion.article 
       whileHover={{ y: -5 }}
       transition={{ duration: 0.3 }}
-      className={`glass-panel rounded-xl overflow-hidden flex flex-col ${featured ? '' : 'h-full'}`}
+      className={`glass-panel rounded-xl overflow-hidden flex flex-col ${featured ? '' : 'h-full'} font-jost`}
     >
       <Link to={`/article/${slug}`} className="block relative overflow-hidden group">
         <motion.img 
@@ -54,7 +57,7 @@ const ArticleCard = ({
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
-        <span className="absolute top-4 left-4 bg-[#ff184e]/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_10px_rgba(255,24,78,0.5)]">
+        <span className="absolute top-4 left-4 bg-[#ff184e]/90 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider shadow-[0_0_10px_rgba(255,24,78,0.5)]">
           {category}
         </span>
       </Link>
@@ -67,28 +70,28 @@ const ArticleCard = ({
         </h3>
         
         {featured && (
-          <p className="text-gray-400 mb-5 line-clamp-3 text-sm leading-relaxed">{excerpt}</p>
+          <p className="text-gray-400 mb-5 line-clamp-3 text-sm leading-relaxed">{cleanExcerpt}</p>
         )}
         
-        <div className="mt-auto pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-y-2">
+        <div className="mt-auto pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-[11px] text-gray-400 gap-y-2 uppercase tracking-tight">
           <div className="flex items-center space-x-3">
-            <span className="flex items-center font-medium text-gray-300">
+            <span className="flex items-center font-bold text-gray-300">
               <img src={getAuthorAvatar(author, authorAvatar)} alt={author} className="w-5 h-5 rounded-full mr-2 border border-white/20"/>
               {author}
             </span>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 font-bold">
             <span className="flex items-center">
-              <Clock size={12} className="mr-1 text-[#ff184e]" />
+              <Icon icon="solar:clock-circle-bold-duotone" className="mr-1 text-[#ff184e] text-base" />
               {new Date(date).toLocaleDateString()}
             </span>
             <span className="flex items-center">
-              <Eye size={12} className="mr-1 text-[#ff184e]" />
+              <Icon icon="solar:eye-bold-duotone" className="mr-1 text-[#ff184e] text-base" />
               {views}
             </span>
             <span className="flex items-center">
-              <MessageCircle size={12} className="mr-1 text-[#ff184e]" />
+              <Icon icon="solar:chat-line-bold-duotone" className="mr-1 text-[#ff184e] text-base" />
               {comments_count}
             </span>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, memo } from 'react';
-import { Bell, Bookmark, User, Search as SearchIcon, PlayCircle, Sun, Moon } from 'lucide-react';
+import { Bell, Bookmark, User, RadioTower as RadioIcon, PlayCircle, Sun, Moon } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getUserAvatar } from '@/lib/userHelper';
 
@@ -356,8 +356,8 @@ export default function MobileHome() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button className="bg-white rounded-full p-2 shadow-sm transition-colors duration-300" onClick={() => navigate('/mobile/search')}>
-              <SearchIcon size={24} />
+            <button className="bg-white rounded-full p-2 shadow-sm transition-colors duration-300" onClick={() => navigate('/mobile/audio-streaming')}>
+              <RadioIcon size={24} />
             </button>
             <button className="relative bg-white rounded-full p-2 shadow-sm transition-colors duration-300">
               <Bell size={24} />

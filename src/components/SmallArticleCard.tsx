@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 
 interface SmallArticleCardProps {
@@ -40,14 +40,14 @@ const SmallArticleCard = ({
         </Link>
       )}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <h4 className="font-bold line-clamp-3 text-sm md:text-base text-gray-200 group-hover:text-white transition-colors mb-2 leading-tight">
+        <h4 className="font-bold line-clamp-3 text-sm md:text-base text-gray-200 group-hover:text-white transition-colors mb-2 leading-tight font-jost">
           <Link to={`/article/${slug}`} className="hover:text-[#ff184e] transition-colors">
             {title}
           </Link>
         </h4>
-        <div className="flex items-center text-xs text-gray-400 font-medium">
+        <div className="flex items-center text-xs text-gray-400 font-medium font-jost">
           <span className="flex items-center text-[#ff184e]">
-            <Clock size={12} className="mr-1.5" />
+            <Icon icon="solar:clock-circle-bold-duotone" className="mr-1.5 text-base" />
             <span className="text-gray-400 group-hover:text-gray-300 transition-colors">{new Date(date).toLocaleDateString()}</span>
           </span>
         </div>

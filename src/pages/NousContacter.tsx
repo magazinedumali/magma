@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "@/components/Header";
-import { Mail, MapPin, Phone, Instagram } from "lucide-react";
+import { Icon } from "@iconify/react";
 
 export default function NousContacter() {
   return (
@@ -10,33 +10,33 @@ export default function NousContacter() {
         <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]"></div>
       </div>
       <Header />
-      <div className="max-w-6xl mx-auto py-12 px-4 relative z-10">
-        <h1 className="text-4xl font-jost font-bold mb-12 text-center text-white">Contactez-nous</h1>
+      <div className="max-w-6xl mx-auto py-12 px-4 relative z-10 font-jost">
+        <h1 className="text-4xl font-bold mb-12 text-center text-white">Contactez-nous</h1>
         {/* Section infos de contact */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
           {/* Mail address */}
           <div className="flex flex-col items-center text-center p-6 glass-panel border-white/10 rounded-xl shadow-xl transition-transform hover:-translate-y-2 duration-300">
-            <Mail size={40} className="text-[#ff184e] mb-3" />
+            <Icon icon="solar:letter-bold-duotone" className="text-[#ff184e] text-5xl mb-3 shadow-[0_0_15px_rgba(255,24,78,0.3)]" />
             <h2 className="font-bold text-lg mb-1 text-white">Adresse mail</h2>
             <p className="text-gray-400 text-sm">magazinedumali@gmail.com</p>
             <p className="text-gray-400 text-sm">+223 96 40 41 52</p>
           </div>
           {/* Office Location */}
           <div className="flex flex-col items-center text-center p-6 glass-panel border-white/10 rounded-xl shadow-xl transition-transform hover:-translate-y-2 duration-300">
-            <MapPin size={40} className="text-[#ff184e] mb-3" />
+            <Icon icon="solar:map-point-bold-duotone" className="text-[#ff184e] text-5xl mb-3 shadow-[0_0_15px_rgba(255,24,78,0.3)]" />
             <h2 className="font-bold text-lg mb-1 text-white">Adresse du bureau</h2>
             <p className="text-gray-400 text-sm">Bamako Coura, Bamako/Mali</p>
           </div>
           {/* Phone Number */}
           <div className="flex flex-col items-center text-center p-6 glass-panel border-[#ff184e]/50 rounded-xl shadow-xl shadow-[#ff184e]/10 transition-transform hover:-translate-y-2 duration-300">
-            <Phone size={40} className="text-[#ff184e] mb-3" />
+            <Icon icon="solar:phone-calling-bold-duotone" className="text-[#ff184e] text-5xl mb-3 shadow-[0_0_15px_rgba(255,24,78,0.3)]" />
             <h2 className="font-bold text-lg mb-1 text-white">Numéros de téléphone</h2>
             <p className="text-gray-400 text-sm">+223 67 72 09 48</p>
             <p className="text-gray-400 text-sm">+223 73 15 00 47</p>
           </div>
           {/* Connect Us */}
           <div className="flex flex-col items-center text-center p-6 glass-panel border-white/10 rounded-xl shadow-xl transition-transform hover:-translate-y-2 duration-300">
-            <Instagram size={40} className="text-[#ff184e] mb-3" />
+            <Icon icon="solar:instagram-bold-duotone" className="text-[#ff184e] text-5xl mb-3 shadow-[0_0_15px_rgba(255,24,78,0.3)]" />
             <h2 className="font-bold text-lg mb-1 text-white">Nous contacter</h2>
             <p className="text-gray-400 text-sm">magazinedumali@gmail.com</p>
             <p className="text-gray-400 text-sm">contact@lemagazinedumali.com</p>
@@ -85,7 +85,7 @@ export default function NousContacter() {
           </form>
         </div>
         <div className="text-center text-gray-500 text-sm mt-12 py-6 border-t border-white/10">
-          © {new Date().getFullYear()} Magezix. Tous droits réservés.
+          © {new Date().getFullYear()} Le Magazine du Mali. Tous droits réservés.
         </div>
       </div>
     </div>

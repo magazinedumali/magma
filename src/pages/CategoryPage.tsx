@@ -3,17 +3,18 @@ import { useParams, Navigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getArticlesByCategory } from '@/data/articles';
-import { Search, Facebook, Twitter, Instagram, Youtube, Globe } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import Banner from '@/components/Banner';
 import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
+import { motion } from 'framer-motion';
 
 const socialLinks = [
-  { name: 'Facebook', action: 'Follow', icon: Facebook },
-  { name: 'Twitter', action: 'Follow', icon: Twitter },
-  { name: 'Instagram', action: 'Follow', icon: Instagram },
-  { name: 'Youtube', action: 'Subscribe', icon: Youtube },
-  { name: 'Pinterest', action: 'Follow', icon: Globe },
+  { name: 'Facebook', action: 'Follow', icon: 'solar:facebook-bold-duotone' },
+  { name: 'Twitter', action: 'Follow', icon: 'solar:twitter-bold-duotone' },
+  { name: 'Instagram', action: 'Follow', icon: 'solar:instagram-bold-duotone' },
+  { name: 'Youtube', action: 'Subscribe', icon: 'solar:videocamera-record-bold-duotone' },
+  { name: 'Pinterest', action: 'Follow', icon: 'solar:globus-bold-duotone' },
 ];
 
 // Example reviews data
@@ -94,7 +95,13 @@ const CategoryPage = () => {
   return (
     <>
       <Header />
-      <main className="py-8 bg-transparent text-gray-200">
+      
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-[#0B0F19]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#ff184e]/5 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[40%] rounded-full bg-blue-500/5 blur-[120px]"></div>
+      </div>
+      
+      <main className="py-8 bg-transparent text-gray-200 min-h-screen">
         <div className="container mx-auto px-4 flex flex-col md:flex-row gap-8">
             {/* Main Content */}
           <div className="w-full md:w-2/3">
@@ -147,9 +154,9 @@ const CategoryPage = () => {
                   <input 
                     type="text"
                     placeholder="Rechercher..."
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-[#ff184e] pr-10 placeholder-gray-500"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-[#ff184e] pr-10 placeholder-gray-500 font-jost"
                   />
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" size={22} />
+                  <Icon icon="solar:magnifer-bold-duotone" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-2xl" />
                 </div>
               </div>
               <div className="border-t border-white/10" />
@@ -159,21 +166,20 @@ const CategoryPage = () => {
                 <div className="h-1 w-40 bg-[#ff184e] mb-4" />
                 <div className="flex flex-col gap-4">
                   {socialLinks.map(link => {
-                    const Icon = link.icon;
                     let actionFr = link.action;
                     if (actionFr === 'Follow') actionFr = 'Suivre';
                     if (actionFr === 'Subscribe') actionFr = "S'abonner";
                     return (
-                      <div key={link.name} className="flex items-center justify-between">
+                      <div key={link.name} className="flex items-center justify-between group cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-all">
                         <div className="flex items-center gap-3">
-                          <span className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-gray-300 bg-white/5">
-                            <Icon size={20} />
+                          <span className="flex items-center justify-center w-10 h-10 rounded-xl border border-white/10 text-[#ff184e] bg-[#ff184e]/10 group-hover:bg-[#ff184e] group-hover:text-white transition-all shadow-[0_0_10px_rgba(255,24,78,0.2)]">
+                            <Icon icon={link.icon} className="text-xl" />
                           </span>
-                          <span className="font-medium text-base text-gray-200">{link.name}</span>
+                          <span className="font-bold text-sm text-gray-200 font-jost">{link.name}</span>
                         </div>
-                        <button className="px-5 py-1.5 text-sm rounded-full border border-white/20 text-gray-300 font-semibold hover:bg-white/10 hover:text-white transition-all">
+                        <button className="px-4 py-1.5 text-xs rounded-lg border border-white/10 text-gray-400 font-bold hover:bg-white/10 hover:text-white transition-all uppercase tracking-wider">
                           {actionFr}
-                  </button>
+                        </button>
                       </div>
                     );
                   })}

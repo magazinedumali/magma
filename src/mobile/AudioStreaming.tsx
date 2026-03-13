@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ArrowLeft, Play, Pause, Volume2, VolumeX, User, Radio, SkipBack, SkipForward } from 'lucide-react';
+import { ArrowLeft, Pause, Volume2, VolumeX, User, Radio, SkipBack, SkipForward } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { getUserAvatar } from '@/lib/userHelper';
@@ -341,7 +341,9 @@ export function AlbumDetailMobile() {
                 aria-label={idx === current && playing ? 'Pause' : 'Play'}
               >
                 {(current === null || idx !== current || !playing) ? (
-                  <Play size={20} className="text-[#ff184e]" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" className="text-[#ff184e]">
+                    <path fill="currentColor" d="M12.225 4.462C9.89 3.142 7 4.827 7 7.508V24.5c0 2.682 2.892 4.368 5.226 3.045l14.997-8.498c2.367-1.341 2.366-4.751 0-6.091z" />
+                  </svg>
                 ) : (
                   <Pause size={20} className="text-[#ff184e]" />
                 )}
@@ -385,7 +387,13 @@ export function AlbumDetailMobile() {
               <div className="flex items-center gap-4 mt-2">
                 <button onClick={() => { setCurrent(current > 0 ? current - 1 : songs.length - 1); setPlaying(true); }} className="p-2 rounded-full hover:bg-gray-100 transition"><SkipBack size={28} className="text-gray-400" /></button>
                 <button onClick={() => setPlaying(p => { if (audioRef.current) { if (p) { audioRef.current.pause(); } else { audioRef.current.play(); } } return !p; })} className="p-2 rounded-full bg-[#ff184e] hover:bg-[#ff184e]/80 transition" style={{width:48,height:48,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  {playing ? <Pause size={28} className="text-white" /> : <Play size={28} className="text-white" />}
+                  {playing ? (
+                    <Pause size={28} className="text-white" />
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 32 32" className="text-white">
+                      <path fill="currentColor" d="M12.225 4.462C9.89 3.142 7 4.827 7 7.508V24.5c0 2.682 2.892 4.368 5.226 3.045l14.997-8.498c2.367-1.341 2.366-4.751 0-6.091z" />
+                    </svg>
+                  )}
                 </button>
                 <button onClick={() => { setCurrent(current < songs.length - 1 ? current + 1 : 0); setPlaying(true); }} className="p-2 rounded-full hover:bg-gray-100 transition"><SkipForward size={28} className="text-gray-400" /></button>
               </div>
