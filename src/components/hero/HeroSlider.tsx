@@ -34,7 +34,7 @@ const HeroSlider = () => {
     const fetchSlides = async () => {
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, image_url, categorie, auteur, date_publication')
+        .select('id, slug, titre, image_url, categorie, auteur, date_publication, statut')
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(3);

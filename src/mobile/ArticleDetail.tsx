@@ -153,7 +153,7 @@ const MobileArticleDetail = () => {
         // First try to fetch by slug (exact match)
         let { data, error } = await supabase
           .from('articles')
-          .select('*')
+          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url, tags')
           .eq('slug', slug)
           .maybeSingle(); // Use maybeSingle instead of single to avoid error when no results
         
@@ -164,7 +164,7 @@ const MobileArticleDetail = () => {
           console.log('Trying case-insensitive slug search...');
           const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
             .from('articles')
-            .select('*')
+            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url, tags')
             .ilike('slug', slug)
             .maybeSingle();
           
@@ -181,7 +181,7 @@ const MobileArticleDetail = () => {
           console.log('Trying to fetch by ID as fallback...');
           const { data: idData, error: idError } = await supabase
             .from('articles')
-            .select('*')
+            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url, tags')
             .eq('id', slug)
             .maybeSingle();
           
@@ -390,7 +390,7 @@ const MobileArticleDetail = () => {
               <input
                 type="text"
                 className="flex-1 border-none outline-none bg-transparent text-base"
-                placeholder="Écrire un commentaire..."
+                placeholder="Partagez votre avis…"
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
                 autoComplete="off"
@@ -404,8 +404,8 @@ const MobileArticleDetail = () => {
               </button>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center gap-2 px-3">
-              <div className="text-gray-500 text-sm">Connectez-vous pour commenter</div>
+              <div className="flex-1 flex flex-col items-center gap-2 px-3">
+              <div className="text-gray-500 text-sm">Connectez-vous pour rejoindre la discussion</div>
               <div className="flex gap-2 w-full">
                 <a href="/mobile/login" className="flex-1 px-3 py-2 rounded-full bg-[#4f8cff] text-white font-bold text-center text-sm shadow hover:bg-[#2563eb] transition">Se connecter</a>
                 <a href="/mobile/register" className="flex-1 px-3 py-2 rounded-full bg-[#ff184e] text-white font-bold text-center text-sm shadow hover:bg-red-600 transition">Créer un compte</a>

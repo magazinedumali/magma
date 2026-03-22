@@ -202,27 +202,19 @@ export default function MobileHome() {
     const to = from + batchSize - 1;
     let data = [];
     let error = null;
-    if (tab === 'latest') {
-      const res = await supabase
-        .from('articles')
-        .select('*')
-        .eq('statut', 'publie')
-        .order('date_publication', { ascending: false })
-        .range(from, to);
-      data = res.data || [];
-      error = res.error;
-    } else {
-      // Fetch by category from Supabase
-      const res = await supabase
-        .from('articles')
-        .select('*')
-        .eq('statut', 'publie')
-        .eq('categorie', tab)
-        .order('date_publication', { ascending: false })
-        .range(from, to);
-      data = res.data || [];
-      error = res.error;
-    }
+    const baseQuery = supabase
+      .from('articles')
+      .select('id, slug, titre, image_url, categorie, auteur, date_publication, excerpt, featured, authorAvatar, statut')
+      .eq('statut', 'publie')
+      .order('date_publication', { ascending: false })
+      .range(from, to);
+
+    const res = tab === 'latest'
+      ? await baseQuery
+      : await baseQuery.eq('categorie', tab);
+
+    data = res.data || [];
+    error = res.error;
     if (!error) {
       setArticles(prev => reset ? data : [...prev, ...data]);
       setHasMore(data.length === batchSize);
@@ -445,12 +437,12 @@ export default function MobileHome() {
         {/* Sujets brûlants! (stories) */}
         <section className="bg-white px-0 pt-2 pb-4 mb-2 transition-colors duration-300">
           <div className="px-4 mb-3">
-            <span className="font-bold text-xl text-black">Sujets brûlants!</span>
+            <span className="font-bold text-xl text-black">Ce qui fait parler aujourd’hui</span>
           </div>
           <Stories />
         </section>
         <div className="px-4 mb-4">
-          <span className="font-bold text-xl text-black block mb-3">Sondage en ligne</span>
+          <span className="font-bold text-xl text-black block mb-3">Donnez votre avis en une question</span>
           <Poll compact={true} />
         </div>
           
@@ -459,7 +451,7 @@ export default function MobileHome() {
           {articles.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-gray-400">
               <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><path d="M12 20h9" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="10" r="6" stroke="#ff184e" strokeWidth="2"/><path d="M9.5 9.5h.01M14.5 9.5h.01" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/><path d="M9.5 13c.5.5 1.5.5 2 0" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/></svg>
-              <span className="mt-2 text-base font-medium">Aucun article trouvé dans cette catégorie</span>
+                  <span className="mt-2 text-base font-medium">Aucun article trouvé dans cette catégorie pour l’instant</span>
               <button
                 onClick={() => setTab('latest')}
                 className="mt-4 px-6 py-2 rounded-full bg-[#ff184e] text-white font-bold shadow hover:bg-red-600 transition"

@@ -47,7 +47,7 @@ const Header = () => {
       setLoadingRecent(true);
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(10);
@@ -122,7 +122,7 @@ const Header = () => {
       try {
         const { data, error } = await supabase
           .from('articles')
-          .select('*')
+          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
           .eq('statut', 'publie')
           .ilike('titre', `%${searchQuery}%`)
           .order('date_publication', { ascending: false })
@@ -342,7 +342,7 @@ const Header = () => {
                 style={{ display: 'inline-block', minWidth: '100%' }}
               >
                 {loadingRecent ? (
-                  <span className="mx-4 text-gray-500">Chargement...</span>
+                  <span className="mx-4 text-gray-500">La rédaction charge les derniers titres…</span>
                 ) : (
                   mappedArticles.concat(mappedArticles).map((article, idx) => (
                     <span key={idx} className="mx-6 inline-flex items-center">
@@ -364,8 +364,8 @@ const Header = () => {
               <div className="hidden lg:flex items-center mr-4">
                 <span className="bg-[#ff184e]/20 border border-[#ff184e]/50 text-[#ff184e] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase mr-3">Trending</span>
                 <div className="flex space-x-3 text-sm font-medium text-gray-400">
-                  <Link to="/tag/brave" className="hover:text-white transition-colors">#Courage</Link>
-                  <Link to="/tag/business" className="hover:text-white transition-colors">#Économie</Link>
+                  <Link to="/tag/brave" className="hover:text-white transition-colors">#Mali</Link>
+                  <Link to="/tag/business" className="hover:text-white transition-colors">#Afrique</Link>
                 </div>
               </div>
             )}
@@ -432,7 +432,7 @@ const Header = () => {
                   {isSearching ? (
                     <div className="py-16 text-center text-gray-400">
                       <div className="w-12 h-12 border-4 border-[#ff184e]/20 border-t-[#ff184e] rounded-full animate-spin mx-auto mb-4" />
-                      <p className="animate-pulse">{t("Recherche en cours...")}</p>
+                      <p className="animate-pulse">{t("On fouille dans les archives…")}</p>
                     </div>
                   ) : searchResults.length ? (
                     <ul className="divide-y divide-white/10">
@@ -462,7 +462,7 @@ const Header = () => {
                   ) : (
                     <div className="py-12 text-center text-gray-400">
                       <Search className="mx-auto mb-3 opacity-20" size={48} />
-                      <p>Aucun résultat trouvé pour "{searchQuery}"</p>
+                      <p>Aucun article ne correspond à "{searchQuery}". Essayez un autre mot-clé ou une orthographe différente.</p>
                     </div>
                   )}
                 </motion.div>

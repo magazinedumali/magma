@@ -94,14 +94,14 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
   if (error) return (
     <div className="flex flex-col items-center justify-center py-12">
       <svg width="64" height="64" fill="none" viewBox="0 0 24 24"><path d="M12 20h9" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/><circle cx="12" cy="10" r="6" stroke="#ff184e" strokeWidth="2"/><path d="M9.5 9.5h.01M14.5 9.5h.01" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/><path d="M9.5 13c.5.5 1.5.5 2 0" stroke="#ff184e" strokeWidth="2" strokeLinecap="round"/></svg>
-      <div className="mt-4 text-lg font-semibold text-[#ff184e]">Aucun sondage n'est actuellement en ligne</div>
-      <div className="mt-2 text-gray-500">Revenez plus tard pour participer à nos prochains sondages !</div>
+      <div className="mt-4 text-lg font-semibold text-[#ff184e]">Aucun sondage n’est en ligne pour le moment</div>
+      <div className="mt-2 text-gray-500">Revenez un peu plus tard : la rédaction prépare la prochaine question.</div>
     </div>
   );
   if (!poll) return null;
 
   return (
-    <div className={compact ? "glass-panel border-white/10 rounded-xl p-4 flex flex-col items-center shadow-lg" : "glass-panel border-white/10 rounded-xl p-8 flex flex-col items-center shadow-xl"}>
+      <div className={compact ? "glass-panel border-white/10 rounded-xl p-4 flex flex-col items-center shadow-lg" : "glass-panel border-white/10 rounded-xl p-8 flex flex-col items-center shadow-xl"}>
       {poll.image_url && (
         <img
           src={poll.image_url}
@@ -175,7 +175,7 @@ const Poll = ({ compact = false }: { compact?: boolean }) => {
           );
         })}
       </div>
-      {voted && <div className="mt-4 text-green-600 font-medium">Merci pour votre vote !</div>}
+      {voted && <div className="mt-4 text-green-600 font-medium">Merci pour votre vote, votre avis compte vraiment pour nous.</div>}
       {totalVotes > 0 && (
         <div className="mt-2 text-xs text-gray-400 text-center w-full">Total&nbsp;: {totalVotes} vote{totalVotes > 1 ? 's' : ''}</div>
       )}

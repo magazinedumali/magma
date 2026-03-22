@@ -38,7 +38,7 @@ const ArticleDetail = () => {
       setLoadingRecent(true);
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url')
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(6);
@@ -140,7 +140,7 @@ const ArticleDetail = () => {
           console.log('Trying case-insensitive slug search...');
           const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
             .from('articles')
-            .select('*')
+            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url')
             .eq('statut', 'publie')
             .ilike('slug', slug)
             .maybeSingle();
@@ -158,7 +158,7 @@ const ArticleDetail = () => {
           console.log('Trying to fetch by ID as fallback...');
           const { data: idData, error: idError } = await supabase
             .from('articles')
-            .select('*')
+            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url')
             .eq('statut', 'publie')
             .eq('id', slug)
             .maybeSingle();
@@ -362,8 +362,8 @@ const ArticleDetail = () => {
                 <div className="glass-panel rounded-2xl shadow-xl p-8 border border-white/10" id="comment-form">
                   <CommentForm 
                     onAdd={handleAddComment} 
-                    placeholder={t('Ajouter un commentaire…')} 
-                    sendLabel={t('Envoyer')}
+                    placeholder={t('Réagissez à cet article…')} 
+                    sendLabel={t('Publier')}
                     user={user}
                   />
                 </div>

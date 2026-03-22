@@ -15,13 +15,13 @@ import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 import { motion } from 'framer-motion';
 
 const SECTION_TITLES = {
-  selectedNews: 'Actualités sélectionnées',
-  travelBlogs: 'Blogs de voyage',
-  onlineVoting: 'Sondage en ligne',
-  technology: 'Technologie',
-  business: 'Business',
+  selectedNews: 'Les choix de la rédaction',
+  travelBlogs: 'Carnets de voyage',
+  onlineVoting: 'Votre avis nous intéresse',
+  technology: 'Tech & innovation',
+  business: 'Économie & business',
   sport: 'Sport',
-  entertainment: 'Divertissement',
+  entertainment: 'Culture & divertissement',
 };
 
 const fadeUpVariant: any = {
@@ -44,13 +44,13 @@ const Index = () => {
       setErrorBusiness(null);
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, category, title, excerpt, image, date, author')
         .eq('statut', 'publie')
         .eq('categorie', 'Business')
         .order('date_publication', { ascending: false })
         .limit(3);
       if (error) {
-        setErrorBusiness('Erreur lors du chargement des articles.');
+        console.error('Erreur lors du chargement des articles Business:', error);
         setBusinessArticles([]);
       } else {
         setBusinessArticles(data || []);
@@ -78,14 +78,14 @@ const Index = () => {
 
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
         .eq('statut', 'publie')
         .ilike('categorie', 'Technologie')
         .order('date_publication', { ascending: false })
         .limit(2);
 
       if (error) {
-        setErrorTech('Erreur lors du chargement des articles.');
+        console.error('Erreur lors du chargement des articles Tech:', error);
         setTechnologyArticles([]);
       } else {
         setTechnologyArticles(data || []);
@@ -117,14 +117,14 @@ const Index = () => {
 
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
         .eq('statut', 'publie')
         .ilike('categorie', 'Sport%')
         .order('date_publication', { ascending: false })
         .limit(1);
 
       if (error) {
-        setErrorSports('Erreur lors du chargement des articles.');
+        console.error('Erreur lors du chargement des articles Sport:', error);
         setSportsArticles([]);
       } else {
         setSportsArticles(data || []);
@@ -158,12 +158,12 @@ const Index = () => {
       setErrorRecent(null);
       const { data, error } = await supabase
         .from('articles')
-        .select('*')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(6);
       if (error) {
-        setErrorRecent('Erreur lors du chargement des articles récents.');
+        console.error('Erreur lors du chargement des articles récents:', error);
         setRecentArticles([]);
       } else {
         setRecentArticles(data || []);
@@ -186,9 +186,9 @@ const Index = () => {
     const fetchAdditional = async () => {
       setLoadingAdditional(true);
       const [ resNews, resTravel, resEnt ] = await Promise.all([
-        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', '%Actualit%').order('date_publication', { ascending: false }).limit(3),
-        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', 'Voyage').order('date_publication', { ascending: false }).limit(3),
-        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', 'Divertissement').order('date_publication', { ascending: false }).limit(1)
+        supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', '%Actualit%').order('date_publication', { ascending: false }).limit(3),
+        supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', 'Voyage').order('date_publication', { ascending: false }).limit(3),
+        supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', 'Divertissement').order('date_publication', { ascending: false }).limit(1)
       ]);
       setAdditionalData({
         selectedNews: resNews.data || [],
@@ -223,12 +223,11 @@ const Index = () => {
       <main className="overflow-hidden">
         <HeroSection />
         
-        {loadingRecent && <div className="py-12 text-center text-gray-400">Chargement des articles récents...</div>}
-        {errorRecent && <div className="py-12 text-center text-red-500">{errorRecent}</div>}
-        {!loadingRecent && !errorRecent && mappedRecentArticles.length === 0 && (
+        {loadingRecent && <div className="py-12 text-center text-gray-400">On prépare vos derniers articles, un instant…</div>}
+        {!loadingRecent && mappedRecentArticles.length === 0 && (
           <div className="py-12 text-center text-gray-400">Aucun article récent trouvé.</div>
         )}
-        {!loadingRecent && !errorRecent && mappedRecentArticles.length > 0 && (
+        {!loadingRecent && mappedRecentArticles.length > 0 && (
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
             <MostReadingSection articles={mappedRecentArticles} />
           </motion.div>
@@ -244,8 +243,8 @@ const Index = () => {
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUpVariant}>
                 <h2 className="text-2xl font-jost font-bold mb-6 text-white" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.selectedNews}</h2>
                 <div className="space-y-4">
-                  {loadingAdditional && <div className="text-gray-400">Chargement...</div>}
-                  {!loadingAdditional && additionalData.selectedNews.length === 0 && <div className="text-gray-400">Aucun article.</div>}
+                  {loadingAdditional && <div className="text-gray-400">Nous parcourons la rédaction pour vous…</div>}
+                  {!loadingAdditional && additionalData.selectedNews.length === 0 && <div className="text-gray-400">Rien à afficher ici pour le moment. Revenez un peu plus tard.</div>}
                   {!loadingAdditional && additionalData.selectedNews.map((item, idx) => (
                     <motion.div whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }} key={idx} className="flex gap-4 items-center cursor-pointer p-3 rounded-xl transition-colors glass-panel" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
                       <div className="relative min-w-[120px] w-[120px] h-[80px] rounded-lg overflow-hidden border border-white/10 shadow-lg">
@@ -274,8 +273,8 @@ const Index = () => {
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUpVariant}>
                 <h2 className="text-2xl font-jost font-bold mb-6 text-white" style={{ borderBottom: '2px solid #ff184e', display: 'inline-block', paddingBottom: '4px' }}>{SECTION_TITLES.travelBlogs}</h2>
                 <div className="space-y-4">
-                  {loadingAdditional && <div className="text-gray-400">Chargement...</div>}
-                  {!loadingAdditional && additionalData.travelBlogs.length === 0 && <div className="text-gray-400">Aucun article.</div>}
+                  {loadingAdditional && <div className="text-gray-400">Quelques secondes, nous chargeons les carnets de voyage…</div>}
+                  {!loadingAdditional && additionalData.travelBlogs.length === 0 && <div className="text-gray-400">Aucun récit de voyage publié pour l’instant.</div>}
                   {!loadingAdditional && additionalData.travelBlogs.map((item, idx) => (
                     <motion.div whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }} key={idx} className="flex gap-4 items-center cursor-pointer p-3 rounded-xl transition-colors glass-panel" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
                       <div className="relative min-w-[120px] w-[120px] h-[80px] rounded-lg overflow-hidden border border-white/10 shadow-lg">
@@ -325,15 +324,14 @@ const Index = () => {
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
                 <h2 className="section-title text-white">{SECTION_TITLES.technology}</h2>
                 <div className="space-y-6">
-                  {loadingTech && <div className="text-gray-400">Chargement...</div>}
-                  {errorTech && <div className="text-red-400 bg-red-400/10 p-4 rounded-xl">{errorTech}</div>}
-                  {!loadingTech && !errorTech && technologyArticles.length === 0 && (
-                    <div className="text-gray-400">Aucun article dans cette catégorie.</div>
+                  {loadingTech && <div className="text-gray-400">On surveille l’actualité tech…</div>}
+                  {!loadingTech && technologyArticles.length === 0 && (
+                    <div className="text-gray-400">Aucun article publié ici pour l’instant.</div>
                   )}
-                  {!loadingTech && !errorTech && mappedTechArticles[0] && (
+                  {!loadingTech && mappedTechArticles[0] && (
                     <ArticleCard {...mappedTechArticles[0]} />
                   )}
-                  {!loadingTech && !errorTech && mappedTechArticles[1] && (
+                  {!loadingTech && mappedTechArticles[1] && (
                     <SmallArticleCard {...mappedTechArticles[1]} />
                   )}
                 </div>
@@ -342,12 +340,11 @@ const Index = () => {
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant} transition={{ delay: 0.2 }}>
                 <h2 className="section-title text-white">{SECTION_TITLES.business}</h2>
                 <div className="space-y-6">
-                  {loadingBusiness && <div className="text-gray-400">Chargement...</div>}
-                  {errorBusiness && <div className="text-red-400 bg-red-400/10 p-4 rounded-xl">{errorBusiness}</div>}
-                  {!loadingBusiness && !errorBusiness && mappedBusinessArticles.length === 0 && (
-                    <div className="text-gray-400">Aucun article dans cette catégorie.</div>
+                  {loadingBusiness && <div className="text-gray-400">Les dernières analyses économiques arrivent…</div>}
+                  {!loadingBusiness && mappedBusinessArticles.length === 0 && (
+                      <div className="text-gray-400">Nous n’avons pas encore publié d’article dans cette rubrique.</div>
                   )}
-                  {!loadingBusiness && !errorBusiness && mappedBusinessArticles.map((article, index) => (
+                  {!loadingBusiness && mappedBusinessArticles.map((article, index) => (
                     index === 0 ? (
                       <ArticleCard key={article.slug} {...article} />
                     ) : (
@@ -371,20 +368,19 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant}>
                 <h2 className="section-title text-white">{SECTION_TITLES.sport}</h2>
-                {loadingSports && <div className="text-gray-400">Chargement...</div>}
-                {errorSports && <div className="text-red-400 bg-red-400/10 p-4 rounded-xl">{errorSports}</div>}
-                {!loadingSports && !errorSports && mappedSportsArticles[0] && (
+                {loadingSports && <div className="text-gray-400">On met à jour les résultats sportifs…</div>}
+                {!loadingSports && mappedSportsArticles[0] && (
                   <ArticleCard {...mappedSportsArticles[0]} />
                 )}
-                {!loadingSports && !errorSports && mappedSportsArticles.length === 0 && (
-                  <div className="text-gray-400">Aucun article dans cette catégorie.</div>
+                {!loadingSports && mappedSportsArticles.length === 0 && (
+                  <div className="text-gray-400">Pas encore d’article sport ici. Revenez après le prochain coup d’envoi.</div>
                 )}
               </motion.div>
               
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUpVariant} transition={{ delay: 0.2 }}>
                 <h2 className="section-title text-white">{SECTION_TITLES.entertainment}</h2>
-                {loadingAdditional && <div className="text-gray-400">Chargement...</div>}
-                {!loadingAdditional && mappedEntertainmentArts.length === 0 && <div className="text-gray-400">Aucun article.</div>}
+                {loadingAdditional && <div className="text-gray-400">On choisit quelques idées culturelles pour vous…</div>}
+                {!loadingAdditional && mappedEntertainmentArts.length === 0 && <div className="text-gray-400">Pas encore de contenu dans cette rubrique, la rédaction y travaille.</div>}
                 {!loadingAdditional && mappedEntertainmentArts.map((article) => (
                   <ArticleCard
                     key={article.id}
