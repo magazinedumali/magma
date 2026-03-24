@@ -20,9 +20,11 @@ const mockRes = {
     json: (data) => {
       if (code === 200) {
         console.log(`\n✅ SUCCÈS [${code}] :`, data.message);
-        console.log(`📌 Titre : ${data.titre}`);
+        if (data.titre) console.log(`📌 Titre : ${data.titre}`);
+        process.exit(0);
       } else {
         console.error(`\n❌ ERREUR [${code}] :`, data);
+        process.exit(1);
       }
     }
   })
@@ -30,5 +32,8 @@ const mockRes = {
 
 // Lancement de la génération
 handler(mockReq, mockRes).then(() => {
-  console.log("\nProcessus terminé. Vérifiez votre tableau de bord Magma !");
+  console.log("\nProcessus terminé en attente de réponse...");
+}).catch((err) => {
+  console.error("Erreur fatale:", err);
+  process.exit(1);
 });

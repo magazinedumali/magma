@@ -1,0 +1,34 @@
+name: Magma Autonomous Content Generation
+on:
+  schedule:
+    # Run every 30 minutes to stay within free tier limits, but ensure regular content (can be changed to */15 if desired)
+    - cron: '*/30 * * * *'
+  # Allow manual trigger from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Reprise du code source (Checkout)
+      uses: actions/checkout@v4
+
+    - name: Préparation de Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Installation des dépendances
+      run: npm install
+
+    - name: Execution de l'IA et Insertion dans Supabase
+      run: node run-cron-local.js
+      env:
+        # Les cls doivent tre ajoutes dans "Settings > Secrets and variables > Actions" du dpt GitHub
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.VITE_SUPABASE_SERVICE_ROLE_KEY }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        CRON_SECRET: ${{ secrets.CRON_SECRET }}
