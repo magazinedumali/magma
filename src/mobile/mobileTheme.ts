@@ -1,4 +1,4 @@
-/** Aligné sur MagmaMobile/src/styles/Theme.ts */
+/** Palette et espacements pour les écrans `/mobile` (thème sombre). */
 export const mobileTheme = {
   colors: {
     primary: '#ff184e',
