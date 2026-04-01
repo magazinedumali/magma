@@ -6,6 +6,8 @@ import { useCategories } from '@/hooks/useCategories';
 import { useNavigate } from 'react-router-dom';
 import Banner from '@/components/Banner';
 import Poll from '@/components/Poll';
+import HeroSlider from '@/components/hero/HeroSlider';
+import PublishedVideoSection from '@/components/PublishedVideoSection';
 import Stories from './Stories';
 import MobileBottomNav from './MobileBottomNav';
 import MobileGlassPlayer from './MobileGlassPlayer';
@@ -145,8 +147,13 @@ export default function MobileHome() {
       nextOffsetRef.current = rows.length;
 
       if (rows.length > 0) {
-        setHeroArticle(rows[0]);
-        setArticles(rows.slice(1));
+        if (tab === 'latest') {
+          setHeroArticle(null);
+          setArticles(rows.length > 3 ? rows.slice(3) : []);
+        } else {
+          setHeroArticle(rows[0]);
+          setArticles(rows.slice(1));
+        }
       } else {
         setHeroArticle(null);
         setArticles([]);
@@ -241,9 +248,11 @@ export default function MobileHome() {
         ))}
       </nav>
 
-      {/* À la une — premier article du flux (pas de doublon dans la liste) */}
+      {/* À la une : carrousel (même flux que le site) pour « Dernières », sinon une carte par rubrique */}
       <div className="mx-4 mt-1">
-        {loadingInitial && !heroArticle ? (
+        {tab === 'latest' ? (
+          <HeroSlider articleBasePath="/mobile/article" compact />
+        ) : loadingInitial && !heroArticle ? (
           <div className="flex h-[220px] items-center justify-center rounded-3xl border border-white/10 bg-[#161b26]">
             <p className="text-sm text-[#9ba5be]">Chargement de l’actualité…</p>
           </div>
@@ -288,6 +297,12 @@ export default function MobileHome() {
       {tab === 'latest' && (
         <div className="mt-10">
           <MobileHomeThematicSections />
+        </div>
+      )}
+
+      {tab === 'latest' && (
+        <div className="mt-8">
+          <PublishedVideoSection />
         </div>
       )}
 

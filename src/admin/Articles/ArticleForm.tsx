@@ -384,6 +384,9 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
         </div>
       </form>
       {/* Sidebar options à droite */}
+      {(() => {
+        const isDark = false; // Forcer le thème clair (texte noir) pour cette sidebar uniquement
+        return (
       <aside className="w-80 flex-shrink-0 sticky top-8 ml-8 space-y-6 hidden lg:block">
         {/* Bloc sauvegarde/statut */}
         <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
@@ -649,6 +652,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       </div>
         </div>
       </aside>
+        );
+      })()}
       </div>
   );
 };

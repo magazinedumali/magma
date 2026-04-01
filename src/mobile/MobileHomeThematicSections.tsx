@@ -179,7 +179,7 @@ export default function MobileHomeThematicSections() {
               <h2 className="text-lg font-bold tracking-tight text-white">{s.title}</h2>
               <ChevronRight className="shrink-0 text-[#9ba5be]" size={20} aria-hidden />
             </div>
-            <div className="flex gap-3 overflow-x-auto overflow-y-hidden px-4 pb-1 scrollbar-hide">
+            <div className="flex touch-pan-x gap-3 overflow-x-auto overflow-y-hidden px-4 pb-1 [-webkit-overflow-scrolling:touch] scrollbar-hide">
               {rows.map((article) => (
                 <MiniArticleCard
                   key={article.id}

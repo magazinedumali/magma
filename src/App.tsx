@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useRoutes, useLocation, useNavigate } from "react-router-dom";
 import ErrorBoundary from './components/ErrorBoundary';
+import MobileRouteThemeLock from './components/MobileRouteThemeLock';
 import GoogleAuthNormalizer from './components/GoogleAuthNormalizer';
 import routes from "tempo-routes";
 import './lib/i18n';
@@ -80,6 +81,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <MobileRouteThemeLock />
           <MobileRedirector>
             {/* Tempo routes component used inside Router context */}
             <TempoRoutes />
