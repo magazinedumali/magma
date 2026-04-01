@@ -2,7 +2,7 @@ export default function LocationUsersStatusBar({ locations = [], total }: any) {
   const totalValue = total || locations.reduce((s: number, v: any) => s + v.value, 0);
 
   return (
-    <div className="dark-card" style={{ marginBottom: 0 }}>
+    <div className="dark-card always-dark-widget" style={{ marginBottom: 0 }}>
       <h2>Utilisateurs par localisation</h2>
       
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 20 }}>

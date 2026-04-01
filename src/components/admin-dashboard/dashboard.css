@@ -320,3 +320,50 @@ html.light-mode {
   background: rgba(255,255,255,0.1);
   border-radius: 6px;
 }
+
+/* ====== FORCE BLACK THEME FOR SIDEBAR AND DASHBOARD CARDS ====== */
+html.light-mode .dashboard-sidebar {
+  background: #0a0c16 !important;
+  color: #e2e8f0 !important;
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.light-mode .dashboard-sidebar .dashboard-logo {
+  color: #e2e8f0 !important;
+}
+html.light-mode .dashboard-sidebar .dashboard-user-info div {
+  color: #e2e8f0 !important;
+}
+html.light-mode .sidebar-section-title {
+  color: #94a3b8 !important;
+}
+html.light-mode .dashboard-search {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.light-mode .dashboard-search input {
+  color: #e2e8f0 !important;
+}
+html.light-mode .dashboard-search input::placeholder {
+  color: #94a3b8 !important;
+}
+html.light-mode .dashboard-sidebar nav ul li a {
+  color: #e2e8f0 !important;
+}
+html.light-mode .dashboard-sidebar nav ul li a:hover,
+html.light-mode .dashboard-sidebar nav ul li a.active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+/* Force specific Dashboard widgets to remain dark */
+html.light-mode .always-dark-widget {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0 !important;
+}
+html.light-mode .always-dark-widget div,
+html.light-mode .always-dark-widget span,
+html.light-mode .always-dark-widget h2,
+html.light-mode .always-dark-widget h3 {
+  color: #e2e8f0 !important;
+}

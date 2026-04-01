@@ -21,7 +21,7 @@ export default function RecentUsersWidget() {
   }, []);
 
   return (
-    <div className="dark-card" style={{ marginBottom: 0 }}>
+    <div className="dark-card always-dark-widget" style={{ marginBottom: 0 }}>
       <h2>Utilisateurs récents</h2>
       {loading ? (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
