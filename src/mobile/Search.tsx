@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Bookmark } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import MobileBottomNav from './MobileBottomNav';
 
 export default function MobileSearch() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const getAuthorAvatar = (author: string, authorAvatar?: string) => {
     if (authorAvatar) return authorAvatar;
@@ -21,8 +29,7 @@ export default function MobileSearch() {
         return;
       }
       setLoading(true);
-      // Search in title and content
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('articles')
         .select('id, titre, slug, image_url, categorie, auteur, date_publication')
         .eq('statut', 'publie')
@@ -32,66 +39,79 @@ export default function MobileSearch() {
       setArticles(data || []);
       setLoading(false);
     };
-    const timeout = setTimeout(fetchArticles, 300); // debounce
-    return () => clearTimeout(timeout);
+    const t = setTimeout(fetchArticles, 300);
+    return () => clearTimeout(t);
   }, [query]);
 
   return (
-    <div className="min-h-screen bg-[#f9fafd] flex flex-col transition-colors duration-300">
-      {/* Header */}
-      <header className="flex items-center gap-2 px-4 pt-6 pb-4 bg-[#f9fafd]">
-        <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-sm mr-2">
-          <ArrowLeft size={24} className="text-[#1a2746]" />
+    <div className="flex min-h-screen flex-col bg-[#0a0d14] pb-[calc(80px+env(safe-area-inset-bottom,0px))] text-white">
+      <header className="flex items-center gap-2 border-b border-white/10 px-4 pb-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#161b26]"
+          aria-label="Retour"
+        >
+          <ArrowLeft size={22} className="text-white" />
         </button>
         <input
           autoFocus
-          type="text"
+          type="search"
           value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Rechercher un article..."
-          className="flex-1 px-4 py-2 rounded-full bg-white shadow text-base outline-none"
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Rechercher un article…"
+          className="flex-1 rounded-full border border-white/10 bg-[#161b26] px-4 py-2.5 text-base text-white outline-none placeholder:text-[#9ba5be] focus:border-[#ff184e]/40"
         />
       </header>
-      <div className="flex-1 px-4 py-2 space-y-3">
-        {loading && <div className="text-center text-gray-400 mt-10">Chargement...</div>}
+
+      <div className="flex-1 space-y-3 px-4 py-4">
+        {loading && <p className="mt-10 text-center text-sm text-[#9ba5be]">Chargement…</p>}
         {query.trim() && !loading && articles.length === 0 && (
-          <div className="text-center text-gray-400 mt-10">Aucun résultat</div>
+          <p className="mt-10 text-center text-sm text-[#9ba5be]">Aucun résultat</p>
         )}
-        {articles.map(article => (
-          <div key={article.id} className="flex bg-white rounded-2xl shadow-sm overflow-hidden h-28 transition-colors duration-300" onClick={() => navigate(`/mobile/article/${article.slug || article.id}`)}>
-            <img 
-              src={article.image_url} 
-              alt={article.titre} 
-              className="w-28 h-full object-cover flex-shrink-0 rounded-l-2xl"
+        {articles.map((article) => (
+          <button
+            key={article.id}
+            type="button"
+            className="flex w-full overflow-hidden rounded-2xl border border-white/10 bg-[#161b26] text-left"
+            onClick={() => navigate(`/mobile/article/${article.slug || article.id}`)}
+          >
+            <img
+              src={article.image_url}
+              alt=""
+              className="h-28 w-28 shrink-0 object-cover"
               onError={(e) => {
                 e.currentTarget.src = '/placeholder.svg';
               }}
               loading="lazy"
             />
-            <div className="flex-1 flex flex-col justify-between p-4 min-w-0">
+            <div className="flex min-w-0 flex-1 flex-col justify-between p-3">
               <div>
-                <h3 className="font-bold text-lg text-[#1a2746] leading-tight mb-2 truncate">{article.titre}</h3>
-                <div className="flex items-center gap-2 mb-2">
-                  <img src={getAuthorAvatar(article.auteur)} alt={article.auteur} className="h-5 w-5 rounded-full" onError={e => { e.currentTarget.src = '/logo.png'; }} />
-                  <span className="text-xs text-gray-500 font-medium">{article.auteur}</span>
-                  <span className="bg-white border border-[#ff184e] text-[#ff184e] text-xs font-semibold px-3 py-0.5 rounded-full ml-2 transition-colors duration-300">{article.categorie}</span>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#ff184e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    110.5K
+                <h3 className="mb-1 line-clamp-2 text-base font-bold leading-tight text-white">{article.titre}</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <img
+                    src={getAuthorAvatar(article.auteur)}
+                    alt=""
+                    className="h-5 w-5 rounded-full"
+                    onError={(e) => {
+                      e.currentTarget.src = '/logo.png';
+                    }}
+                  />
+                  <span className="text-xs font-medium text-[#9ba5be]">{article.auteur}</span>
+                  <span className="rounded-full border border-[#ff184e]/40 px-2 py-0.5 text-xs font-semibold text-[#ff184e]">
+                    {article.categorie}
                   </span>
                 </div>
               </div>
-              <div className="flex justify-end items-center mt-2">
-                <button className="text-[#ff184e]">
-                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke="#ff184e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
+              <div className="mt-2 flex justify-end">
+                <Bookmark size={18} className="text-[#9ba5be]" />
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
+
+      <MobileBottomNav user={user} />
     </div>
   );
-} 
+}

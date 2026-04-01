@@ -1,224 +1,211 @@
-import React, { useRef, useState } from 'react';
-import { ArrowLeft, Pause, Volume2, VolumeX, User, Radio, SkipBack, SkipForward } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, Pause, Play, SkipBack, SkipForward, Music } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import { getUserAvatar } from '@/lib/userHelper';
-import AudioPlayer from '@/components/AudioPlayer';
+import MobileBottomNav from './MobileBottomNav';
+import { mobileTheme as T } from './mobileTheme';
 
-const demoPlaylist = [
-  {
-    title: "Chill Vibes",
-    artist: "DJ Relax",
-    cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=facearea&w=400&h=400",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-  },
-  {
-    title: "Morning Energy",
-    artist: "Sunrise Crew",
-    cover: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&h=400",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-  },
-  {
-    title: "Focus Beats",
-    artist: "WorkFlow",
-    cover: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=facearea&w=400&h=400",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-  }
+/** Flux démo tant qu’aucune URL live n’est branchée côté config */
+const RADIO_STREAM_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+const RADIO_COVER =
+  'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80';
+
+const RECENT_EPISODES = [
+  { id: 1, title: 'Débat du jour - Épisode 1', meta: 'Il y a 2 jours • 45 min' },
+  { id: 2, title: 'Débat du jour - Épisode 2', meta: 'Il y a 2 jours • 45 min' },
+  { id: 3, title: 'Débat du jour - Épisode 3', meta: 'Il y a 2 jours • 45 min' },
 ];
 
-export default function AudioStreamingPage() {
-  const [current, setCurrent] = useState<number|null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [muted, setMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [user, setUser] = useState<any>(null);
-  const [avatar, setAvatar] = useState('');
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const navigate = useNavigate();
-  const track = demoPlaylist[current || 0];
+function useAlbums() {
+  const [albums, setAlbums] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(() => {
+    async function fetchAlbums() {
+      setLoading(true);
+      const { data } = await supabase.from('albums').select('*, songs(*)').order('year', { ascending: false });
+      setAlbums(data || []);
+      setLoading(false);
+    }
+    fetchAlbums();
+  }, []);
+  return { albums, loading };
+}
 
-  // Hook pour charger les albums dynamiquement (local à ce composant)
-  function useAlbums() {
-    const [albums, setAlbums] = React.useState<any[]>([]);
-    const [loading, setLoading] = React.useState(true);
-    React.useEffect(() => {
-      async function fetchAlbums() {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('albums')
-          .select('*, songs(*)')
-          .order('year', { ascending: false });
-        setAlbums(data || []);
-        setLoading(false);
-      }
-      fetchAlbums();
-    }, []);
-    return { albums, loading };
-  }
+export default function AudioStreamingPage() {
+  const [user, setUser] = useState<any>(null);
+  const [livePlaying, setLivePlaying] = useState(false);
+  const liveRef = useRef<HTMLAudioElement>(null);
+  const navigate = useNavigate();
   const { albums, loading } = useAlbums();
 
-  React.useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUser(data.user);
-        setAvatar(getUserAvatar(data.user));
-      }
-    });
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
   }, []);
 
-  const handlePlayPause = () => {
-    if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.pause();
+  const toggleLive = () => {
+    const el = liveRef.current;
+    if (!el) return;
+    if (livePlaying) {
+      el.pause();
+      setLivePlaying(false);
     } else {
-      audioRef.current.play();
+      el.play()
+        .then(() => setLivePlaying(true))
+        .catch(() => setLivePlaying(false));
     }
-    setPlaying(!playing);
   };
 
-  const handleTimeUpdate = () => {
-    if (!audioRef.current) return;
-    setProgress(audioRef.current.currentTime);
-  };
-
-  const handleLoadedMetadata = () => {
-    if (!audioRef.current) return;
-    setDuration(audioRef.current.duration);
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!audioRef.current) return;
-    const val = Number(e.target.value);
-    audioRef.current.currentTime = val;
-    setProgress(val);
-  };
-
-  const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
-    setVolume(val);
-    if (audioRef.current) audioRef.current.volume = val;
-    setMuted(val === 0);
-  };
-
-  const handleMute = () => {
-    setMuted(m => {
-      if (audioRef.current) audioRef.current.muted = !m;
-      return !m;
-    });
-  };
-
-  const handleSelectTrack = (idx: number) => {
-    setCurrent(idx);
-    setProgress(0);
-    setPlaying(false);
-    setTimeout(() => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play();
-        setPlaying(true);
-      }
-    }, 100);
-  };
-
-  // Quand on change de morceau (après action utilisateur), ne joue que si playing=true
-  React.useEffect(() => {
-    if (audioRef.current && current !== null && albums[current] && albums[current].songs && albums[current].songs[current] && albums[current].songs[current].audio_url) {
-      audioRef.current.currentTime = 0;
-      if (playing) {
-        audioRef.current.play();
-      } else {
-        audioRef.current.pause();
-      }
+  const skipLive = (deltaSec: number) => {
+    const el = liveRef.current;
+    if (!el) return;
+    try {
+      el.currentTime = Math.max(0, el.currentTime + deltaSec);
+    } catch {
+      /* flux live sans seek */
     }
-  }, [current, playing]);
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col transition-colors duration-300 pb-32">
-      {/* Header modernisé */}
-      <div className="flex items-center justify-between px-4 pt-6 pb-2 bg-white">
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-sm mr-2 border border-gray-100">
-            <ArrowLeft size={24} className="text-[#1a2746]" />
+    <div className="relative flex min-h-screen flex-col pb-[calc(88px+env(safe-area-inset-bottom,0px))] text-white">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1a1e2e] to-[#0a0d14]" aria-hidden />
+
+      <div className="relative z-10 flex flex-1 flex-col">
+        <header className="relative flex items-center justify-center px-4 pb-2 pt-[calc(env(safe-area-inset-top)+12px)]">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="absolute left-4 top-[calc(env(safe-area-inset-top)+12px)] flex rounded-full border border-white/10 bg-[#161b26]/80 p-2 backdrop-blur-sm"
+            aria-label="Retour"
+          >
+            <ArrowLeft size={22} className="text-white" />
           </button>
-          <span className="font-extrabold text-xl tracking-wide text-[#1a2746] font-poppins">MAGMA FM</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="p-2 rounded-full bg-gray-100">
-            <Radio size={22} className="text-[#ff184e]" />
-          </button>
-          <button className="p-1 rounded-full border-2 border-[#ff184e] overflow-hidden w-10 h-10 flex items-center justify-center">
-            {avatar && avatar !== '/placeholder.svg' ? (
-              <img 
-                src={avatar} 
-                alt="avatar" 
-                className="w-8 h-8 rounded-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
-              />
-            ) : (
-              <User size={28} className="text-[#ff184e]" />
-            )}
-          </button>
-        </div>
-      </div>
-      {/* Barre de recherche */}
-      <div className="flex items-center gap-2 px-4 pb-2">
-        <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-2">
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" className="text-gray-400 mr-2"><circle cx="11" cy="11" r="8" stroke="#888" strokeWidth="2"/><path d="M21 21l-2-2" stroke="#888" strokeWidth="2" strokeLinecap="round"/></svg>
-          <input type="text" placeholder="Search in All" className="bg-transparent outline-none flex-1 text-base text-[#1a2746] placeholder-gray-400" />
-        </div>
-      </div>
-      {/* Carte principale du morceau courant */}
-      <div className="flex flex-col items-center px-6 mt-2 mb-6">
-        <div className="relative w-full max-w-xs rounded-3xl overflow-hidden shadow-lg" style={{background: 'linear-gradient(135deg,#ffb6c1 0%,#ffe0e9 100%)'}}>
-          <img src={track.cover} alt={track.title} className="w-full h-56 object-cover" loading="lazy" />
-          <span className="absolute top-3 left-3 bg-white/80 text-[#ff184e] text-xs font-bold px-3 py-1 rounded-full shadow flex items-center gap-1">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" stroke="#ff184e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="6" cy="18" r="3" stroke="#ff184e" strokeWidth="2"/></svg> Track
-          </span>
-          {/* Dégradé bas */}
-          <div className="absolute left-0 right-0 bottom-0 h-[40%]" style={{background: 'linear-gradient(0deg,rgba(20,20,30,0.85) 70%,rgba(20,20,30,0) 100%)'}} />
-          {/* Texte sur le dégradé */}
-          <div className="absolute left-0 right-0 bottom-6 flex flex-col items-center z-10">
-            <span className="text-white text-sm font-normal tracking-widest mb-1" style={{letterSpacing:'0.1em'}}>{track.artist}</span>
-            <span className="text-white text-2xl font-bold font-poppins mb-2 drop-shadow-lg">{track.title}</span>
-            <div className="flex justify-center gap-2 mt-2">
-              {demoPlaylist.map((_, idx) => (
-                <span key={idx} className={`w-2 h-2 rounded-full ${current === idx ? 'bg-white' : 'bg-gray-400/60'}`}></span>
-              ))}
-            </div>
+          <h1 className="text-center text-lg font-extrabold uppercase tracking-[0.2em] text-white">
+            Streaming Direct
+          </h1>
+        </header>
+
+        <div className="flex flex-1 flex-col items-center px-4 pb-6">
+          <div className="mt-5 flex w-full max-w-sm flex-col items-center">
+            <img
+              src={RADIO_COVER}
+              alt=""
+              className="aspect-square w-[min(100%,280px)] rounded-[20px] object-cover shadow-2xl"
+              style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+              loading="lazy"
+            />
+            <p className="mt-8 text-center text-2xl font-extrabold text-white">Radio Magma Mali</p>
+            <p className="mt-1 text-center text-base font-semibold" style={{ color: T.colors.primary }}>
+              En direct de Bamako
+            </p>
           </div>
+
+          <div className="mt-10 flex items-center justify-center gap-10">
+            <button
+              type="button"
+              className="p-2 opacity-80 transition hover:opacity-100"
+              aria-label="Reculer"
+              onClick={() => skipLive(-15)}
+            >
+              <SkipBack size={32} className="text-white" />
+            </button>
+            <button
+              type="button"
+              className="flex h-20 w-20 items-center justify-center rounded-full shadow-lg transition active:scale-95"
+              style={{
+                backgroundColor: T.colors.primary,
+                boxShadow: `0 10px 40px ${T.colors.primary}66`,
+              }}
+              aria-label={livePlaying ? 'Pause' : 'Lecture'}
+              onClick={toggleLive}
+            >
+              {livePlaying ? (
+                <Pause size={40} className="text-white" fill="currentColor" />
+              ) : (
+                <Play size={40} className="ml-1 text-white" fill="currentColor" />
+              )}
+            </button>
+            <button
+              type="button"
+              className="p-2 opacity-80 transition hover:opacity-100"
+              aria-label="Avancer"
+              onClick={() => skipLive(15)}
+            >
+              <SkipForward size={32} className="text-white" />
+            </button>
+          </div>
+
+          <section className="mt-10 w-full max-w-lg">
+            <h2 className="mb-5 text-lg font-bold text-white">Émissions récentes</h2>
+            <ul className="space-y-3">
+              {RECENT_EPISODES.map((ep) => (
+                <li
+                  key={ep.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-4 backdrop-blur-md"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <Music size={24} className="shrink-0" style={{ color: T.colors.primary }} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{ep.title}</p>
+                      <p className="mt-0.5 text-xs text-[#9ba5be]">{ep.meta}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="shrink-0 rounded-full p-2 opacity-90 hover:opacity-100"
+                    aria-label={`Écouter ${ep.title}`}
+                    onClick={toggleLive}
+                  >
+                    <Play size={20} className="text-white" fill="currentColor" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="mt-10 w-full max-w-lg pb-4">
+            <h2 className="mb-4 text-lg font-bold text-white">Nos albums</h2>
+            {loading ? (
+              <p className="text-sm text-[#9ba5be]">Chargement…</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {albums.slice(0, 4).map((album) => (
+                  <button
+                    type="button"
+                    key={album.id}
+                    className="cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#161b26] text-left shadow-lg transition active:scale-[0.98]"
+                    onClick={() => navigate(`/mobile/album/${album.id}`)}
+                  >
+                    <img src={album.cover} alt="" className="h-36 w-full object-cover" />
+                    <div className="p-3">
+                      <div className="mb-1 text-base font-bold text-white">{album.title}</div>
+                      {album.category && (
+                        <div className="mb-1 inline-block rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-[#9ba5be]">
+                          {album.category}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-[#9ba5be]">
+                        {album.songs?.length || 0} pistes
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </div>
-      {/* Section Most Popular (remplace Hot Music) */}
-      <section className="px-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-bold text-xl text-[#1a2746]">Populaires...</span>
-        </div>
-        {loading ? (
-          <div>Chargement…</div>
-        ) : (
-        <div className="grid grid-cols-2 gap-4">
-          {albums.slice(0, 4).map(album => (
-            <div key={album.id} className="bg-white rounded-2xl shadow overflow-hidden cursor-pointer" onClick={() => navigate(`/mobile/album/${album.id}`)}>
-              <img src={album.cover} alt={album.title} className="w-full h-36 object-cover" />
-              <div className="p-3">
-                <div className="font-bold text-base text-[#1a2746] mb-1">{album.title}</div>
-                {album.category && (
-                  <div className="inline-block text-xs text-gray-500 font-semibold mb-1 bg-gray-100 px-2 py-0.5 rounded-full">{album.category}</div>
-                )}
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13" stroke="#ff184e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="6" cy="18" r="3" stroke="#ff184e" strokeWidth="2"/></svg>
-                  {album.songs?.length || 0} Pistes Audio
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        )}
-      </section>
+
+      <audio
+        ref={liveRef}
+        src={RADIO_STREAM_URL}
+        playsInline
+        className="hidden"
+        onPlay={() => setLivePlaying(true)}
+        onPause={() => setLivePlaying(false)}
+        onEnded={() => setLivePlaying(false)}
+      />
+
+      <MobileBottomNav user={user} />
     </div>
   );
 }

@@ -306,7 +306,7 @@ html.light-mode select {
 
 html.light-mode input::placeholder,
 html.light-mode textarea::placeholder {
-  color: #9ba0b5 !important;
+  color: #6b7290 !important;
 }
 
 html.light-mode .blur-\[120px\] { opacity: 0.2 !important; }

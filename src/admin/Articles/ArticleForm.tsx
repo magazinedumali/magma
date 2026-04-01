@@ -7,6 +7,7 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useNavigate } from 'react-router-dom';
 import { useCategories } from '@/components/admin-dashboard/useCategories';
 import { useAdminContext } from '@/hooks/use-admin-context';
+import { useTheme } from '@/contexts/ThemeContext';
 import { LoadingBar } from '@/components/ui/loading-bar';
 
 interface ArticleFormProps {
@@ -33,6 +34,7 @@ function slugify(text: string) {
 }
 
 const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId, onSuccess, onCancel }) => {
+  const { isDark } = useTheme();
   console.log('ArticleForm initialized with:', { initialValues, articleId });
   const { register, handleSubmit, control, setValue, watch, reset } = useForm({
     defaultValues: {
@@ -306,7 +308,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       <form className="flex-1 max-w-5xl mx-auto w-full my-8 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
         <input
           {...register('titre', { required: true })}
-          className="w-full mb-6 px-4 py-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-[var(--text-primary)] font-sans text-xl font-bold focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-glow)] transition-colors placeholder-[var(--text-muted)]"
+          className={`w-full mb-6 px-4 py-3 border rounded-xl font-sans text-xl font-bold focus:outline-none focus:ring-1 transition-colors ${
+            isDark 
+              ? 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent)] focus:ring-[var(--accent-glow)] placeholder-[var(--text-muted)]' 
+              : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] focus:ring-[#ff184e]/30 placeholder-gray-400 shadow-sm'
+          }`}
           placeholder="Titre de l'article"
           disabled={uploading || loadingArticle}
         />
@@ -368,7 +374,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           <button type="submit" className="bg-[var(--accent)] text-white px-8 py-3 rounded-xl hover:brightness-110 font-semibold transition-all shadow-[0_4px_16px_var(--accent-glow)] hover:-translate-y-0.5" disabled={uploading || loadingArticle}>
             {uploading ? 'Enregistrement...' : (articleId ? 'Enregistrer' : 'Créer')}
           </button>
-          <button type="button" className="bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] px-8 py-3 rounded-xl hover:bg-white/10 font-semibold transition-all" onClick={() => navigate(getArticlesPath())} disabled={uploading || loadingArticle}>
+          <button type="button" className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+            isDark 
+              ? 'bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-white/10' 
+              : 'bg-white border border-gray-300 text-slate-700 hover:bg-gray-50 shadow-sm'
+          }`} onClick={() => navigate(getArticlesPath())} disabled={uploading || loadingArticle}>
             Annuler
           </button>
         </div>
@@ -376,21 +386,27 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       {/* Sidebar options à droite */}
       <aside className="w-80 flex-shrink-0 sticky top-8 ml-8 space-y-6 hidden lg:block">
         {/* Bloc sauvegarde/statut */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('publication')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('publication')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>Publication</span>
             <span className={`transition-transform ${openBlock.publication ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.publication ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.publication ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
             <Controller
               control={control}
               name="statut"
               render={({ field }) => (
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">Statut de l'article</label>
-                  <select {...field} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors">
-                    <option value="brouillon" className="bg-[var(--bg-main)]">Brouillon</option>
-                    <option value="publie" className="bg-[var(--bg-main)]">Publié</option>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-[var(--text-secondary)]' : 'text-slate-700'}`}>Statut de l'article</label>
+                  <select {...field} className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+                    isDark 
+                      ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)]' 
+                      : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e]'
+                  }`}>
+                    <option value="brouillon" className={isDark ? "bg-[var(--bg-main)]" : "bg-white"}>Brouillon</option>
+                    <option value="publie" className={isDark ? "bg-[var(--bg-main)]" : "bg-white"}>Publié</option>
                   </select>
                   {field.value === 'publie' && (
                     <p className="text-xs text-[var(--text-muted)] mt-2 italic">
@@ -401,7 +417,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
               )}
             />
             <div className="mt-5">
-              <label className="block text-sm font-medium mb-2 text-[var(--text-secondary)]">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-[var(--text-secondary)]' : 'text-slate-700'}`}>
                 Date de publication
                 {watch('statut') === 'publie' && (
                   <span className="text-[var(--accent)] ml-1">*</span>
@@ -413,7 +429,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 render={({ field }) => (
                   <input 
                     type="date" 
-                    className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors" 
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+                      isDark 
+                        ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)]' 
+                        : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e]'
+                    }`}
                     {...field}
                     value={field.value || ''}
                     placeholder={watch('statut') === 'publie' ? 'Date automatique si vide' : 'Optionnel pour les brouillons'}
@@ -429,15 +449,21 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           </div>
         </div>
         {/* Bloc image principale */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('image')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('image')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>Image principale</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.image ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.image ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.image ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
             {/* Hidden input to ensure image_url is registered with the form */}
             <input type="hidden" {...register('image_url')} />
-            <div {...getRootImageProps()} className={`border border-dashed border-[var(--border)] hover:border-[var(--accent)] transition-colors rounded-xl p-6 text-center cursor-pointer bg-black/20 hover:bg-black/40 ${isDragImageActive ? 'border-[var(--accent)] bg-black/40' : ''}`}>
+            <div {...getRootImageProps()} className={`border border-dashed transition-colors rounded-xl p-6 text-center cursor-pointer ${
+              isDark 
+                ? `border-[var(--border)] hover:border-[var(--accent)] bg-black/20 hover:bg-black/40 ${isDragImageActive ? 'border-[var(--accent)] bg-black/40' : ''}` 
+                : `border-gray-300 hover:border-[#ff184e] bg-gray-50 hover:bg-gray-100 text-slate-600 ${isDragImageActive ? 'border-[#ff184e] bg-gray-100' : ''}`
+            }`}>
               <input {...getInputImageProps()} />
               {(() => {
                 const imageUrl = watch('image_url');
@@ -468,13 +494,19 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           </div>
         </div>
         {/* Bloc galerie d'images */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('gallery')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('gallery')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>Galerie d'images</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.gallery ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.gallery ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
-            <div {...getRootGalleryProps()} className={`border border-dashed border-[var(--border)] hover:border-[var(--accent)] transition-colors rounded-xl p-6 text-center cursor-pointer bg-black/20 hover:bg-black/40 ${isDragGalleryActive ? 'border-[var(--accent)] bg-black/40' : ''}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.gallery ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
+            <div {...getRootGalleryProps()} className={`border border-dashed transition-colors rounded-xl p-6 text-center cursor-pointer ${
+              isDark 
+                ? `border-[var(--border)] hover:border-[var(--accent)] bg-black/20 hover:bg-black/40 ${isDragGalleryActive ? 'border-[var(--accent)] bg-black/40' : ''}` 
+                : `border-gray-300 hover:border-[#ff184e] bg-gray-50 hover:bg-gray-100 text-slate-600 ${isDragGalleryActive ? 'border-[#ff184e] bg-gray-100' : ''}`
+            }`}>
               <input {...getInputGalleryProps()} />
               {gallery.length > 0 ? (
                 <div className="flex flex-wrap gap-3 justify-center">
@@ -492,13 +524,19 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           </div>
         </div>
         {/* Bloc audio */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('audio')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('audio')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>Fichier audio</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.audio ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.audio ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>
-      <div {...getRootAudioProps()} className={`border border-dashed border-[var(--border)] hover:border-[var(--accent)] transition-colors rounded-xl p-6 text-center cursor-pointer bg-black/20 hover:bg-black/40 ${isDragAudioActive ? 'border-[var(--accent)] bg-black/40' : ''}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.audio ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
+      <div {...getRootAudioProps()} className={`border border-dashed transition-colors rounded-xl p-6 text-center cursor-pointer ${
+        isDark 
+          ? `border-[var(--border)] hover:border-[var(--accent)] bg-black/20 hover:bg-black/40 ${isDragAudioActive ? 'border-[var(--accent)] bg-black/40' : ''}` 
+          : `border-gray-300 hover:border-[#ff184e] bg-gray-50 hover:bg-gray-100 text-slate-600 ${isDragAudioActive ? 'border-[#ff184e] bg-gray-100' : ''}`
+      }`}>
         <input {...getInputAudioProps()} />
         {watch('audio_url') ? (
           <div className="relative inline-block w-full">
@@ -526,63 +564,85 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           </div>
         </div>
         {/* Bloc SEO */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('seo')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('seo')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>SEO</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.seo ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.seo ? 'max-h-96 p-5 border-t border-[var(--border)] flex flex-col gap-4' : 'max-h-0 p-0'}`}> 
-            <input {...register('meta_title')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]" placeholder="Meta Title (SEO)" maxLength={60} />
-            <textarea {...register('meta_description')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)] min-h-[80px] resize-y" placeholder="Meta Description (SEO)" maxLength={160} />
-            <input {...register('share_image_url')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]" placeholder="Image de partage (URL)" />
-            <textarea {...register('share_description')} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)] min-h-[80px] resize-y" placeholder="Description de partage (pour réseaux sociaux)" maxLength={200} />
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.seo ? 'max-h-96 p-5 flex flex-col gap-4' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}> 
+            <input {...register('meta_title')} className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+              isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)] placeholder-[var(--text-muted)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] placeholder-gray-400'
+            }`} placeholder="Meta Title (SEO)" maxLength={60} />
+            <textarea {...register('meta_description')} className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors min-h-[80px] resize-y ${
+              isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)] placeholder-[var(--text-muted)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] placeholder-gray-400'
+            }`} placeholder="Meta Description (SEO)" maxLength={160} />
+            <input {...register('share_image_url')} className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+              isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)] placeholder-[var(--text-muted)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] placeholder-gray-400'
+            }`} placeholder="Image de partage (URL)" />
+            <textarea {...register('share_description')} className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors min-h-[80px] resize-y ${
+              isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)] placeholder-[var(--text-muted)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] placeholder-gray-400'
+            }`} placeholder="Description de partage (pour réseaux sociaux)" maxLength={200} />
           </div>
         </div>
         {/* Bloc catégorie et auteur */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('meta')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('meta')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>Catégorie & Auteur</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.meta ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.meta ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>  
-            <label className="block text-[var(--text-secondary)] font-medium mb-2 text-sm">Catégorie</label>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.meta ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>  
+            <label className={`block font-medium mb-2 text-sm ${isDark ? 'text-[var(--text-secondary)]' : 'text-slate-700'}`}>Catégorie</label>
             {loadingCategories ? (
-              <div className="text-[var(--text-muted)]">Chargement…</div>
+              <div className={isDark ? "text-[var(--text-muted)]" : "text-slate-500"}>Chargement…</div>
             ) : (
-              <select {...register('categorie')} className="w-full mb-4 px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none">
-                <option value="" className="bg-[var(--bg-main)]">Sélectionner une catégorie</option>
+              <select {...register('categorie')} className={`w-full mb-4 px-3 py-2 border rounded-lg focus:outline-none transition-colors appearance-none ${
+                isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e]'
+              }`}>
+                <option value="" className={isDark ? "bg-[var(--bg-main)]" : "bg-white"}>Sélectionner une catégorie</option>
                 {categories.map((cat: any) => (
-                  <option key={cat.id} value={cat.name} className="bg-[var(--bg-main)]">{cat.name}</option>
+                  <option key={cat.id} value={cat.name} className={isDark ? "bg-[var(--bg-main)]" : "bg-white"}>{cat.name}</option>
                 ))}
               </select>
             )}
-            <label className="block text-[var(--text-secondary)] font-medium mb-2 text-sm mt-4">Auteur</label>
-            <input {...register('auteur', { required: true })} className="w-full px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]" placeholder="Nom de l'auteur" />
+            <label className={`block font-medium mb-2 text-sm mt-4 ${isDark ? 'text-[var(--text-secondary)]' : 'text-slate-700'}`}>Auteur</label>
+            <input {...register('auteur', { required: true })} className={`w-full px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+              isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)] placeholder-[var(--text-muted)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] placeholder-gray-400'
+            }`} placeholder="Nom de l'auteur" />
           </div>
         </div>
         {/* Bloc tags */}
-        <div className="dark-card !p-0 overflow-hidden shadow-lg border border-[var(--border)]">
-          <button type="button" onClick={() => toggleBlock('tags')} className="w-full flex items-center justify-between px-5 py-4 font-semibold text-[var(--text-primary)] bg-black/20 hover:bg-black/30 transition-colors focus:outline-none">
+        <div className={`!p-0 overflow-hidden shadow-lg border rounded-[var(--radius-lg)] ${isDark ? 'dark-card border-[var(--border)]' : 'bg-white border-gray-200'}`}>
+          <button type="button" onClick={() => toggleBlock('tags')} className={`w-full flex items-center justify-between px-5 py-4 font-semibold focus:outline-none transition-colors ${
+            isDark ? 'text-[var(--text-primary)] bg-black/20 hover:bg-black/30' : 'text-slate-800 bg-gray-50 hover:bg-gray-100 border-b border-gray-200'
+          }`}>
             <span>Tags</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.tags ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 bg-[var(--bg-card)] ${openBlock.tags ? 'max-h-96 p-5 border-t border-[var(--border)]' : 'max-h-0 p-0'}`}>  
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.tags ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>  
         <div className="flex gap-2 mb-4">
           <input
             type="text"
             value={tagInput}
             onChange={e => setTagInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' ? (e.preventDefault(), addTag()) : undefined}
-            className="w-full flex-1 px-3 py-2 bg-black/30 border border-[var(--border)] rounded-lg text-white focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-muted)]"
+            className={`w-full flex-1 px-3 py-2 border rounded-lg focus:outline-none transition-colors ${
+              isDark ? 'bg-black/30 border-[var(--border)] text-white focus:border-[var(--accent)] placeholder-[var(--text-muted)]' : 'bg-white border-gray-300 text-slate-800 focus:border-[#ff184e] placeholder-gray-400'
+            }`}
             placeholder="Nouveau tag"
           />
           <button type="button" onClick={addTag} className="bg-[var(--accent)] text-white px-4 py-2 rounded-lg font-medium hover:brightness-110 shadow-[0_2px_8px_var(--accent-glow)] transition-all">Ajouter</button>
         </div>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag: string, idx: number) => (
-            <span key={idx} className="bg-white/10 border border-white/5 px-2.5 py-1 rounded-md text-xs font-medium text-[var(--text-primary)] flex items-center gap-1.5 shadow-sm">
+            <span key={idx} className={`border px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 shadow-sm ${
+              isDark ? 'bg-white/10 border-white/5 text-[var(--text-primary)]' : 'bg-slate-100 border-slate-200 text-slate-700'
+            }`}>
               #{tag}
-              <button type="button" onClick={() => removeTag(tag)} className="text-[var(--accent)] hover:text-white transition-colors ml-0.5">&times;</button>
+              <button type="button" onClick={() => removeTag(tag)} className="text-[var(--accent)] hover:opacity-80 transition-opacity ml-0.5">&times;</button>
             </span>
           ))}
         </div>

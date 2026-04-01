@@ -29,6 +29,7 @@ const MobileProfile = lazy(() => import('./mobile/profile'));
 const MobileLogin = lazy(() => import('./mobile/Login'));
 const MobileRegister = lazy(() => import('./mobile/Register'));
 const MobileSettings = lazy(() => import('./mobile/settings'));
+const MobileBookmarks = lazy(() => import('./mobile/MobileBookmarks'));
 const MobileArticleDetail = lazy(() => import('./mobile/ArticleDetail'));
 const ArticleCommentsMobile = lazy(() => import('./mobile/ArticleComments'));
 const AudioStreamingPage = lazy(() => import('./mobile/AudioStreaming').then(m => ({ default: m.default })));
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/mobile/login" element={<Suspense fallback={<LoadingBar variant="full" />}><MobileLogin /></Suspense>} />
             <Route path="/mobile/register" element={<Suspense fallback={<LoadingBar variant="full" />}><MobileRegister /></Suspense>} />
             <Route path="/mobile/settings" element={<Suspense fallback={<LoadingBar variant="full" />}><MobileSettings /></Suspense>} />
+            <Route path="/mobile/bookmarks" element={<Suspense fallback={<LoadingBar variant="full" />}><MobileBookmarks /></Suspense>} />
             <Route path="/mobile/audio-streaming" element={<Suspense fallback={<LoadingBar variant="full" />}><AudioStreamingPage /></Suspense>} />
             <Route path="/mobile/album/:id" element={<Suspense fallback={<LoadingBar variant="full" />}><AlbumDetailMobile /></Suspense>} />
             <Route path="/mobile/article/:slug" element={<Suspense fallback={<LoadingBar variant="full" />}><MobileArticleDetail /></Suspense>} />

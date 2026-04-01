@@ -22,16 +22,25 @@ interface SlideProps {
   authorAvatar?: string;
 }
 
-const HeroSlider = () => {
+interface HeroSliderProps {
+  /** Base path for article links, e.g. `/article` (web) or `/mobile/article` (app mobile). */
+  articleBasePath?: string;
+  /** Shorter slide height for narrow viewports (e.g. `/mobile` home). */
+  compact?: boolean;
+}
+
+const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSliderProps) => {
   const [api, setApi] = useState<any>(null);
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
   const [slides, setSlides] = useState<SlideProps[]>([]);
   const [isHovered, setIsHovered] = useState(false);
+  const [slidesLoading, setSlidesLoading] = useState(true);
 
   useEffect(() => {
     // Charger dynamiquement les 3 derniers articles publiés
     const fetchSlides = async () => {
+      setSlidesLoading(true);
       const { data, error } = await supabase
         .from('articles')
         .select('id, slug, titre, image_url, categorie, auteur, date_publication, statut')
@@ -49,7 +58,11 @@ const HeroSlider = () => {
           date: a.date_publication ? new Date(a.date_publication).toLocaleDateString() : '',
           authorAvatar: a.authorAvatar,
         })));
+      } else if (error) {
+        console.error('[HeroSlider]', error);
+        setSlides([]);
       }
+      setSlidesLoading(false);
     };
     fetchSlides();
   }, []);
@@ -96,14 +109,23 @@ const HeroSlider = () => {
         <CarouselContent className="h-full ml-0">
           {slides.map((slide) => (
             <CarouselItem key={slide.id} className="h-full pl-0">
-              <div className="relative h-[450px] md:h-[550px] w-full overflow-hidden">
+              <div
+                className={
+                  compact
+                    ? 'relative h-[280px] w-full overflow-hidden sm:h-[340px]'
+                    : 'relative h-[450px] w-full overflow-hidden md:h-[550px]'
+                }
+              >
                 <motion.img
                   initial={{ scale: 1.1 }}
                   animate={{ scale: current === slides.indexOf(slide) + 1 ? 1 : 1.1 }}
                   transition={{ duration: 6, ease: "easeOut" }}
-                  src={slide.image}
+                  src={slide.image || '/placeholder.svg'}
                   alt={slide.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
                 />
                 
                 {/* Gradient: lighter at top, heavier only at bottom */}
@@ -130,7 +152,10 @@ const HeroSlider = () => {
                     className="text-xl md:text-3xl lg:text-4xl font-bold text-white mb-4 max-w-3xl leading-snug"
                     style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.02em' }}
                   >
-                    <Link to={`/article/${slide.slug}`} className="hover:text-[#ff184e] transition-colors line-clamp-3">
+                    <Link
+                      to={`${articleBasePath}/${slide.slug || slide.id}`}
+                      className="hover:text-[#ff184e] transition-colors line-clamp-3"
+                    >
                       {slide.title}
                     </Link>
                   </motion.h2>

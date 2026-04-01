@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { getUserAvatar } from "../../lib/userHelper";
+import { useTheme } from "../../contexts/ThemeContext";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import "./dashboard.css";
 
 const AdminDashboardHeader = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -32,8 +35,24 @@ const AdminDashboardHeader = () => {
         </span>
       </div>
 
-      {/* Right: avatar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* Right: theme toggle & avatar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button 
+          onClick={toggleTheme}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 36, height: 36, borderRadius: '50%',
+            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            color: 'var(--text-primary)', cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }}
+          className="hover:bg-white/10 dark:hover:bg-black/20"
+          title={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
+        >
+          {isDark ? <SunIcon className="w-5 h-5 text-amber-400" /> : <MoonIcon className="w-5 h-5 text-slate-700" />}
+        </button>
+
         <div style={{
           padding: '6px 14px',
           background: 'rgba(255,24,78,0.1)',

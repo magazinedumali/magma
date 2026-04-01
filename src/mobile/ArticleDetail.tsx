@@ -1,55 +1,24 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { useParams, Navigate, Link, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import SmallArticleCard from '@/components/SmallArticleCard';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
-import { Clock, Share2, Bookmark, Send, MessageCircle, X, Facebook, Twitter, Linkedin, Copy } from 'lucide-react';
+import { Share2, Bookmark, Send, MessageCircle, X, Facebook, Copy, User, Clock } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
-import CommentForm from '@/components/CommentForm';
 import Banner from '@/components/Banner';
-import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import { supabase } from '@/lib/supabaseClient';
+import { fetchPublishedArticleBySlugParam } from '@/lib/fetchArticleBySlug';
 import { mapArticleFromSupabase } from '@/lib/articleMapper';
 import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
-
-function stripHtml(html: string): string {
-  if (!html) return '';
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
-}
-
-function parseContent(html: string) {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  const elements: { type: 'text' | 'image', content: string }[] = [];
-  tmp.childNodes.forEach(node => {
-    if (node.nodeType === 1 && (node as HTMLElement).tagName === 'IMG') {
-      elements.push({ type: 'image', content: (node as HTMLImageElement).src });
-    } else if (node.nodeType === 1 && (node as HTMLElement).tagName === 'P') {
-      const text = (node as HTMLElement).innerText.trim();
-      if (text) elements.push({ type: 'text', content: text });
-    } else if (node.nodeType === 3) {
-      const text = node.textContent?.trim();
-      if (text) elements.push({ type: 'text', content: text });
-    }
-  });
-  return elements;
-}
 
 const MobileArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const [user, setUser] = useState<any>(null);
   
   // Central state for comments (most recent first)
   const [comments, setComments] = useState<any[]>([]);
-  const [commentsLoading, setCommentsLoading] = useState(true);
 
   // Fetch current user
   useEffect(() => {
@@ -61,7 +30,6 @@ const MobileArticleDetail = () => {
   // Fetch comments from Supabase
   const fetchComments = async () => {
     if (!article?.slug) return;
-    setCommentsLoading(true);
     const { data } = await supabase
       .from('comments')
       .select('*')
@@ -83,7 +51,6 @@ const MobileArticleDetail = () => {
       });
       setComments(mappedComments);
     }
-    setCommentsLoading(false);
   };
 
   // Add comment handler
@@ -113,15 +80,9 @@ const MobileArticleDetail = () => {
     fetchComments();
   };
 
-  const [startIdx, setStartIdx] = useState(0);
-  const visibleCount = 4;
-  const commentHeight = 104; // px, augmenté pour que tout soit bien contenu
-  
   const [inputValue, setInputValue] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showAllComments, setShowAllComments] = useState(false);
 
-  // Fetch comments when article is loaded
   useEffect(() => {
     if (article?.slug) {
       fetchComments();
@@ -129,160 +90,73 @@ const MobileArticleDetail = () => {
   }, [article?.slug]);
 
   useEffect(() => {
-    if (comments.length <= visibleCount) return;
-    const interval = setInterval(() => {
-      setStartIdx((prev) => (prev + 1) % comments.length);
-    }, 3000); // Slide every 3 seconds
-    return () => clearInterval(interval);
-  }, [comments.length]);
-
-  // Compute the visible comments (wrap around if needed)
-  const visibleComments = [];
-  for (let i = 0; i < Math.min(visibleCount, comments.length); i++) {
-    visibleComments.push(comments[(startIdx + i) % comments.length]);
-  }
-
-  // Limite le nombre de commentaires affichés
-  const commentsToShow = showAllComments ? comments : comments.slice(0, 3);
-  
-  useEffect(() => {
-    console.log('Detail page slug:', slug);
-    const fetchArticle = async () => {
+    const load = async () => {
+      if (!slug) {
+        setLoading(false);
+        setArticle(null);
+        return;
+      }
       setLoading(true);
       try {
-        // First try to fetch by slug (exact match)
-        let { data, error } = await supabase
-          .from('articles')
-          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url, tags')
-          .eq('slug', slug)
-          .maybeSingle(); // Use maybeSingle instead of single to avoid error when no results
-        
-        console.log('Fetched article by slug:', data, 'Error:', error, 'Slug:', slug);
-        
-        // If exact slug match fails, try case-insensitive search
-        if (!data && slug) {
-          console.log('Trying case-insensitive slug search...');
-          const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
-            .from('articles')
-            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url, tags')
-            .ilike('slug', slug)
-            .maybeSingle();
-          
-          console.log('Case-insensitive slug search result:', { data: caseInsensitiveData, error: caseInsensitiveError });
-          
-          if (caseInsensitiveData) {
-            data = caseInsensitiveData;
-            error = null;
-          }
-        }
-        
-        // If slug fails and slug looks like an ID, try fetching by ID
-        if (!data && slug && slug.length === 36) { // UUID length
-          console.log('Trying to fetch by ID as fallback...');
-          const { data: idData, error: idError } = await supabase
-            .from('articles')
-            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url, tags')
-            .eq('id', slug)
-            .maybeSingle();
-          
-          console.log('Fetched article by ID:', idData, 'Error:', idError);
-          
-          if (idData) {
-            data = idData;
-            error = null;
-          }
-        }
-        
-        // If still no match, try to find similar slugs for debugging
-        if (!data && slug) {
-          console.log('Searching for similar slugs...');
-          const { data: similarSlugs, error: similarError } = await supabase
-            .from('articles')
-            .select('id, titre, slug, statut')
-            .ilike('slug', `%${slug}%`)
-            .limit(5);
-          
-          console.log('Similar slugs found:', similarSlugs);
-          
-          // Also try searching by title if slug contains meaningful words
-          if (similarSlugs && similarSlugs.length === 0) {
-            const words = slug.split('-').filter(w => w.length > 2);
-            if (words.length > 0) {
-              console.log('Searching by title keywords:', words);
-              const { data: titleMatches, error: titleError } = await supabase
-                .from('articles')
-                .select('id, titre, slug, statut')
-                .or(words.map(w => `titre.ilike.%${w}%`).join(','))
-                .limit(5);
-              
-              console.log('Title matches found:', titleMatches);
-            }
-          }
-        }
-        
+        const { data, error } = await fetchPublishedArticleBySlugParam(supabase, slug);
         if (error) {
-          console.error('Error fetching article:', error);
-          setArticle(null);
-        } else if (data) {
-          console.log('Article content fields:', {
-            contenu: data?.contenu,
-            content: data?.content,
-            contenuLength: data?.contenu?.length,
-            contentLength: data?.content?.length
-          });
-          const mappedArticle = mapArticleFromSupabase(data);
-          console.log('Mapped article:', {
-            image: mappedArticle.image,
-            content: mappedArticle.content,
-            contentLength: mappedArticle.content?.length
-          });
-          setArticle(mappedArticle);
+          console.error('[mobile/ArticleDetail]', error);
+        }
+        if (data) {
+          setArticle(mapArticleFromSupabase(data));
         } else {
-          console.log('No article found with slug:', slug);
           setArticle(null);
         }
       } catch (err) {
-        console.error('Unexpected error:', err);
+        console.error('[mobile/ArticleDetail]', err);
         setArticle(null);
       } finally {
         setLoading(false);
       }
     };
-    if (slug) fetchArticle();
+    load();
   }, [slug]);
 
-  if (loading) return <div className="py-12 text-center text-gray-400">Chargement...</div>;
-  if (!article) return (
-    <div className="py-12 text-center px-4">
-      <div className="text-red-500 text-xl mb-4">Article introuvable</div>
-      <div className="text-gray-600 mb-4">L'article avec le slug "{slug}" n'a pas été trouvé.</div>
-      <div className="text-sm text-gray-500 mb-4">
-        Vérifiez que l'URL est correcte ou que l'article existe dans la base de données.
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0d14] text-[#9ba5be]">
+        Chargement…
       </div>
-      <div>
-        <Link to="/mobile" className="text-blue-600 hover:underline">
-          Retour à l'accueil
+    );
+  }
+  if (!article) {
+    return (
+      <div className="min-h-screen bg-[#0a0d14] px-4 py-12 text-center text-white">
+        <div className="mb-4 text-xl text-[#ef4444]">Article introuvable</div>
+        <div className="mb-4 text-[#9ba5be]">L&apos;article avec le slug « {slug} » n&apos;a pas été trouvé.</div>
+        <Link to="/mobile" className="font-semibold text-[#ff184e] hover:underline">
+          Retour à l&apos;accueil
         </Link>
       </div>
-    </div>
-  );
+    );
+  }
   
-  // Synchronise le contenu web et mobile
-  const contentElements = [
-    { type: 'text', content: article.excerpt },
-    ...parseContent(article.content)
-  ];
-  
-  // Before rendering tags, add:
   const safeTags = Array.isArray(article.tags)
     ? article.tags
     : typeof article.tags === 'string' && article.tags.length > 0
       ? article.tags.split(',').map(t => t.trim())
       : [];
-  
+
+  const readMinutes = article.content
+    ? Math.max(
+        1,
+        Math.round(
+          String(article.content)
+            .replace(/<[^>]*>/g, ' ')
+            .split(/\s+/)
+            .filter(Boolean).length / 200,
+        ),
+      )
+    : 5;
+
   const canonicalUrl = `https://www.lemagazinedumali.com/article/${article.slug}`;
   return (
-    <div className="min-h-screen bg-[#f9fafd] flex flex-col transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-[#0a0d14] transition-colors duration-300">
       <Helmet>
         <title>{article.title || article.titre}</title>
         <meta property="og:type" content="article" />
@@ -296,69 +170,101 @@ const MobileArticleDetail = () => {
         <meta name="twitter:image" content={article.share_image_url || article.image_url || article.image} />
         <meta name="twitter:url" content={canonicalUrl} />
       </Helmet>
-      {/* Header sur image */}
-      <div className="relative w-full h-80 overflow-hidden">
-        <img src={article.image || article.image_url} alt={article.title || article.titre} className="w-full h-80 object-cover" onError={e => { e.currentTarget.src = '/placeholder.svg'; }} loading="lazy" />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-8">
-          <button onClick={() => navigate(-1)} className="p-2">
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      {/* Hero — proche ArticleDetailScreen RN */}
+      <div className="relative min-h-[50vh] w-full overflow-hidden md:min-h-[55vh]">
+        <img
+          src={article.image || article.image_url}
+          alt={article.title || article.titre}
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
+          loading="lazy"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 35%, rgba(10,13,20,0.95) 100%)',
+          }}
+        />
+        <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"
+            aria-label="Retour"
+          >
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+              <path d="M15 19l-7-7 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
-          <div className="flex gap-4">
-            <button className="p-2">
-              <Bookmark size={26} className="text-white" />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"
+              aria-label="Favori"
+            >
+              <Bookmark size={22} className="text-white" />
             </button>
             <button
-              className="p-2"
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"
+              aria-label="Partager"
               onClick={() => setShowShareModal(true)}
             >
-              <Share2 size={26} className="text-white" />
+              <Share2 size={22} className="text-white" />
             </button>
           </div>
         </div>
-        {/* Meta infos sur image */}
-        <div className="absolute left-0 right-0 bottom-0 px-4 pb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="bg-[#ff184e] text-white text-xs font-semibold px-3 py-1 rounded-full">{article.category || article.categorie}</span>
-            {/* <span className="text-white text-xs">5 min reads</span> */}
-            <span className="text-white text-xs">{article.date_publication ? new Date(article.date_publication).toLocaleDateString() : ''}</span>
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-24">
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <span className="rounded bg-[#ff184e] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
+              {article.category || article.categorie}
+            </span>
+            <span className="text-xs text-white/80">
+              {article.date_publication ? new Date(article.date_publication).toLocaleDateString() : ''}
+            </span>
           </div>
-          <h1 className="text-2xl font-bold text-white leading-tight mb-4 drop-shadow-lg">
+          <h1 className="mb-4 text-2xl font-bold leading-tight text-white drop-shadow-md">
             {article.title || article.titre}
           </h1>
-          <div className="flex items-center gap-3 mt-6">
-            <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-full object-cover border-2 border-white" loading="lazy" />
-            <div>
-              <div className="font-bold text-white text-base">{article.author || article.auteur}</div>
-              <div className="text-gray-200 text-xs">auteur</div>
+          <div className="mt-2 flex flex-wrap items-center gap-5">
+            <div className="flex items-center gap-2">
+              <User size={16} className="shrink-0 text-[#9ba5be]" aria-hidden />
+              <span className="text-sm font-semibold text-white">{article.author || article.auteur}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[#9ba5be]">
+              <Clock size={16} className="shrink-0" aria-hidden />
+              <span className="text-sm">
+                {readMinutes} min de lecture
+              </span>
             </div>
           </div>
         </div>
       </div>
-      {/* Audio réel */}
-      <div className="px-4 pt-4">
+      <div className="border-t border-white/10 bg-[#0a0d14] px-4 pt-4">
         <AudioPlayer src={article.audio_url || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'} noCard />
       </div>
       <div className="px-4 mb-6 mt-4">
         <Banner position="sous-article" width={600} height={120} />
       </div>
-      {/* Contenu de l'article */}
-      <div className="px-4 py-8 bg-white">
+      <div className="bg-[#0a0d14] px-4 py-8 text-[#cbd5e1] [&_a]:text-[#ff184e] [&_blockquote]:border-white/20 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_li]:text-[#cbd5e1] [&_p]:text-[#cbd5e1] [&_strong]:text-white">
         {article.content ? (
-          <div dangerouslySetInnerHTML={{ __html: article.content }} />
+          <div className="article-mobile-content" dangerouslySetInnerHTML={{ __html: article.content }} />
         ) : (
-          <div className="text-gray-500 italic text-center py-8">
-            <p>Le contenu de cet article n'est pas disponible.</p>
-            <p className="text-sm mt-2">Veuillez contacter l'administrateur si ce problème persiste.</p>
+          <div className="py-8 text-center italic text-[#9ba5be]">
+            <p>Le contenu de cet article n&apos;est pas disponible.</p>
+            <p className="mt-2 text-sm">Veuillez contacter l&apos;administrateur si ce problème persiste.</p>
           </div>
         )}
       </div>
       {safeTags.length > 0 && (
-        <div className="flex flex-wrap gap-3 mt-2 mb-4 px-4">
+        <div className="mb-4 mt-2 flex flex-wrap gap-3 px-4">
           {safeTags.map((tag: string, idx: number) => (
             <span
               key={idx}
-              className="bg-[#f1f3fa] text-[#232b46] rounded-full px-5 py-2 text-base font-medium"
+              className="rounded-full border border-white/10 bg-[#161b26] px-4 py-2 text-sm font-medium text-[#9ba5be]"
             >
               #{tag}
             </span>
@@ -366,10 +272,10 @@ const MobileArticleDetail = () => {
         </div>
       )}
       {/* Formulaire de commentaire moderne type app mobile */}
-      <div className="px-4 mb-8">
+      <div className="mb-8 px-4">
         <form
-          className="flex items-center bg-white rounded-2xl shadow px-3 py-2"
-          onSubmit={e => {
+          className="flex items-center rounded-2xl border border-white/10 bg-[#161b26] px-3 py-2.5"
+          onSubmit={(e) => {
             e.preventDefault();
             if (inputValue.trim()) {
               handleAddComment(inputValue.trim());
@@ -382,33 +288,43 @@ const MobileArticleDetail = () => {
               <img
                 src={getUserAvatar(user)}
                 alt={getUserDisplayName(user)}
-                className="w-9 h-9 rounded-full object-cover border-2 border-gray-200 mr-3"
+                className="mr-3 h-9 w-9 rounded-full border-2 border-white/10 object-cover"
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
               <input
                 type="text"
-                className="flex-1 border-none outline-none bg-transparent text-base"
+                className="flex-1 border-none bg-transparent text-base text-white outline-none placeholder:text-[#9ba5be]"
                 placeholder="Partagez votre avis…"
                 value={inputValue}
-                onChange={e => setInputValue(e.target.value)}
+                onChange={(e) => setInputValue(e.target.value)}
                 autoComplete="off"
               />
               <button
                 type="submit"
-                className="ml-2 bg-[#ff184e] hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow transition"
+                className="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#ff184e] text-white shadow transition hover:bg-red-600"
                 aria-label="Envoyer"
               >
                 <Send size={22} />
               </button>
             </>
           ) : (
-              <div className="flex-1 flex flex-col items-center gap-2 px-3">
-              <div className="text-gray-500 text-sm">Connectez-vous pour rejoindre la discussion</div>
-              <div className="flex gap-2 w-full">
-                <a href="/mobile/login" className="flex-1 px-3 py-2 rounded-full bg-[#4f8cff] text-white font-bold text-center text-sm shadow hover:bg-[#2563eb] transition">Se connecter</a>
-                <a href="/mobile/register" className="flex-1 px-3 py-2 rounded-full bg-[#ff184e] text-white font-bold text-center text-sm shadow hover:bg-red-600 transition">Créer un compte</a>
+            <div className="flex w-full flex-col items-center gap-3 px-2 py-1">
+              <div className="text-center text-sm text-[#9ba5be]">Connectez-vous pour rejoindre la discussion</div>
+              <div className="flex w-full gap-2">
+                <a
+                  href="/mobile/login"
+                  className="flex-1 rounded-full bg-[#161b26] px-3 py-2.5 text-center text-sm font-bold text-white ring-1 ring-white/15 transition hover:bg-white/10"
+                >
+                  Se connecter
+                </a>
+                <a
+                  href="/mobile/register"
+                  className="flex-1 rounded-full bg-[#ff184e] px-3 py-2.5 text-center text-sm font-bold text-white shadow transition hover:bg-red-600"
+                >
+                  Créer un compte
+                </a>
               </div>
             </div>
           )}
@@ -416,15 +332,18 @@ const MobileArticleDetail = () => {
       </div>
       {/* Modal de partage personnalisé */}
       {showShareModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowShareModal(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowShareModal(false)}
+        >
           <div
-            className="w-full max-w-md bg-white rounded-t-3xl p-6 pb-4 shadow-lg"
+            className="w-full max-w-md rounded-t-3xl border-t border-white/10 bg-[#161b26] p-6 pb-6 text-white shadow-2xl"
             style={{ borderTopLeftRadius: 32, borderTopRightRadius: 32 }}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <span className="font-bold text-lg">Partager l'article</span>
-              <button onClick={() => setShowShareModal(false)}>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-lg font-bold">Partager l&apos;article</span>
+              <button type="button" className="text-[#9ba5be]" onClick={() => setShowShareModal(false)} aria-label="Fermer">
                 <X size={28} />
               </button>
             </div>
@@ -513,15 +432,16 @@ const MobileArticleDetail = () => {
                 }}
                 className="flex flex-col items-center"
               >
-                <Copy size={40} className="text-gray-500 mb-1" />
-                <span className="text-xs">Copier</span>
+                <Copy size={40} className="mb-1 text-[#9ba5be]" />
+                <span className="text-xs text-[#9ba5be]">Copier</span>
               </button>
             </div>
           </div>
         </div>
       )}
       <button
-        className="fixed z-50 bottom-6 right-6 w-14 h-14 rounded-full bg-[#ff184e] shadow-lg flex items-center justify-center hover:scale-110 transition"
+        type="button"
+        className="fixed bottom-[calc(24px+env(safe-area-inset-bottom,0px))] right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#ff184e] shadow-lg transition hover:scale-105"
         onClick={() => navigate(`/mobile/article/${article.slug}/comments`, { state: { comments } })}
         aria-label="Commentaires"
       >

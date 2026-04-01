@@ -253,14 +253,16 @@ const Stories = () => {
 
   if (loading) {
     return (
-      <div className="py-4 text-center text-gray-400 text-sm">
-        Chargement des stories...
-      </div>
+      <div className="py-4 text-center text-sm text-[#9ba5be]">Chargement des stories…</div>
     );
   }
 
   if (!stories.length) {
-    return null;
+    return (
+      <div className="px-4 py-4 text-center text-sm text-[#9ba5be]/90">
+        Aucune story active pour le moment. Revenez plus tard pour les sujets brûlants.
+      </div>
+    );
   }
 
   return (

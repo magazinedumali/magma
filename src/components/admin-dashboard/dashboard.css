@@ -23,6 +23,18 @@
   --font:           'Inter', sans-serif;
 }
 
+html.light-mode {
+  --bg-main:        #f5f6f8;
+  --bg-sidebar:     #ffffff;
+  --bg-card:        rgba(255, 255, 255, 0.85);
+  --bg-card-hover:  rgba(255, 255, 255, 0.95);
+  --bg-input:       rgba(0, 0, 0, 0.04);
+  --border:         rgba(0, 0, 0, 0.12);
+  --text-primary:   #1a1e2e;
+  --text-secondary: #3a4060;
+  --text-muted:     #6b7290;
+}
+
 /* ─── Global ───────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
