@@ -1,6 +1,14 @@
-import DashboardWidgets from '../../components/admin-dashboard/DashboardWidgets';
+import React, { Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
-import VideosPage from './VideosPage';
+import { LoadingBar } from '@/components/ui/loading-bar';
+
+const DashboardWidgets = lazy(() => import('../../components/admin-dashboard/DashboardWidgets'));
+
+const widgetsFallback = (
+  <div className="flex min-h-[200px] items-center justify-center py-16">
+    <LoadingBar variant="inline" className="h-1 w-48" />
+  </div>
+);
 
 export default function SuperAdminHome() {
   return (
@@ -19,7 +27,9 @@ export default function SuperAdminHome() {
           Gérer le menu principal
         </Link>
       </div>
-      <DashboardWidgets />
+      <Suspense fallback={widgetsFallback}>
+        <DashboardWidgets />
+      </Suspense>
     </>
   );
 }

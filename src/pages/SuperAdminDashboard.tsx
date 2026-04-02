@@ -1,52 +1,77 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Outlet, useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/admin-dashboard/DashboardLayout';
-import MediasPage from './superadmin/MediasPage';
-import UsersPage from './superadmin/UsersPage';
-import AdminsPage from './superadmin/AdminsPage';
-import CommentsPage from './superadmin/CommentsPage';
-import ApparencePage from './superadmin/ApparencePage';
-import EditBannerPage from './superadmin/EditBannerPage';
-import LoginPage from './superadmin/LoginPage';
-import RegisterPage from './superadmin/RegisterPage';
 import RequireSuperAdminAuth from './superadmin/RequireSuperAdminAuth';
-import AlbumsPage from './superadmin/AlbumsPage';
-import AddAlbumPage from './superadmin/AddAlbumPage';
-import EditAlbumPage from './superadmin/EditAlbumPage';
-import StoriesPage from './superadmin/StoriesPage';
-import ArticleList from '../admin/Articles/ArticleList';
-import ArticleForm from '../admin/Articles/ArticleForm';
-import ArticleCreatePage from '../admin/Articles/ArticleCreatePage';
-import { PollsPage } from './superadmin';
-import SuperAdminHome from './superadmin';
-import CategoriesPage from './superadmin/CategoriesPage';
-import MainMenuPage from './superadmin/MainMenuPage';
-import PagesAdminPage from './superadmin/PagesAdminPage';
-import VideosPage from './superadmin/VideosPage';
-import SettingsPage from './superadmin/SettingsPage';
 import { useAdminContext } from '@/hooks/use-admin-context';
+import { LoadingBar } from '@/components/ui/loading-bar';
 
-const ArticleFormWrapper = (props: any) => {
+const adminPageFallback = (
+  <div className="flex min-h-[180px] items-center justify-center py-12">
+    <LoadingBar variant="inline" className="h-1 w-44" />
+  </div>
+);
+
+const LoginPage = lazy(() => import('./superadmin/LoginPage'));
+const RegisterPage = lazy(() => import('./superadmin/RegisterPage'));
+const SuperAdminHome = lazy(() => import('./superadmin'));
+const MediasPage = lazy(() => import('./superadmin/MediasPage'));
+const UsersPage = lazy(() => import('./superadmin/UsersPage'));
+const AdminsPage = lazy(() => import('./superadmin/AdminsPage'));
+const CommentsPage = lazy(() => import('./superadmin/CommentsPage'));
+const ApparencePage = lazy(() => import('./superadmin/ApparencePage'));
+const EditBannerPage = lazy(() => import('./superadmin/EditBannerPage'));
+const SettingsPage = lazy(() => import('./superadmin/SettingsPage'));
+const AlbumsPage = lazy(() => import('./superadmin/AlbumsPage'));
+const AddAlbumPage = lazy(() => import('./superadmin/AddAlbumPage'));
+const EditAlbumPage = lazy(() => import('./superadmin/EditAlbumPage'));
+const StoriesPage = lazy(() => import('./superadmin/StoriesPage'));
+const ArticleList = lazy(() => import('../admin/Articles/ArticleList'));
+const ArticleCreatePage = lazy(() => import('../admin/Articles/ArticleCreatePage'));
+const PollsPage = lazy(() => import('./superadmin/PollsPage'));
+const CategoriesPage = lazy(() => import('./superadmin/CategoriesPage'));
+const MainMenuPage = lazy(() => import('./superadmin/MainMenuPage'));
+const PagesAdminPage = lazy(() => import('./superadmin/PagesAdminPage'));
+const VideosPage = lazy(() => import('./superadmin/VideosPage'));
+
+const LazyArticleForm = lazy(() => import('../admin/Articles/ArticleForm'));
+
+const ArticleFormWrapper = (props: object) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getArticlesPath } = useAdminContext();
-  
+
   return (
-    <ArticleForm
-      articleId={id}
-      onSuccess={() => navigate(getArticlesPath())}
-      onCancel={() => navigate(getArticlesPath())}
-      {...props}
-    />
+    <Suspense fallback={adminPageFallback}>
+      <LazyArticleForm
+        articleId={id}
+        onSuccess={() => navigate(getArticlesPath())}
+        onCancel={() => navigate(getArticlesPath())}
+        {...props}
+      />
+    </Suspense>
   );
 };
 
 const SuperAdminDashboard = () => {
   return (
     <Routes>
-      <Route path="login" element={<LoginPage />} />
-      <Route path="register" element={<RegisterPage />} />
-      <Route element={<DashboardLayout><Outlet /></DashboardLayout>}>
+      <Route
+        path="login"
+        element={
+          <Suspense fallback={adminPageFallback}>
+            <LoginPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="register"
+        element={
+          <Suspense fallback={adminPageFallback}>
+            <RegisterPage />
+          </Suspense>
+        }
+      />
+      <Route element={<DashboardLayout />}>
         <Route element={<RequireSuperAdminAuth><Outlet /></RequireSuperAdminAuth>}>
           <Route index element={<SuperAdminHome />} />
           <Route path="medias" element={<MediasPage />} />
@@ -74,4 +99,4 @@ const SuperAdminDashboard = () => {
   );
 };
 
-export default SuperAdminDashboard; 
+export default SuperAdminDashboard;

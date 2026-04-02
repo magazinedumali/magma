@@ -41,32 +41,44 @@ const Header = () => {
   
   const [recentArticles, setRecentArticles] = useState<any[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [recentFetchError, setRecentFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchArticles() {
       setLoadingRecent(true);
+      setRecentFetchError(null);
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
+        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(10);
-      setRecentArticles(data || []);
+      if (error) {
+        console.error('[Header] titres défilants:', error);
+        setRecentArticles([]);
+        setRecentFetchError(error.message);
+      } else {
+        setRecentArticles(data || []);
+      }
       setLoadingRecent(false);
     }
     fetchArticles();
   }, []);
 
-  const mappedArticles = (recentArticles || []).map((a: any) => ({
-    id: a.id,
-    slug: a.slug || a.id,
-    title: a.titre ?? a.title ?? '',
-    excerpt: a.meta_description ?? a.excerpt ?? '',
-    image: a.image_url ?? a.image ?? '',
-    category: a.categorie ?? a.category ?? '',
-    date: a.date_publication ?? a.date ?? '',
-    author: a.auteur ?? a.author ?? '',
-  }));
+  const mappedArticles = (recentArticles || [])
+    .map((a: any) => ({
+      id: a.id,
+      slug: a.slug || a.id,
+      title: (a.titre ?? a.title ?? '').trim(),
+      excerpt: a.meta_description ?? a.excerpt ?? '',
+      image: a.image_url ?? a.image ?? '',
+      category: a.categorie ?? a.category ?? '',
+      date: a.date_publication ?? a.date ?? '',
+      author: a.auteur ?? a.author ?? '',
+    }))
+    .filter((a) => a.title.length > 0);
+
+  const tickerItems = mappedArticles.length > 0 ? mappedArticles.concat(mappedArticles) : [];
 
   useEffect(() => {
     if (!mappedArticles.length) return;
@@ -122,7 +134,7 @@ const Header = () => {
       try {
         const { data, error } = await supabase
           .from('articles')
-          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
+          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
           .eq('statut', 'publie')
           .ilike('titre', `%${searchQuery}%`)
           .order('date_publication', { ascending: false })
@@ -334,27 +346,50 @@ const Header = () => {
           </div>
           
           {/* Sliding Article Titles dynamique et cliquable */}
-          <div className="hidden md:flex flex-1 items-center justify-center max-w-[700px] mx-4">
-            <div className="flex-1 bg-black/30 border border-white/10 rounded-full px-3 flex items-center overflow-hidden h-9 shadow-inner relative">
-              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/60 to-transparent z-10 pointer-events-none"></div>
+          <div className="mx-4 hidden min-w-0 max-w-[700px] flex-1 items-center justify-center md:flex">
+            <div className="header-news-ticker relative flex h-9 w-full min-w-0 flex-1 items-stretch overflow-hidden rounded-full border border-white/10 bg-black/30 px-1 shadow-inner">
               <div
-                className="whitespace-nowrap animate-marquee text-sm font-medium text-gray-300 flex items-center h-full"
-                style={{ display: 'inline-block', minWidth: '100%' }}
-              >
+                className="header-ticker-fade-left pointer-events-none absolute inset-y-0 left-0 z-[2] w-10 bg-gradient-to-r from-neutral-900/95 via-neutral-900/45 to-transparent dark:from-black/90 dark:via-black/55"
+                aria-hidden
+              />
+              <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 items-center overflow-hidden">
                 {loadingRecent ? (
-                  <span className="mx-4 text-gray-500">La rédaction charge les derniers titres…</span>
+                  <span className="truncate px-4 text-sm font-semibold text-[#ff184e]">
+                    La rédaction charge les derniers titres…
+                  </span>
+                ) : recentFetchError ? (
+                  <span className="truncate px-4 text-sm font-medium text-[#ff184e]" title={recentFetchError}>
+                    Impossible de charger les titres (réseau ou session).
+                  </span>
+                ) : tickerItems.length === 0 ? (
+                  <span className="truncate px-4 text-sm font-medium text-[#ff184e]/90">
+                    Aucun article publié à afficher pour le moment.
+                  </span>
                 ) : (
-                  mappedArticles.concat(mappedArticles).map((article, idx) => (
-                    <span key={idx} className="mx-6 inline-flex items-center">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#ff184e] shadow-[0_0_5px_#ff184e] inline-block mr-3"></span>
-                      <Link to={`/article/${article.slug}`} className="hover:text-white transition-colors" style={{maxWidth: 250, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
-                        {article.title}
-                      </Link>
-                    </span>
-                  ))
+                  <div
+                    className="header-news-marquee flex h-full w-max max-w-none flex-nowrap items-center gap-0 whitespace-nowrap py-0 text-sm font-semibold animate-marquee"
+                  >
+                    {tickerItems.map((article, idx) => (
+                      <span key={`${article.id}-${idx}`} className="inline-flex shrink-0 items-center">
+                        <Link
+                          to={`/article/${article.slug}`}
+                          className="header-news-marquee-link max-w-[min(280px,42vw)] shrink-0 truncate text-[#ff184e] underline-offset-2 hover:underline"
+                        >
+                          {article.title}
+                        </Link>
+                        <span
+                          className="mx-4 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-900 ring-[0.5px] ring-neutral-900/20 dark:bg-black dark:ring-white/25"
+                          aria-hidden
+                        />
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
-              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/60 to-transparent z-10 pointer-events-none"></div>
+              <div
+                className="header-ticker-fade-right pointer-events-none absolute inset-y-0 right-0 z-[2] w-10 bg-gradient-to-l from-neutral-900/95 via-neutral-900/45 to-transparent dark:from-black/90 dark:via-black/55"
+                aria-hidden
+              />
             </div>
           </div>
           

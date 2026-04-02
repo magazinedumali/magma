@@ -311,10 +311,130 @@ html.light-mode textarea::placeholder {
 
 html.light-mode .blur-\[120px\] { opacity: 0.2 !important; }
 
-/* Smooth transitions */
-*, *::before, *::after {
-  transition-property: background-color, color, border-color;
-  transition-duration: 0.25s;
+/* HeroSlider : sur la photo, garder texte blanc et overlays sombres (les règles claires ci-dessus les rendaient illisibles) */
+html.light-mode .hero-slider.glass-panel {
+  background: transparent !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18) !important;
+}
+
+html.light-mode .hero-slider .text-white {
+  color: #ffffff !important;
+}
+
+html.light-mode .hero-slider h2 a {
+  color: #ffffff !important;
+}
+
+html.light-mode .hero-slider h2 a:hover {
+  color: #ff184e !important;
+}
+
+html.light-mode .hero-slider .text-white\/90 {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.light-mode .hero-slider .text-gray-400 {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+html.light-mode .hero-slider .bg-black\/30,
+html.light-mode .hero-slider .bg-black\/40 {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+html.light-mode .hero-slider .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+html.light-mode .hero-slider .border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+html.light-mode .hero-slider .bg-white\/40 {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+html.light-mode .hero-slider .hover\:bg-white\/70:hover {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Article : .article-body garde des couleurs « dark » (#fff, #d1d5e0) — illisible sur fond clair */
+html.light-mode .article-body {
+  color: #2d3450 !important;
+}
+
+html.light-mode .article-body h1,
+html.light-mode .article-body h2,
+html.light-mode .article-body h3,
+html.light-mode .article-body h4,
+html.light-mode .article-body h5,
+html.light-mode .article-body h6 {
+  color: #121620 !important;
+}
+
+html.light-mode .article-body blockquote {
+  color: #4a5070 !important;
+}
+
+html.light-mode .article-body a {
+  color: #ff184e !important;
+}
+
+html.light-mode .article-body a:hover {
+  color: #c4123d !important;
+}
+
+html.light-mode .article-body strong,
+html.light-mode .article-body b {
+  color: #121620 !important;
+}
+
+html.light-mode .article-body code {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1a1e2e !important;
+}
+
+html.light-mode .article-body pre {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1a1e2e !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+html.light-mode .article-body hr {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+html.light-mode .article-body th,
+html.light-mode .article-body td {
+  color: inherit;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Si @tailwindcss/typography est activé : prose-invert force du texte clair */
+html.light-mode .article-body.prose-invert {
+  --tw-prose-body: #2d3450;
+  --tw-prose-headings: #121620;
+  --tw-prose-lead: #3a4060;
+  --tw-prose-links: #ff184e;
+  --tw-prose-bold: #121620;
+  --tw-prose-counters: #6b7290;
+  --tw-prose-bullets: #6b7290;
+  --tw-prose-hr: rgba(0, 0, 0, 0.12);
+  --tw-prose-quotes: #4a5070;
+  --tw-prose-quote-borders: #ff184e;
+  --tw-prose-captions: #6b7290;
+  --tw-prose-code: #1a1e2e;
+  --tw-prose-pre-code: #1a1e2e;
+  --tw-prose-pre-bg: rgba(0, 0, 0, 0.06);
+  --tw-prose-th-borders: rgba(0, 0, 0, 0.12);
+  --tw-prose-td-borders: rgba(0, 0, 0, 0.1);
+}
+
+/* Transitions limitées au thème (éviter * {} : coût élevé au scroll / re-render) */
+html {
+  transition-property: background-color, color;
+  transition-duration: 0.2s;
   transition-timing-function: ease;
 }
 
@@ -326,6 +446,24 @@ html.light-mode .blur-\[120px\] { opacity: 0.2 !important; }
 
 .animate-marquee {
   animation: marquee 35s linear infinite;
+}
+
+/* Bandeau titres (Header) : lisibilité en thème clair */
+html.light-mode .header-news-ticker {
+  /* Sur fond clair, le dégradé du ticker reste lisible */
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light-mode .header-news-marquee-link {
+  color: #ff184e !important;
+}
+
+html.light-mode .header-ticker-fade-left {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.45), transparent) !important;
+}
+
+html.light-mode .header-ticker-fade-right {
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.45), transparent) !important;
 }
 
 /* Barre de chargement verte indéterminée (remplace les spinners circulaires) */

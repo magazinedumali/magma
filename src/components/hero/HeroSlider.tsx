@@ -101,7 +101,7 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
 
   return (
     <div 
-      className="relative rounded-2xl overflow-hidden glass-panel border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] group h-full"
+      className="hero-slider relative rounded-2xl overflow-hidden glass-panel border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] group h-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import ArticleCard from './ArticleCard';
-import ArticleForm from './ArticleForm';
 import toast from 'react-hot-toast';
 import * as Dialog from '@radix-ui/react-dialog';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';

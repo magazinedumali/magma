@@ -13,7 +13,16 @@ import React from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingBar } from './components/ui/loading-bar';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 // Lazy load des pages lourdes pour accélérer le premier affichage
 const Index = lazy(() => import('./pages/Index'));
