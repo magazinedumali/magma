@@ -21,4 +21,21 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    /** Répartit les grosses libs hors du chunk `index` (meilleur cache + moins de parse au 1er chargement). */
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("@hello-pangea/dnd")) return "vendor-dnd";
+          if (id.includes("recharts")) return "vendor-recharts";
+          if (id.includes("framer-motion")) return "vendor-motion";
+          if (id.includes("@supabase/supabase-js")) return "vendor-supabase";
+          if (id.includes("@tanstack/react-query")) return "vendor-query";
+        },
+      },
+    },
+    /** @hello-pangea/dnd reste > 500 ko minifié ; seuil réaliste pour éviter un faux positif à chaque build. */
+    chunkSizeWarningLimit: 750,
+  },
 }));
