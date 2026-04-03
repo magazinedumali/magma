@@ -33,10 +33,21 @@ function slugify(text: string) {
     .replace(/^-+|-+$/g, '');
 }
 
+/** Aligner la BDD / anciennes valeurs sur les options du formulaire (publie | brouillon). */
+function normalizeArticleStatut(raw: string | undefined | null): 'publie' | 'brouillon' {
+  const s = String(raw ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+  if (s === 'publie' || s === 'published' || s === 'public') return 'publie';
+  return 'brouillon';
+}
+
 const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId, onSuccess, onCancel }) => {
   const { isDark } = useTheme();
   console.log('ArticleForm initialized with:', { initialValues, articleId });
-  const { register, handleSubmit, control, setValue, watch, reset } = useForm({
+  const { register, handleSubmit, control, setValue, watch, reset, getValues } = useForm({
     defaultValues: {
       titre: initialValues.titre || '',
       contenu: initialValues.contenu || '',
@@ -63,6 +74,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   const [uploading, setUploading] = useState(false);
   const [loadingArticle, setLoadingArticle] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  /** Lien direct vers la page publique après enregistrement (si statut = publié). */
+  const [lastSavedPublicUrl, setLastSavedPublicUrl] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [openBlock, setOpenBlock] = useState({
     publication: true,
@@ -169,13 +182,17 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   // Soumission du formulaire
   const onSubmit = async (values: any) => {
     setUploading(true);
+    setLastSavedPublicUrl(null);
+    // Champs sidebar hors <form> (avant correctif) : fusionner avec l’état RHF au cas où
+    const statut = normalizeArticleStatut(values.statut ?? getValues('statut'));
+    const datePubRaw = values.date_publication ?? getValues('date_publication');
     // Génère le slug à partir du titre
     const slug = slugify(values.titre);
     
     // Si l'article est publié, s'assurer qu'une date de publication est définie
-    let datePublication = values.date_publication;
+    let datePublication = datePubRaw;
     
-    if (values.statut === 'publie') {
+    if (statut === 'publie') {
       // Si l'article est publié et qu'il n'y a pas de date de publication (vide, null, ou undefined)
       // ou si la date est invalide, utiliser la date actuelle
       const dateStr = datePublication ? String(datePublication).trim() : '';
@@ -190,7 +207,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           datePublication = new Date(dateStr2 + 'T00:00:00').toISOString();
         }
       }
-    } else if (values.statut === 'brouillon') {
+    } else if (statut === 'brouillon') {
       // Pour les brouillons, on peut garder la date ou la vider
       // Si la date existe, on la garde (elle pourra servir si l'article est republié)
       // Sinon, on laisse null/undefined
@@ -206,24 +223,51 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       }
     }
     
-    const valuesWithSlug = { ...values, slug, date_publication: datePublication };
-    const res =
-      articleId && articleId !== "new"
-        ? await supabase.from("articles").update(valuesWithSlug).eq("id", articleId)
-        : await supabase.from("articles").insert([valuesWithSlug]);
+    const payload = {
+      titre: values.titre,
+      contenu: values.contenu,
+      categorie: values.categorie,
+      auteur: values.auteur,
+      tags: values.tags ?? [],
+      image_url: values.image_url ?? '',
+      audio_url: values.audio_url ?? '',
+      gallery: values.gallery ?? [],
+      meta_title: values.meta_title ?? '',
+      meta_description: values.meta_description ?? '',
+      share_image_url: values.share_image_url ?? '',
+      share_description: values.share_description ?? '',
+      statut,
+      slug,
+      date_publication: datePublication,
+    };
+    const valuesWithSlug = { ...values, ...payload };
+    const isEdit = Boolean(articleId && articleId !== 'new');
+    const res = isEdit
+      ? await supabase.from('articles').update(payload).eq('id', articleId).select('id')
+      : await supabase.from('articles').insert([payload]).select('id');
     setUploading(false);
     if (res.error) {
       console.error('Erreur Supabase:', res.error);
       toast.error("Erreur lors de l'enregistrement : " + res.error.message);
+    } else if (!res.data?.length) {
+      toast.error(
+        isEdit
+          ? "Aucune ligne mise à jour. Vérifiez l’identifiant de l’article et les règles Supabase (RLS) pour la table articles."
+          : "La création n’a pas abouti. Vérifiez les règles Supabase (RLS) et les champs obligatoires."
+      );
     } else {
-      if (articleId && articleId !== 'new') {
-        if (values.statut === 'publie') {
+      if (isEdit) {
+        if (statut === 'publie') {
           toast.success("Article publié avec succès!");
         } else {
           toast.success("Article mis à jour!");
         }
       } else {
         toast.success("Article créé!");
+      }
+      if (statut === 'publie') {
+        const path = slug ? `/article/${encodeURIComponent(slug)}` : `/article/${res.data[0].id}`;
+        setLastSavedPublicUrl(`${window.location.origin}${path}`);
       }
       // Don't reset the form immediately - let the user see the success message
       // and navigate away naturally
@@ -255,6 +299,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           // Préparer les données du formulaire
           const formData = {
             ...data,
+            statut: normalizeArticleStatut(data.statut),
             // Formater la date de publication pour l'input date (YYYY-MM-DD)
             date_publication: data.date_publication 
               ? (typeof data.date_publication === 'string' 
@@ -273,7 +318,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           reset(formData);
           
           // Expand publication block if article is a draft (so admin can easily publish it)
-          if (data.statut === 'brouillon') {
+          if (formData.statut === 'brouillon') {
             setOpenBlock(prev => ({ ...prev, publication: true }));
           }
           
@@ -289,7 +334,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   }, [articleId, reset]);
 
   return (
-    <div className="flex w-full min-h-screen">
+    <form className="flex w-full min-h-screen" onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* Loader central lors du chargement de l'article */}
       {loadingArticle && (
         <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-md z-50 gap-4">
@@ -300,12 +345,22 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       )}
       {/* Confirmation visuelle après enregistrement */}
       {showConfirmation && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-500/90 backdrop-blur-md border border-green-400 text-white px-6 py-3 rounded-xl shadow-[0_4px_24px_rgba(34,197,94,0.3)] z-50 animate-fadeIn font-medium">
-          ✅ {articleId && articleId !== 'new' ? 'Article mis à jour!' : 'Article créé!'}
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-green-500/90 backdrop-blur-md border border-green-400 text-white px-6 py-3 rounded-xl shadow-[0_4px_24px_rgba(34,197,94,0.3)] z-50 animate-fadeIn font-medium max-w-[min(90vw,28rem)] text-center">
+          <div>✅ {articleId && articleId !== 'new' ? 'Article mis à jour!' : 'Article créé!'}</div>
+          {lastSavedPublicUrl && (
+            <a
+              href={lastSavedPublicUrl}
+              className="mt-2 block text-sm underline font-semibold text-white/95 hover:text-white"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Voir l’article sur le site
+            </a>
+          )}
         </div>
       )}
-      {/* Zone centrale */}
-      <form className="flex-1 max-w-5xl mx-auto w-full my-8 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+      {/* Zone centrale (même <form> que la sidebar pour que statut / date / catégorie soient bien soumis) */}
+      <div className="flex-1 max-w-5xl mx-auto w-full my-8 flex flex-col">
         <input
           {...register('titre', { required: true })}
           className={`w-full mb-6 px-4 py-3 border rounded-xl font-sans text-xl font-bold focus:outline-none focus:ring-1 transition-colors ${
@@ -372,7 +427,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
         {/* BOUTON CREER/ENREGISTRER EN BAS DU FORM */}
         <div className="flex gap-4 justify-end mt-8">
           <button type="submit" className="bg-[var(--accent)] text-white px-8 py-3 rounded-xl hover:brightness-110 font-semibold transition-all shadow-[0_4px_16px_var(--accent-glow)] hover:-translate-y-0.5" disabled={uploading || loadingArticle}>
-            {uploading ? 'Enregistrement...' : (articleId ? 'Enregistrer' : 'Créer')}
+            {uploading ? (articleId ? 'Mise à jour...' : 'Enregistrement...') : (articleId ? 'Mettre à jour' : 'Créer')}
           </button>
           <button type="button" className={`px-8 py-3 rounded-xl font-semibold transition-all ${
             isDark 
@@ -382,7 +437,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             Annuler
           </button>
         </div>
-      </form>
+      </div>
       {/* Sidebar options à droite */}
       {(() => {
         const isDark = false; // Forcer le thème clair (texte noir) pour cette sidebar uniquement
@@ -654,7 +709,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
       </aside>
         );
       })()}
-      </div>
+    </form>
   );
 };
 
