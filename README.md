@@ -155,6 +155,10 @@ This project uses:
 
 The project includes a `vercel.json` configuration file for Vercel deployment.
 
+**If pushes to GitHub do not trigger deploys:** In Vercel → your project → **Settings → Git**, confirm the repo and **Production Branch** are `main`. Reconnect the repository or reinstall the Vercel GitHub app if needed. On GitHub → repo **Settings → Webhooks**, check that `vercel.com` deliveries are not failing.
+
+**Reliable deploys via GitHub Actions:** Add repository secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` (from [Vercel token](https://vercel.com/account/tokens) and `vercel link` → `.vercel/project.json`). Workflows: `.github/workflows/vercel-production.yml` (push to `main`) and `vercel-preview.yml` (other branches).
+
 ### Other Platforms
 
 The project can be deployed to any platform that supports Node.js and static site hosting:
