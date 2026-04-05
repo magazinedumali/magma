@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sync:pages": "node sync-pages.cjs"
+    "sync:pages": "node sync-pages.cjs",
+    "update:browserslist": "npm install caniuse-lite@latest"
   },
   "dependencies": {
     "@editorjs/editorjs": "^2.30.8",
@@ -67,6 +68,7 @@
     "@tiptap/react": "^2.12.0",
     "@tiptap/starter-kit": "^2.12.0",
     "@vitalets/google-translate-api": "^9.2.1",
+    "caniuse-lite": "^1.0.30001784",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

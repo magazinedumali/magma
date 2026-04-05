@@ -14,11 +14,15 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    tempo(),
+    // Tempo uniquement en dev : évite "Empty routes array generated" et allège le build Vercel
+    mode === "development" && tempo(),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      ...(mode === "production"
+        ? { "tempo-routes": path.resolve(__dirname, "./src/tempo-routes.stub.ts") }
+        : {}),
     },
   },
   build: {
@@ -32,10 +36,11 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("framer-motion")) return "vendor-motion";
           if (id.includes("@supabase/supabase-js")) return "vendor-supabase";
           if (id.includes("@tanstack/react-query")) return "vendor-query";
+          if (id.includes("@iconify/react")) return "vendor-iconify";
         },
       },
     },
-    /** @hello-pangea/dnd reste > 500 ko minifié ; seuil réaliste pour éviter un faux positif à chaque build. */
-    chunkSizeWarningLimit: 750,
+    /** Au-dessus du défaut Vite (500) : grosses deps (dnd, éditeur, etc.). */
+    chunkSizeWarningLimit: 1200,
   },
 }));
