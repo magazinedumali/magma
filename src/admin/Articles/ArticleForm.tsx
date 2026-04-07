@@ -242,20 +242,25 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     };
     const valuesWithSlug = { ...values, ...payload };
     const isEdit = Boolean(articleId && articleId !== 'new');
+    // Avoid requiring SELECT permission right after write (RLS may hide drafts from select()).
     const res = isEdit
-      ? await supabase.from('articles').update(payload).eq('id', articleId).select('id')
-      : await supabase.from('articles').insert([payload]).select('id');
+      ? await supabase
+          .from('articles')
+          .update(payload)
+          .eq('id', articleId)
+          .select('id, statut')
+          .maybeSingle()
+      : await supabase.from('articles').insert([payload]);
     setUploading(false);
     if (res.error) {
       console.error('Erreur Supabase:', res.error);
       toast.error("Erreur lors de l'enregistrement : " + res.error.message);
-    } else if (!res.data?.length) {
-      toast.error(
-        isEdit
-          ? "Aucune ligne mise à jour. Vérifiez l’identifiant de l’article et les règles Supabase (RLS) pour la table articles."
-          : "La création n’a pas abouti. Vérifiez les règles Supabase (RLS) et les champs obligatoires."
-      );
     } else {
+      if (isEdit && !res.data) {
+        toast.error("Aucun article mis à jour. Vérifiez les permissions RLS (UPDATE/SELECT) sur la table articles.");
+        return;
+      }
+
       if (isEdit) {
         if (statut === 'publie') {
           toast.success("Article publié avec succès!");
@@ -266,7 +271,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
         toast.success("Article créé!");
       }
       if (statut === 'publie') {
-        const path = slug ? `/article/${encodeURIComponent(slug)}` : `/article/${res.data[0].id}`;
+        const path = `/article/${encodeURIComponent(slug)}`;
         setLastSavedPublicUrl(`${window.location.origin}${path}`);
       }
       // Don't reset the form immediately - let the user see the success message

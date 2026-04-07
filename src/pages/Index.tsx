@@ -118,8 +118,8 @@ const Index = () => {
       const { data, error } = await supabase
         .from('articles')
         .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
-        .eq('statut', 'publie')
-        .ilike('categorie', 'Sport%')
+        .or('statut.eq.publie,statut.eq.publié,statut.eq.published,statut.ilike.%publ%')
+        .ilike('categorie', '%Sport%')
         .order('date_publication', { ascending: false })
         .limit(1);
 
@@ -185,10 +185,16 @@ const Index = () => {
   useEffect(() => {
     const fetchAdditional = async () => {
       setLoadingAdditional(true);
-      const [ resNews, resTravel, resEnt ] = await Promise.all([
+      const [resNews, resTravel, resEnt] = await Promise.all([
         supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', '%Actualit%').order('date_publication', { ascending: false }).limit(3),
         supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', 'Voyage').order('date_publication', { ascending: false }).limit(3),
-        supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', 'Divertissement').order('date_publication', { ascending: false }).limit(1)
+        supabase
+          .from('articles')
+          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
+          .eq('statut', 'publie')
+          .or('categorie.ilike.%Divertissement%,categorie.ilike.%Culture%')
+          .order('date_publication', { ascending: false })
+          .limit(1),
       ]);
       setAdditionalData({
         selectedNews: resNews.data || [],

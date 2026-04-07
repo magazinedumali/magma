@@ -32,6 +32,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onShowDetail,
   slug,
 }) => {
+  const normalizedStatut = String(statut ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+  const isPublished = normalizedStatut === 'publie' || normalizedStatut === 'published' || normalizedStatut === 'public';
+
   const processedImageUrl = image_url ? (() => {
     if (image_url.startsWith('http')) return image_url;
     if (image_url.startsWith('public/') || image_url.includes('/storage/')) return image_url;
@@ -86,11 +93,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         {statut && (
           <div className="absolute top-3 right-3">
             <span className={`text-xs px-2.5 py-1 rounded-full font-bold shadow-lg backdrop-blur-md border ${
-              statut === 'publie' 
+              isPublished
                 ? 'bg-green-500/20 text-green-400 border-green-500/30' 
                 : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
             }`}>
-              {statut === 'publie' ? 'Publié' : 'Brouillon'}
+              {isPublished ? 'Publié' : 'Brouillon'}
             </span>
           </div>
         )}

@@ -31,6 +31,16 @@ export interface Article {
   gallery?: string[];
 }
 
+function normalizeArticleStatut(raw?: string): 'publie' | 'brouillon' {
+  const s = String(raw ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+  if (s === 'publie' || s === 'published' || s === 'public') return 'publie';
+  return 'brouillon';
+}
+
 const ArticleList: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +149,9 @@ const ArticleList: React.FC = () => {
       article.titre?.toLowerCase().includes(search.toLowerCase()) ||
       article.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase()));
     const matchesCategory = categoryFilter ? article.categorie === categoryFilter : true;
-    const matchesStatus = statusFilter ? article.statut === statusFilter : true;
+    const matchesStatus = statusFilter
+      ? normalizeArticleStatut(article.statut) === statusFilter
+      : true;
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -205,7 +217,16 @@ const ArticleList: React.FC = () => {
 
   const handleConfirmBulkStatus = async () => {
     setLoadingBulkStatus(true);
-    const { error } = await supabase.from('articles').update({ statut: bulkStatus }).in('id', selected);
+    const updatePayload =
+      bulkStatus === 'publie'
+        ? {
+            statut: 'publie',
+            // Ensure newly published drafts have a publication date for public listing/order.
+            date_publication: new Date().toISOString(),
+          }
+        : { statut: 'brouillon' };
+
+    const { error } = await supabase.from('articles').update(updatePayload).in('id', selected);
     setLoadingBulkStatus(false);
     if (error) { toast.error("Erreur lors du changement de statut"); } 
     else { toast.success("Statut mis à jour"); fetchArticles(); setSelected([]); }
@@ -351,7 +372,7 @@ const ArticleList: React.FC = () => {
                   categorie={article.categorie}
                   tags={article.tags}
                   audio_url={article.audio_url}
-                  statut={article.statut}
+                  statut={normalizeArticleStatut(article.statut)}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   selected={selected.includes(article.id)}
