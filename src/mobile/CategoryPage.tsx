@@ -60,13 +60,12 @@ const CategoryPage = () => {
   }, [category, siteCategories]);
 
   useEffect(() => {
-    if (!category) return;
+    if (!category || !activeCategory) return;
     setLoading(true);
     
     const fetchCategoryData = async () => {
-      const dbCategory = activeCategory?.name || category;
       const [{ data: catsData }, { data: trendData }] = await Promise.all([
-        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', `%${dbCategory}%`).order('date_publication', { ascending: false }),
+        supabase.from('articles').select('*').eq('statut', 'publie').ilike('categorie', `%${activeCategory.name}%`).order('date_publication', { ascending: false }),
         supabase.from('articles').select('*').eq('statut', 'publie').order('date_publication', { ascending: false }).limit(4)
       ]);
       setArticles(catsData ? mapArticlesFromSupabase(catsData) : []);
@@ -77,8 +76,25 @@ const CategoryPage = () => {
     fetchCategoryData();
   }, [category, activeCategory]);
 
+  if (!activeCategory && !loading) {
+    return (
+      <>
+        <Header />
+        <main className="py-8 bg-[#f9fafd] min-h-screen">
+          <div className="container mx-auto px-4">
+            <div className="bg-white rounded-2xl shadow p-6 text-gray-600">
+              <h2 className="text-2xl font-bold mb-3">Catégorie introuvable</h2>
+              <p>La catégorie demandée n'existe pas.</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   if (!category) return null;
-  const categoryTitle = activeCategory?.name || (category.charAt(0).toUpperCase() + category.slice(1));
+  const categoryTitle = activeCategory?.name || '';
 
   const articlesToShow = showAll ? articles : articles.slice(0, 5);
   

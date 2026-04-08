@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Header from '@/components/Header';
 import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
@@ -13,6 +13,7 @@ import Poll from '@/components/Poll';
 import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 import { motion } from 'framer-motion';
+import { useCategories } from '@/hooks/useCategories';
 
 const SECTION_TITLES = {
   selectedNews: 'Les choix de la rédaction',
@@ -24,12 +25,50 @@ const SECTION_TITLES = {
   entertainment: 'Culture & divertissement',
 };
 
+const CATEGORY_NAMES: Record<keyof typeof SECTION_TITLES, string[]> = {
+  selectedNews: ['Actualité', 'Actualite'],
+  travelBlogs: ['Voyage'],
+  onlineVoting: [],
+  technology: ['Technologie'],
+  business: ['Économie', 'Economie', 'Business'],
+  sport: ['Sport'],
+  entertainment: ['Culture', 'Divertissement'],
+};
+
+const PUBLISHED_STATUS_FILTER = 'statut.eq.publie,statut.eq.publié,statut.eq.published,statut.ilike.%publ%';
+
+function normalize(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
+function findMatchingCategory(dbCategories: { name: string }[], sectionKey: keyof typeof CATEGORY_NAMES): string | null {
+  const allowedNames = CATEGORY_NAMES[sectionKey].map(normalize);
+  if (!allowedNames.length) return null;
+  for (const cat of dbCategories) {
+    if (allowedNames.includes(normalize(cat.name))) {
+      return cat.name;
+    }
+  }
+  return null;
+}
+
 const fadeUpVariant: any = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
 const Index = () => {
+  const { categories: dbCategories } = useCategories();
+
+  const mappedCategories = useMemo(() => ({
+    technology: findMatchingCategory(dbCategories, 'technology'),
+    business: findMatchingCategory(dbCategories, 'business'),
+    sport: findMatchingCategory(dbCategories, 'sport'),
+    travel: findMatchingCategory(dbCategories, 'travelBlogs'),
+    news: findMatchingCategory(dbCategories, 'selectedNews'),
+    entertainment: findMatchingCategory(dbCategories, 'entertainment'),
+  }), [dbCategories]);
+
   const [technologyArticles, setTechnologyArticles] = useState<any[]>([]);
   const [loadingTech, setLoadingTech] = useState(true);
   const [errorTech, setErrorTech] = useState<string | null>(null);
@@ -45,8 +84,8 @@ const Index = () => {
       const { data, error } = await supabase
         .from('articles')
         .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, category, title, excerpt, image, date, author')
-        .eq('statut', 'publie')
-        .eq('categorie', 'Business')
+        .or(PUBLISHED_STATUS_FILTER)
+        .eq('categorie', mappedCategories.business || '')
         .order('date_publication', { ascending: false })
         .limit(3);
       if (error) {
@@ -58,7 +97,7 @@ const Index = () => {
       setLoadingBusiness(false);
     };
     fetchBusinessArticles();
-  }, []);
+  }, [mappedCategories.business]);
 
   const mappedBusinessArticles = (businessArticles || []).map(a => ({
     slug: a.slug || a.id,
@@ -79,8 +118,8 @@ const Index = () => {
       const { data, error } = await supabase
         .from('articles')
         .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
-        .eq('statut', 'publie')
-        .ilike('categorie', 'Technologie')
+        .or(PUBLISHED_STATUS_FILTER)
+        .eq('categorie', mappedCategories.technology || '')
         .order('date_publication', { ascending: false })
         .limit(2);
 
@@ -93,7 +132,7 @@ const Index = () => {
       setLoadingTech(false);
     };
     fetchTechArticles();
-  }, []);
+  }, [mappedCategories.technology]);
 
   const mappedTechArticles = (technologyArticles || []).map(a => ({
     slug: a.slug || a.id,
@@ -118,8 +157,8 @@ const Index = () => {
       const { data, error } = await supabase
         .from('articles')
         .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
-        .or('statut.eq.publie,statut.eq.publié,statut.eq.published,statut.ilike.%publ%')
-        .ilike('categorie', '%Sport%')
+        .or(PUBLISHED_STATUS_FILTER)
+        .eq('categorie', mappedCategories.sport || '')
         .order('date_publication', { ascending: false })
         .limit(1);
 
@@ -132,7 +171,7 @@ const Index = () => {
       setLoadingSports(false);
     };
     fetchSportsArticles();
-  }, []);
+  }, [mappedCategories.sport]);
 
   const mappedSportsArticles = (sportsArticles || []).map(a => {
     const art = a as any;
@@ -159,7 +198,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('articles')
         .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
-        .eq('statut', 'publie')
+        .or(PUBLISHED_STATUS_FILTER)
         .order('date_publication', { ascending: false })
         .limit(6);
       if (error) {
@@ -185,17 +224,41 @@ const Index = () => {
   useEffect(() => {
     const fetchAdditional = async () => {
       setLoadingAdditional(true);
-      const [resNews, resTravel, resEnt] = await Promise.all([
-        supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', '%Actualit%').order('date_publication', { ascending: false }).limit(3),
-        supabase.from('articles').select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut').eq('statut', 'publie').ilike('categorie', 'Voyage').order('date_publication', { ascending: false }).limit(3),
+      
+      const queries = [];
+      
+      queries.push(
         supabase
           .from('articles')
           .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
-          .eq('statut', 'publie')
-          .or('categorie.ilike.%Divertissement%,categorie.ilike.%Culture%')
+          .or(PUBLISHED_STATUS_FILTER)
+          .eq('categorie', mappedCategories.news || '')
           .order('date_publication', { ascending: false })
-          .limit(1),
-      ]);
+          .limit(3)
+      );
+      
+      queries.push(
+        supabase
+          .from('articles')
+          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
+          .or(PUBLISHED_STATUS_FILTER)
+          .eq('categorie', mappedCategories.travel || '')
+          .order('date_publication', { ascending: false })
+          .limit(3)
+      );
+      
+      queries.push(
+        supabase
+          .from('articles')
+          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
+          .or(PUBLISHED_STATUS_FILTER)
+          .eq('categorie', mappedCategories.entertainment || '')
+          .order('date_publication', { ascending: false })
+          .limit(1)
+      );
+      
+      const [resNews, resTravel, resEnt] = await Promise.all(queries);
+      
       setAdditionalData({
         selectedNews: resNews.data || [],
         travelBlogs: resTravel.data || [],
@@ -204,7 +267,7 @@ const Index = () => {
       setLoadingAdditional(false);
     };
     fetchAdditional();
-  }, []);
+  }, [mappedCategories.news, mappedCategories.travel, mappedCategories.entertainment]);
 
   const mappedEntertainmentArts = additionalData.entertainmentArts.map(a => ({
     id: a.id,

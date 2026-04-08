@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { ChevronRight } from 'lucide-react';
+import { useCategories } from '@/hooks/useCategories';
 
 type ArticleRow = {
   id: string;
@@ -12,80 +13,61 @@ type ArticleRow = {
   date_publication?: string | null;
 };
 
-const SECTIONS: { key: string; title: string; load: () => Promise<{ data: ArticleRow[] | null }> }[] = [
-  {
-    key: 'editor',
-    title: 'Les choix de la rédaction',
-    load: () =>
-      supabase
-        .from('articles')
-        .select('id, slug, titre, image_url, categorie, date_publication')
-        .eq('statut', 'publie')
-        .ilike('categorie', '%Actualit%')
-        .order('date_publication', { ascending: false })
-        .limit(8),
-  },
-  {
-    key: 'travel',
-    title: 'Carnets de voyage',
-    load: () =>
-      supabase
-        .from('articles')
-        .select('id, slug, titre, image_url, categorie, date_publication')
-        .eq('statut', 'publie')
-        .ilike('categorie', 'Voyage')
-        .order('date_publication', { ascending: false })
-        .limit(8),
-  },
-  {
-    key: 'tech',
-    title: 'Tech & innovation',
-    load: () =>
-      supabase
-        .from('articles')
-        .select('id, slug, titre, image_url, categorie, date_publication')
-        .eq('statut', 'publie')
-        .ilike('categorie', 'Technologie')
-        .order('date_publication', { ascending: false })
-        .limit(8),
-  },
-  {
-    key: 'business',
-    title: 'Économie & business',
-    load: () =>
-      supabase
-        .from('articles')
-        .select('id, slug, titre, image_url, categorie, date_publication')
-        .eq('statut', 'publie')
-        .eq('categorie', 'Business')
-        .order('date_publication', { ascending: false })
-        .limit(8),
-  },
-  {
-    key: 'sport',
-    title: 'Sport',
-    load: () =>
-      supabase
-        .from('articles')
-        .select('id, slug, titre, image_url, categorie, date_publication')
-        .eq('statut', 'publie')
-        .ilike('categorie', 'Sport%')
-        .order('date_publication', { ascending: false })
-        .limit(8),
-  },
-  {
-    key: 'culture',
-    title: 'Culture & divertissement',
-    load: () =>
-      supabase
-        .from('articles')
-        .select('id, slug, titre, image_url, categorie, date_publication')
-        .eq('statut', 'publie')
-        .ilike('categorie', 'Divertissement')
-        .order('date_publication', { ascending: false })
-        .limit(8),
-  },
+const SECTION_KEYWORDS = [
+  { key: 'editor', title: 'Les choix de la rédaction', keywords: ['actualite', 'news', 'actus', 'rédaction'] },
+  { key: 'travel', title: 'Carnets de voyage', keywords: ['voyage', 'travel', 'carnet'] },
+  { key: 'tech', title: 'Tech & innovation', keywords: ['tech', 'technologie', 'innovation', 'digital'] },
+  { key: 'business', title: 'Économie & business', keywords: ['business', 'economie', 'économie', 'finance'] },
+  { key: 'sport', title: 'Sport', keywords: ['sport'] },
+  { key: 'culture', title: 'Culture & divertissement', keywords: ['culture', 'divertissement', 'art', 'loisir'] },
 ];
+
+function normalize(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
+function findMatchingCategory(dbCategories: { name: string }[], keywords: string[]): string | null {
+  for (const cat of dbCategories) {
+    const normalizedCat = normalize(cat.name);
+    for (const keyword of keywords) {
+      if (normalizedCat.includes(normalize(keyword)) || normalize(keyword).includes(normalizedCat)) {
+        return cat.name;
+      }
+    }
+  }
+  return null;
+}
+
+type SectionItem = {
+  key: string;
+  title: string;
+  categoryName: string | null;
+  load: () => Promise<{ data: any[] | null; error: any }>;
+};
+
+function createSections(dbCategories: { name: string }[]): SectionItem[] {
+  return SECTION_KEYWORDS.map(section => {
+    const categoryName = findMatchingCategory(dbCategories, section.keywords);
+    return {
+      key: section.key,
+      title: section.title,
+      categoryName,
+      load: async () => {
+        if (!categoryName) {
+          return { data: [], error: null };
+        }
+        const result = await supabase
+          .from('articles')
+          .select('id, slug, titre, image_url, categorie, date_publication')
+          .eq('statut', 'publie')
+          .ilike('categorie', `%${categoryName}%`)
+          .order('date_publication', { ascending: false })
+          .limit(8);
+        return { data: result.data, error: result.error };
+      },
+    };
+  }).filter((s): s is SectionItem => s.categoryName !== null);
+}
 
 function MiniArticleCard({ article, onClick }: { article: ArticleRow; onClick: () => void }) {
   return (
@@ -124,15 +106,19 @@ function MiniArticleCard({ article, onClick }: { article: ArticleRow; onClick: (
 
 export default function MobileHomeThematicSections() {
   const navigate = useNavigate();
+  const { categories: dbCategories } = useCategories();
   const [data, setData] = useState<Record<string, ArticleRow[]>>({});
   const [loading, setLoading] = useState(true);
 
+  const sections = useMemo(() => createSections(dbCategories), [dbCategories]);
+
   useEffect(() => {
+    if (!dbCategories.length) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
       const entries = await Promise.all(
-        SECTIONS.map(async (s) => {
+        sections.map(async (s) => {
           const { data: rows, error } = await s.load();
           if (error) {
             console.error('[MobileHomeThematicSections]', s.key, error);
@@ -150,9 +136,9 @@ export default function MobileHomeThematicSections() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [sections]);
 
-  if (loading) {
+  if (loading || !dbCategories.length) {
     return (
       <div className="space-y-6 px-4 py-2">
         {[1, 2, 3].map((i) => (
@@ -170,7 +156,7 @@ export default function MobileHomeThematicSections() {
 
   return (
     <div className="space-y-8 pb-2">
-      {SECTIONS.map((s) => {
+      {sections.map((s) => {
         const rows = data[s.key] || [];
         if (rows.length === 0) return null;
         return (

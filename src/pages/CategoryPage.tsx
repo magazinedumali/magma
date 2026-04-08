@@ -62,17 +62,15 @@ const CategoryPage = () => {
   }, [category, siteCategories]);
 
   useEffect(() => {
-    if (!category) return;
+    if (!category || !activeCategory) return;
     setLoading(true);
     setError(null);
-
-    const dbCategory = activeCategory?.name || category;
 
     supabase
       .from('articles')
       .select('*')
       .eq('statut', 'publie')
-      .ilike('categorie', `%${dbCategory}%`)
+      .ilike('categorie', `%${activeCategory.name}%`)
       .order('date_publication', { ascending: false })
       .then(({ data, error }) => {
         if (error) {
@@ -99,7 +97,24 @@ const CategoryPage = () => {
 
   const mappedArticles = mapArticlesFromSupabase(articles || []);
 
-  const categoryTitle = activeCategory?.name || (category ? category.charAt(0).toUpperCase() + category.slice(1) : '');
+  const categoryTitle = activeCategory?.name || '';
+
+  if (!activeCategory && !loading) {
+    return (
+      <>
+        <Header />
+        <main className="py-8 bg-transparent text-gray-200 min-h-screen">
+          <div className="container mx-auto px-4">
+            <div className="glass-panel rounded-2xl p-8 border border-white/10 text-gray-300">
+              <h2 className="text-2xl font-bold mb-3">Catégorie introuvable</h2>
+              <p>La catégorie demandée n'existe pas.</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
   
   return (
     <>
