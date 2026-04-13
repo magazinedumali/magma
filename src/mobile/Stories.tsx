@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 const IMAGE_DURATION = 5000; // 5 secondes pour une image
 
@@ -168,6 +168,7 @@ const StoryViewer = ({ stories, currentIndex, onClose }) => {
             src={optimiseSupabaseImageUrl(story.image_url, 'hero')}
             alt={story.title}
             className="w-full h-full object-cover rounded-none shadow-none"
+            onError={(e) => applyStorageImageFallback(e.currentTarget)}
           />
         )}
         {/* Titre en overlay centré */}
@@ -286,6 +287,7 @@ const Stories = () => {
               src={optimiseSupabaseImageUrl(story.image_url, 'card')}
               alt={story.title}
               className="w-full h-full object-cover"
+              onError={(e) => applyStorageImageFallback(e.currentTarget)}
             />
             {/* Overlay gradient for readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />

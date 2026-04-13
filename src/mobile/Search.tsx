@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import MobileBottomNav from './MobileBottomNav';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 export default function MobileSearch() {
   const navigate = useNavigate();
@@ -81,9 +81,7 @@ export default function MobileSearch() {
               src={optimiseSupabaseImageUrl(article.image_url || '/placeholder.svg', 'thumb')}
               alt=""
               className="h-28 w-28 shrink-0 object-cover"
-              onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
-              }}
+              onError={(e) => applyStorageImageFallback(e.currentTarget)}
               loading="lazy"
             />
             <div className="flex min-w-0 flex-1 flex-col justify-between p-3">

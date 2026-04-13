@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 interface SmallArticleCardProps {
   slug: string;
@@ -32,9 +32,7 @@ const SmallArticleCard = ({
             src={image ? optimiseSupabaseImageUrl(image, 'thumb') : image} 
             alt={title} 
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = '/placeholder.svg';
-            }}
+            onError={(e) => applyStorageImageFallback(e.currentTarget)}
             loading="lazy"
             decoding="async"
           />

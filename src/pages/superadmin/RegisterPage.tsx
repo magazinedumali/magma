@@ -13,7 +13,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { role: 'superadmin' } },
+    });
     setLoading(false);
     if (error) {
       setError(error.message || "Erreur lors de l'inscription.");

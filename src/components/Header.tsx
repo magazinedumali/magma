@@ -26,7 +26,7 @@ import MainNavigation from './header/MainNavigation';
 import HeaderLogo from './header/HeaderLogo';
 import { useCategories } from '@/hooks/useCategories';
 import { useTheme } from '@/contexts/ThemeContext';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 const Header = () => {
   const { categories } = useCategories();
@@ -485,7 +485,7 @@ const Header = () => {
                           }}
                         >
                           <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 bg-black/50">
-                            <img src={optimiseSupabaseImageUrl(article.image || '/placeholder.svg', 'thumb')} alt={article.title} className="w-full h-full object-cover" decoding="async" />
+                            <img src={optimiseSupabaseImageUrl(article.image || '/placeholder.svg', 'thumb')} alt={article.title} className="w-full h-full object-cover" decoding="async" onError={(e) => applyStorageImageFallback(e.currentTarget)} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="text-sm font-bold text-gray-200 truncate">{article.title}</h3>

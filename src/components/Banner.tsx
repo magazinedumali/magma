@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { optimiseSupabaseImageUrl } from "@/lib/supabaseImageUrl";
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from "@/lib/supabaseImageUrl";
 
 type BannerProps = {
   position: "accueil" | "accueil-sous-slider" | "accueil-sous-votes" | "sidebar-categorie" | "sidebar-accueil" | "sidebar-article" | "sous-article" | "footer" | "header";
@@ -95,6 +95,7 @@ const Banner: React.FC<BannerProps> = ({ position, width = 320, height = 80 }) =
           }}
           loading="lazy"
           decoding="async"
+          onError={(e) => applyStorageImageFallback(e.currentTarget)}
         />
       </div>
     </a>

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
-import { Share2, Bookmark, Send, MessageCircle, X, Facebook, Copy, User, Clock } from 'lucide-react';
+import { Share2, Bookmark, Send, MessageCircle, X, Facebook, Copy, User, Clock, Pencil } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
 import Banner from '@/components/Banner';
 import { Helmet } from 'react-helmet';
 import { supabase } from '@/lib/supabaseClient';
 import { fetchPublishedArticleBySlugParam } from '@/lib/fetchArticleBySlug';
 import { mapArticleFromSupabase } from '@/lib/articleMapper';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
+import { getStaffArticleEditPath } from '@/lib/adminUser';
 
 const MobileArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -21,11 +22,14 @@ const MobileArticleDetail = () => {
   // Central state for comments (most recent first)
   const [comments, setComments] = useState<any[]>([]);
 
-  // Fetch current user
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    void supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   // Fetch comments from Supabase
@@ -158,6 +162,9 @@ const MobileArticleDetail = () => {
     : 5;
 
   const canonicalUrl = `https://www.lemagazinedumali.com/article/${article.slug}`;
+  const staffEditPath =
+    article?.id && user ? getStaffArticleEditPath(user, String(article.id)) : null;
+
   return (
     <div className="flex min-h-screen flex-col bg-[#0a0d14] transition-colors duration-300">
       <Helmet>
@@ -179,9 +186,7 @@ const MobileArticleDetail = () => {
           src={optimiseSupabaseImageUrl(article.imageSource || article.image, 'hero')}
           alt={article.title || article.titre}
           className="absolute inset-0 h-full w-full object-cover"
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder.svg';
-          }}
+          onError={(e) => applyStorageImageFallback(e.currentTarget)}
           loading="eager"
           decoding="async"
           fetchPriority="high"
@@ -205,6 +210,15 @@ const MobileArticleDetail = () => {
             </svg>
           </button>
           <div className="flex gap-3">
+            {staffEditPath && (
+              <Link
+                to={staffEditPath}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"
+                aria-label="Modifier l'article"
+              >
+                <Pencil size={22} className="text-white" />
+              </Link>
+            )}
             <button
               type="button"
               className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"

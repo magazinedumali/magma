@@ -14,7 +14,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 import { motion } from 'framer-motion';
 import { useCategories } from '@/hooks/useCategories';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 const SECTION_TITLES = {
   selectedNews: 'Les choix de la rédaction',
@@ -322,9 +322,7 @@ const Index = () => {
                           src={optimiseSupabaseImageUrl(item.image_url || '/placeholder.svg', 'thumb')} 
                           alt={item.titre} 
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
+                          onError={(e) => applyStorageImageFallback(e.currentTarget)}
                           loading="lazy"
                         />
                         <span className={`absolute top-1 left-1 px-2 py-0.5 rounded text-white text-[10px] uppercase font-bold tracking-wider ${item.categorie === 'Mode' || item.categorie === 'Fashion' ? 'bg-pink-600' : 'bg-[#ff184e]'}`}>{item.categorie || 'Actualités'}</span>
@@ -352,9 +350,7 @@ const Index = () => {
                           src={optimiseSupabaseImageUrl(item.image_url || '/placeholder.svg', 'thumb')} 
                           alt={item.titre} 
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
+                          onError={(e) => applyStorageImageFallback(e.currentTarget)}
                           loading="lazy"
                         />
                         <span className="absolute top-1 left-1 px-2 py-0.5 rounded text-white text-[10px] uppercase font-bold tracking-wider bg-lime-500">{item.categorie || 'Voyage'}</span>

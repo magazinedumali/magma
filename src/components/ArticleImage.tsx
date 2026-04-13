@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ImageDisplayPreset } from '@/lib/supabaseImageUrl';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 interface ArticleImageProps {
   src: string;
@@ -25,7 +25,7 @@ const ArticleImage: React.FC<ArticleImageProps> = ({
   displayPreset = 'card',
 }) => {
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = fallbackSrc;
+    applyStorageImageFallback(e.currentTarget, fallbackSrc);
   };
 
   const resolvedSrc =

@@ -15,8 +15,10 @@ import { mapArticleFromSupabase } from '@/lib/articleMapper';
 import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 import { motion } from 'framer-motion';
 import { stripHtml, decodeHtml } from '@/lib/htmlUtils';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 import { fetchPublishedArticleBySlugParam } from '@/lib/fetchArticleBySlug';
+import { getStaffArticleEditPath } from '@/lib/adminUser';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -53,11 +55,15 @@ const ArticleDetail = () => {
     fetchRecentArticles();
   }, []);
 
-  // Fetch current user
+  // Utilisateur courant — getSession() comme le Header (session en cache tout de suite)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    void supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   // Add comment handler
@@ -194,6 +200,9 @@ const ArticleDetail = () => {
   );
   
   const canonicalUrl = `https://www.lemagazinedumali.com/article/${article.slug}`;
+  const staffEditPath =
+    article?.id && user ? getStaffArticleEditPath(user, String(article.id)) : null;
+
   return (
     <>
       <Helmet>
@@ -222,10 +231,22 @@ const ArticleDetail = () => {
             {/* Main Content */}
             <div className="lg:col-span-2">
               <article>
-                <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white font-jost">
-                  {article.title || article.titre}
-                </h1>
-                
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <h1 className="text-3xl md:text-4xl font-bold text-white font-jost min-w-0 flex-1">
+                    {article.title || article.titre}
+                  </h1>
+                  {staffEditPath && (
+                    <Link
+                      to={staffEditPath}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-[#ff184e]/40 bg-[#ff184e]/15 px-4 py-2.5 text-sm font-semibold text-[#ff184e] shadow-[0_0_20px_rgba(255,24,78,0.15)] transition-colors hover:bg-[#ff184e]/25 hover:text-white"
+                      title="Modifier l'article"
+                    >
+                      <PencilSquareIcon className="h-5 w-5" aria-hidden />
+                      Modifier
+                    </Link>
+                  )}
+                </div>
+
                 <div className="flex items-center text-gray-400 mb-6 text-sm font-medium">
                   <span className="mr-4 text-white">{article.author || article.auteur}</span>
                   <span className="flex items-center text-[#ff184e]">
@@ -245,9 +266,7 @@ const ArticleDetail = () => {
                     width="991"
                     height="564"
                     className="w-full h-auto object-cover mb-6 rounded"
-                    onError={(e) => {
-                      e.currentTarget.src = '/placeholder.svg';
-                    }}
+                    onError={(e) => applyStorageImageFallback(e.currentTarget)}
                     loading="lazy"
                   />
                 )}

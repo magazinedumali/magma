@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 interface SlideProps {
   id: string;
@@ -48,20 +48,22 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(3);
-      if (data) {
-        setSlides(data.map((a: any) => ({
-          id: a.id,
-          slug: a.slug,
-          title: a.titre,
-          image: a.image_url,
-          category: a.categorie,
-          author: a.auteur,
-          date: a.date_publication ? new Date(a.date_publication).toLocaleDateString() : '',
-          authorAvatar: a.authorAvatar,
-        })));
-      } else if (error) {
+      if (error) {
         console.error('[HeroSlider]', error);
         setSlides([]);
+      } else {
+        setSlides(
+          (data ?? []).map((a: any) => ({
+            id: a.id,
+            slug: a.slug,
+            title: a.titre,
+            image: a.image_url ?? '',
+            category: a.categorie,
+            author: a.auteur,
+            date: a.date_publication ? new Date(a.date_publication).toLocaleDateString() : '',
+            authorAvatar: a.authorAvatar,
+          }))
+        );
       }
       setSlidesLoading(false);
     };
@@ -124,9 +126,7 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
                   src={optimiseSupabaseImageUrl(slide.image || '/placeholder.svg', 'hero')}
                   alt={slide.title}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
+                  onError={(e) => applyStorageImageFallback(e.currentTarget)}
                   loading={slideIndex === 0 ? 'eager' : 'lazy'}
                   decoding="async"
                   fetchPriority={slideIndex === 0 ? 'high' : 'low'}

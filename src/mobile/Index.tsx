@@ -12,7 +12,7 @@ import Stories from './Stories';
 import MobileBottomNav from './MobileBottomNav';
 import MobileGlassPlayer from './MobileGlassPlayer';
 import MobileHomeThematicSections from './MobileHomeThematicSections';
-import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 function buildMobileTabs(siteCategories: { name: string }[]) {
   const fallback = [
@@ -267,9 +267,7 @@ export default function MobileHome() {
               src={optimiseSupabaseImageUrl(heroArticle.image_url || '/placeholder.svg', 'hero')}
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
-              }}
+              onError={(e) => applyStorageImageFallback(e.currentTarget)}
               loading="eager"
               decoding="async"
               fetchPriority="high"

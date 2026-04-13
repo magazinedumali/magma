@@ -10,6 +10,7 @@ import { useAdminContext } from '@/hooks/use-admin-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LoadingBar } from '@/components/ui/loading-bar';
 import { compressImageFile } from '@/lib/compressImage';
+import ArticleImageLibraryModal from './ArticleImageLibraryModal';
 
 interface ArticleFormProps {
   initialValues?: any;
@@ -78,6 +79,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   /** Lien direct vers la page publique après enregistrement (si statut = publié). */
   const [lastSavedPublicUrl, setLastSavedPublicUrl] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
+  const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
+  const [galleryLibraryOpen, setGalleryLibraryOpen] = useState(false);
   const [openBlock, setOpenBlock] = useState({
     publication: true,
     image: true, // Open image block by default for better UX
@@ -522,7 +525,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             <span>Image principale</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.image ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.image ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.image ? 'max-h-[28rem] p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
             {/* Hidden input to ensure image_url is registered with the form */}
             <input type="hidden" {...register('image_url')} />
             <div {...getRootImageProps()} className={`border border-dashed transition-colors rounded-xl p-6 text-center cursor-pointer ${
@@ -531,32 +534,45 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 : `border-gray-300 hover:border-[#ff184e] bg-gray-50 hover:bg-gray-100 text-slate-600 ${isDragImageActive ? 'border-[#ff184e] bg-gray-100' : ''}`
             }`}>
               <input {...getInputImageProps()} />
-              {(() => {
-                const imageUrl = watch('image_url');
-                console.log('Form image_url value:', imageUrl);
-                return imageUrl;
-              })() ? (
-          <div className="relative inline-block mx-auto">
-            <img src={watch('image_url')} alt="aperçu" className="h-32 object-contain rounded" />
+              {watch('image_url') ? (
+                <div className="relative inline-block mx-auto">
+                  <img src={watch('image_url')} alt="aperçu" className="h-32 object-contain rounded" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("Êtes-vous sûr de vouloir supprimer cette image ?")) {
+                        setValue('image_url', '');
+                        toast.success("Image supprimée");
+                      }
+                    }}
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700 transition z-10"
+                    title="Supprimer l'image"
+                    disabled={uploading || loadingArticle}
+                  >
+                    &#10006;
+                  </button>
+                </div>
+              ) : (
+                <span>Glissez-déposez une image ou cliquez ici</span>
+              )}
+            </div>
             <button
               type="button"
-              onClick={() => {
-                if (window.confirm("Êtes-vous sûr de vouloir supprimer cette image ?")) {
-                  setValue('image_url', '');
-                  toast.success("Image supprimée");
-                }
-              }}
-              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow hover:bg-red-700 transition z-10"
-              title="Supprimer l'image"
+              onClick={() => setImageLibraryOpen(true)}
               disabled={uploading || loadingArticle}
+              className="mt-3 w-full rounded-xl border border-[var(--border)] bg-black/15 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent)]/10 disabled:opacity-50"
             >
-              &#10006;
+              Choisir dans la bibliothèque (bucket médias)
             </button>
-          </div>
-        ) : (
-          <span>Glissez-déposez une image ou cliquez ici</span>
-        )}
-      </div>
+            <ArticleImageLibraryModal
+              open={imageLibraryOpen}
+              onOpenChange={setImageLibraryOpen}
+              title="Image principale — bibliothèque"
+              onSelect={(url) => {
+                setValue('image_url', url);
+                toast.success('Image sélectionnée');
+              }}
+            />
           </div>
         </div>
         {/* Bloc galerie d'images */}
@@ -567,7 +583,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
             <span>Galerie d'images</span>
             <span className={`transition-transform text-[var(--text-muted)] ${openBlock.gallery ? 'rotate-90' : ''}`}>▶</span>
           </button>
-          <div className={`overflow-hidden transition-all duration-300 ${openBlock.gallery ? 'max-h-96 p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
+          <div className={`overflow-hidden transition-all duration-300 ${openBlock.gallery ? 'max-h-[28rem] p-5' : 'max-h-0 p-0'} ${isDark ? 'bg-[var(--bg-card)] border-t border-[var(--border)]' : 'bg-white'}`}>
             <div {...getRootGalleryProps()} className={`border border-dashed transition-colors rounded-xl p-6 text-center cursor-pointer ${
               isDark 
                 ? `border-[var(--border)] hover:border-[var(--accent)] bg-black/20 hover:bg-black/40 ${isDragGalleryActive ? 'border-[var(--accent)] bg-black/40' : ''}` 
@@ -587,6 +603,31 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 <span className="text-[var(--text-muted)] text-sm">Glissez-déposez plusieurs images pour la galerie (max 5)</span>
               )}
             </div>
+            <button
+              type="button"
+              onClick={() => setGalleryLibraryOpen(true)}
+              disabled={uploading || loadingArticle || gallery.length >= 5}
+              className="mt-3 w-full rounded-xl border border-[var(--border)] bg-black/15 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent)]/10 disabled:opacity-50"
+            >
+              Ajouter depuis la bibliothèque
+            </button>
+            <ArticleImageLibraryModal
+              open={galleryLibraryOpen}
+              onOpenChange={setGalleryLibraryOpen}
+              title="Galerie — bibliothèque"
+              onSelect={(url) => {
+                if (gallery.length >= 5) {
+                  toast.error('Maximum 5 images dans la galerie');
+                  return;
+                }
+                if (gallery.includes(url)) {
+                  toast.error('Cette image est déjà dans la galerie');
+                  return;
+                }
+                setValue('gallery', [...gallery, url]);
+                toast.success('Image ajoutée à la galerie');
+              }}
+            />
           </div>
         </div>
         {/* Bloc audio */}
