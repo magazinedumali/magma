@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 const IMAGE_DURATION = 5000; // 5 secondes pour une image
 
@@ -164,7 +165,7 @@ const StoryViewer = ({ stories, currentIndex, onClose }) => {
           />
         ) : (
           <img
-            src={story.image_url}
+            src={optimiseSupabaseImageUrl(story.image_url, 'hero')}
             alt={story.title}
             className="w-full h-full object-cover rounded-none shadow-none"
           />
@@ -282,7 +283,7 @@ const Stories = () => {
             onClick={() => handleStoryClick(idx)}
           >
             <img
-              src={story.image_url}
+              src={optimiseSupabaseImageUrl(story.image_url, 'card')}
               alt={story.title}
               className="w-full h-full object-cover"
             />

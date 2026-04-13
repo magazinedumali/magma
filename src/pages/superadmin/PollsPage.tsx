@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { X, Edit2, Trash2, Plus, CheckCircle, Image as ImgIcon, Search, UploadCloud } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { compressImageFile } from '@/lib/compressImage';
 
 const BUCKET = 'polls';
 const PAGE_SIZE = 8;
@@ -70,9 +71,10 @@ const PollsPage = () => {
     let imageUrl = poll.image_url;
     try {
       if (file) {
-        const fileExt = file.name.split('.').pop();
+        const compressed = await compressImageFile(file, { maxWidth: 1200, maxHeight: 1200 });
+        const fileExt = compressed.name.split('.').pop() || 'webp';
         const fileName = `poll-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, file, { upsert: true });
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, compressed, { upsert: true });
         if (uploadError) throw uploadError;
         const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
         imageUrl = publicUrlData.publicUrl;

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import { stripHtml } from '@/lib/htmlUtils';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 interface ArticleCardProps {
   slug: string;
@@ -48,13 +49,14 @@ const ArticleCard = ({
         <motion.img 
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.5 }}
-          src={image} 
+          src={optimiseSupabaseImageUrl(image, 'card')} 
           alt={title} 
           className="w-full h-56 object-cover transition-transform duration-500"
           onError={(e) => {
             e.currentTarget.src = '/placeholder.svg';
           }}
           loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
         <span className="absolute top-4 left-4 bg-[#ff184e]/90 backdrop-blur-sm text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wider shadow-[0_0_10px_rgba(255,24,78,0.5)]">

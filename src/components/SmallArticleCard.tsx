@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 interface SmallArticleCardProps {
   slug: string;
@@ -28,13 +29,14 @@ const SmallArticleCard = ({
           <motion.img 
             whileHover={{ scale: 1.1 }}
             transition={{ duration: 0.4 }}
-            src={image} 
+            src={image ? optimiseSupabaseImageUrl(image, 'thumb') : image} 
             alt={title} 
             className="w-full h-full object-cover"
             onError={(e) => {
               e.currentTarget.src = '/placeholder.svg';
             }}
             loading="lazy"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </Link>

@@ -1,9 +1,6 @@
 name: Magma Autonomous Content Generation
 on:
-  schedule:
-    # Run every 30 minutes to stay within free tier limits, but ensure regular content (can be changed to */15 if desired)
-    - cron: '*/30 * * * *'
-  # Allow manual trigger from the GitHub Actions UI
+  # Déclenchement manuel uniquement (plus de cron planifié)
   workflow_dispatch:
 
 jobs:

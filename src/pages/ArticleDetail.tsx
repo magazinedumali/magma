@@ -15,6 +15,8 @@ import { mapArticleFromSupabase } from '@/lib/articleMapper';
 import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 import { motion } from 'framer-motion';
 import { stripHtml, decodeHtml } from '@/lib/htmlUtils';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { fetchPublishedArticleBySlugParam } from '@/lib/fetchArticleBySlug';
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -121,104 +123,19 @@ const ArticleDetail = () => {
   const commentHeight = 104; // px, augmenté pour que tout soit bien contenu
 
   useEffect(() => {
-    console.log('slug from URL:', slug);
     const fetchArticle = async () => {
+      if (!slug) {
+        setLoading(false);
+        setArticle(null);
+        return;
+      }
       setLoading(true);
       try {
-        // First try to fetch by slug (exact match) - only published articles
-        let { data, error } = await supabase
-          .from('articles')
-          .select('*')
-          .eq('slug', slug)
-          .eq('statut', 'publie')
-          .maybeSingle(); // Use maybeSingle instead of single to avoid error when no results
-        
-        console.log('Supabase fetch by slug result:', { data, error, slug });
-        
-        // If exact slug match fails, try case-insensitive search - only published articles
-        if (!data && slug) {
-          console.log('Trying case-insensitive slug search...');
-          const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
-            .from('articles')
-            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url')
-            .eq('statut', 'publie')
-            .ilike('slug', slug)
-            .maybeSingle();
-          
-          console.log('Case-insensitive slug search result:', { data: caseInsensitiveData, error: caseInsensitiveError });
-          
-          if (caseInsensitiveData) {
-            data = caseInsensitiveData;
-            error = null;
-          }
-        }
-        
-        // If slug fails and slug looks like an ID, try fetching by ID - only published articles
-        if (!data && slug && slug.length === 36) { // UUID length
-          console.log('Trying to fetch by ID as fallback...');
-          const { data: idData, error: idError } = await supabase
-            .from('articles')
-            .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url')
-            .eq('statut', 'publie')
-            .eq('id', slug)
-            .maybeSingle();
-          
-          console.log('Supabase fetch by ID result:', { data: idData, error: idError });
-          
-          if (idData) {
-            data = idData;
-            error = null;
-          }
-        }
-        
-        // If still no match, try to find similar slugs for debugging
-        if (!data && slug) {
-          console.log('Searching for similar slugs...');
-          const { data: similarSlugs, error: similarError } = await supabase
-            .from('articles')
-            .select('id, titre, slug, statut')
-            .ilike('slug', `%${slug}%`)
-            .limit(5);
-          
-          console.log('Similar slugs found:', similarSlugs);
-          
-          // Also try searching by title if slug contains meaningful words
-          if (similarSlugs && similarSlugs.length === 0) {
-            const words = slug.split('-').filter(w => w.length > 2);
-            if (words.length > 0) {
-              console.log('Searching by title keywords:', words);
-              const { data: titleMatches, error: titleError } = await supabase
-                .from('articles')
-                .select('id, titre, slug, statut')
-                .or(words.map(w => `titre.ilike.%${w}%`).join(','))
-                .limit(5);
-              
-              console.log('Title matches found:', titleMatches);
-            }
-          }
-        }
-        
-        if (error) {
-          console.error('Error fetching article:', error);
-          setArticle(null);
-        } else if (data) {
-          console.log('Article image_url:', data?.image_url);
-          console.log('Article image field:', data?.image);
-          console.log('Article content fields:', {
-            contenu: data?.contenu,
-            content: data?.content,
-            contenuLength: data?.contenu?.length,
-            contentLength: data?.content?.length
-          });
-          const mappedArticle = mapArticleFromSupabase(data);
-          console.log('Mapped article:', {
-            image: mappedArticle.image,
-            content: mappedArticle.content,
-            contentLength: mappedArticle.content?.length
-          });
-          setArticle(mappedArticle);
+        const { data, error } = await fetchPublishedArticleBySlugParam(supabase, slug);
+        if (error) console.error('Error fetching article:', error);
+        if (data) {
+          setArticle(mapArticleFromSupabase(data));
         } else {
-          console.log('No article found with slug:', slug);
           setArticle(null);
         }
       } catch (err) {
@@ -228,7 +145,7 @@ const ArticleDetail = () => {
         setLoading(false);
       }
     };
-    if (slug) fetchArticle();
+    fetchArticle();
   }, [slug]);
 
   useEffect(() => {
@@ -261,7 +178,10 @@ const ArticleDetail = () => {
   if (!article) return (
     <div className="py-12 text-center">
       <div className="text-red-500 text-xl mb-4">Article introuvable</div>
-      <div className="text-gray-600 mb-4">L'article avec le slug "{slug}" n'a pas été trouvé.</div>
+      <div className="text-gray-600 mb-4">
+        L&apos;article avec le slug ou l&apos;identifiant « {slug} » est introuvable ou n&apos;est pas encore
+        publié.
+      </div>
       <div className="text-sm text-gray-500">
         Vérifiez que l'URL est correcte ou que l'article existe dans la base de données.
       </div>
@@ -281,12 +201,12 @@ const ArticleDetail = () => {
         <meta property="og:type" content="article" />
         <meta property="og:title" content={article.title || article.titre} />
         <meta property="og:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta property="og:image" content={article.share_image_url || article.image_url || article.image} />
+        <meta property="og:image" content={article.share_image_url || article.imageSource || article.image} />
         <meta property="og:url" content={canonicalUrl} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title || article.titre} />
         <meta name="twitter:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta name="twitter:image" content={article.share_image_url || article.image_url || article.image} />
+        <meta name="twitter:image" content={article.share_image_url || article.imageSource || article.image} />
         <meta name="twitter:url" content={canonicalUrl} />
       </Helmet>
       <Header />
@@ -318,9 +238,9 @@ const ArticleDetail = () => {
                   {article.category || article.categorie}
                 </div>
                 
-                {(article.image || article.image_url) && (article.image !== '/placeholder.svg' && article.image_url !== '/placeholder.svg') && (
+                {(article.image || article.imageSource) && (article.image !== '/placeholder.svg' && article.imageSource !== '/placeholder.svg') && (
                   <img 
-                    src={article.image || article.image_url} 
+                    src={optimiseSupabaseImageUrl(article.imageSource || article.image, 'articleBody')} 
                     alt={article.title || article.titre} 
                     width="991"
                     height="564"

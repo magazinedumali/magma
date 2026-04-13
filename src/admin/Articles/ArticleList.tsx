@@ -2,8 +2,14 @@ import React, { useEffect, useState } from 'react';
 import ArticleCard from './ArticleCard';
 import toast from 'react-hot-toast';
 import * as Dialog from '@radix-ui/react-dialog';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useCallback } from 'react';
+import {
+  MagnifyingGlassIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  EyeIcon,
+} from '@heroicons/react/24/outline';
 import ArticleDetailModal from './ArticleDetailModal';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import ConfirmBulkDeleteModal from './ConfirmBulkDeleteModal';
@@ -41,6 +47,169 @@ function normalizeArticleStatut(raw?: string): 'publie' | 'brouillon' {
   return 'brouillon';
 }
 
+const ARTICLES_VIEW_STORAGE_KEY = 'magma-admin-articles-view';
+
+function listRowImageUrl(raw?: string): string | null {
+  if (!raw) return null;
+  if (raw.startsWith('http')) return raw;
+  if (raw.startsWith('public/') || raw.includes('/storage/')) return raw;
+  if (raw === '/placeholder.svg' || raw.trim() === '') return null;
+  return raw;
+}
+
+interface ArticleListRowProps {
+  article: Article;
+  statut: 'publie' | 'brouillon';
+  selected: boolean;
+  onSelect: () => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onShowDetail: (id: string) => void;
+}
+
+const ArticleListRow: React.FC<ArticleListRowProps> = ({
+  article,
+  statut,
+  selected,
+  onSelect,
+  onEdit,
+  onDelete,
+  onShowDetail,
+}) => {
+  const { getArticleEditPath } = useAdminContext();
+  const { id, titre, categorie, tags = [], audio_url, slug } = article;
+  const imageUrl = listRowImageUrl(article.image_url || article.image);
+  const isPublished = statut === 'publie';
+
+  const handlePreview = () => {
+    if (!isPublished) {
+      toast.error('Les brouillons ne sont pas visibles sur le site public. Ouverture de l’édition.');
+      window.open(getArticleEditPath(id), '_blank');
+      return;
+    }
+    const segment = slug?.trim() ? encodeURIComponent(slug.trim()) : id;
+    window.open(`/article/${segment}`, '_blank');
+  };
+
+  const handleRowClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button, input, label, a, audio')) return;
+    onShowDetail(id);
+  };
+
+  return (
+    <div
+      className="dark-card flex flex-wrap sm:flex-nowrap gap-4 items-center p-4 transition-all duration-200 cursor-pointer group"
+      style={{
+        border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
+        boxShadow: selected ? '0 8px 24px rgba(255, 24, 78, 0.15)' : 'var(--shadow-card)',
+      }}
+      onClick={handleRowClick}
+    >
+      <label
+        className="flex items-center shrink-0 cursor-pointer"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onSelect}
+          className="w-4 h-4 accent-[#ff184e]"
+          aria-label="Sélectionner l'article"
+        />
+      </label>
+
+      <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-black/20 border border-white/5">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg';
+            }}
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 border border-white/5 px-1 text-center">
+            <span className="text-[10px] font-medium leading-tight">Sans image</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <h3
+          className="text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors line-clamp-2"
+          title={titre}
+        >
+          {titre}
+        </h3>
+        <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
+          <span className="bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 px-2 py-0.5 rounded font-semibold">
+            {categorie || 'Sans catégorie'}
+          </span>
+          {Array.isArray(tags) &&
+            tags.slice(0, 4).map((tag, idx) => (
+              <span
+                key={idx}
+                className="bg-white/5 text-[var(--text-secondary)] px-2 py-0.5 rounded border border-white/5"
+              >
+                #{tag}
+              </span>
+            ))}
+          {tags.length > 4 && (
+            <span className="text-[var(--text-muted)]">+{tags.length - 4}</span>
+          )}
+        </div>
+        {audio_url && (
+          <div className="mt-3 max-w-md" onClick={(e) => e.stopPropagation()}>
+            <audio controls src={audio_url} className="w-full h-8 opacity-90 style-audio" />
+          </div>
+        )}
+      </div>
+
+      <span
+        className={`shrink-0 text-xs px-2.5 py-1 rounded-full font-bold border ${
+          isPublished
+            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+            : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+        }`}
+      >
+        {isPublished ? 'Publié' : 'Brouillon'}
+      </span>
+
+      <div
+        className="flex gap-1.5 bg-black/20 p-1 rounded-md border border-white/5 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={handlePreview}
+          className="p-2 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+          title="Prévisualiser"
+        >
+          <EyeIcon className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(id)}
+          className="p-2 rounded hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 transition-colors"
+          title="Éditer"
+        >
+          <PencilSquareIcon className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(id)}
+          className="p-2 rounded hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
+          title="Supprimer"
+        >
+          <TrashIcon className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ArticleList: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +237,24 @@ const ArticleList: React.FC = () => {
   const [bulkTagAction, setBulkTagAction] = useState<'add' | 'remove'>('add');
   const [loadingBulkTag, setLoadingBulkTag] = useState(false);
   const [showImageDebug, setShowImageDebug] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      const v = localStorage.getItem(ARTICLES_VIEW_STORAGE_KEY);
+      if (v === 'list' || v === 'grid') return v;
+    } catch {
+      /* ignore */
+    }
+    return 'grid';
+  });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ARTICLES_VIEW_STORAGE_KEY, viewMode);
+    } catch {
+      /* ignore */
+    }
+  }, [viewMode]);
   const { getArticleEditPath, getArticleCreatePath } = useAdminContext();
 
   const fetchArticles = async () => {
@@ -301,6 +487,38 @@ const ArticleList: React.FC = () => {
             <option value="publie" className="bg-[var(--bg-main)] text-green-400">Publié</option>
             <option value="brouillon" className="bg-[var(--bg-main)] text-yellow-400">Brouillon</option>
           </select>
+          <div
+            className="flex rounded-lg border border-white/10 overflow-hidden shrink-0"
+            role="group"
+            aria-label="Mode d'affichage des articles"
+          >
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+              title="Vue grille"
+              className={`p-2.5 transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <Squares2X2Icon className="w-5 h-5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+              title="Vue liste"
+              className={`p-2.5 transition-colors border-l border-white/10 ${
+                viewMode === 'list'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              <ListBulletIcon className="w-5 h-5" aria-hidden />
+            </button>
+          </div>
           <button
             className="bg-[var(--accent)] text-white px-5 py-2 rounded-lg hover:brightness-110 hover:-translate-y-0.5 transition-all shadow-[0_4px_16px_var(--accent-glow)] flex items-center gap-2 font-medium"
             onClick={handleAdd}
@@ -360,29 +578,46 @@ const ArticleList: React.FC = () => {
             </label>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6">
-            {paginatedArticles.map(article => {
-              const imageUrl = article.image_url || article.image;
-              return (
-                <ArticleCard
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 lg:gap-6">
+              {paginatedArticles.map((article) => {
+                const imageUrl = article.image_url || article.image;
+                return (
+                  <ArticleCard
+                    key={article.id}
+                    id={article.id}
+                    titre={article.titre}
+                    image_url={imageUrl}
+                    categorie={article.categorie}
+                    tags={article.tags}
+                    audio_url={article.audio_url}
+                    statut={normalizeArticleStatut(article.statut)}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    selected={selected.includes(article.id)}
+                    onSelect={() => handleSelect(article.id)}
+                    onShowDetail={handleShowDetail}
+                    slug={article.slug}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {paginatedArticles.map((article) => (
+                <ArticleListRow
                   key={article.id}
-                  id={article.id}
-                  titre={article.titre}
-                  image_url={imageUrl}
-                  categorie={article.categorie}
-                  tags={article.tags}
-                  audio_url={article.audio_url}
+                  article={article}
                   statut={normalizeArticleStatut(article.statut)}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
                   selected={selected.includes(article.id)}
                   onSelect={() => handleSelect(article.id)}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
                   onShowDetail={handleShowDetail}
-                  slug={article.slug}
                 />
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
           
           <div className="flex flex-col sm:flex-row items-center justify-between mt-8 pt-6 border-t border-white/10 gap-4">
             <div className="flex items-center gap-2">

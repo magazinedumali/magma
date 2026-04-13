@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { optimiseSupabaseImageUrl } from "@/lib/supabaseImageUrl";
 
 type BannerProps = {
   position: "accueil" | "accueil-sous-slider" | "accueil-sous-votes" | "sidebar-categorie" | "sidebar-accueil" | "sidebar-article" | "sous-article" | "footer" | "header";
@@ -79,7 +80,12 @@ const Banner: React.FC<BannerProps> = ({ position, width = 320, height = 80 }) =
         }}
       >
         <img
-          src={banner.image_url}
+          src={optimiseSupabaseImageUrl(banner.image_url, {
+            width: Math.min(2500, Math.max(640, Math.round(width * 2))),
+            height: height ? Math.min(2500, Math.max(200, Math.round(height * 2))) : undefined,
+            quality: 78,
+            resize: "cover",
+          })}
           alt={banner.title}
           style={{
             width: "100%",
@@ -87,6 +93,8 @@ const Banner: React.FC<BannerProps> = ({ position, width = 320, height = 80 }) =
             objectFit: "cover",
             display: "block"
           }}
+          loading="lazy"
+          decoding="async"
         />
       </div>
     </a>

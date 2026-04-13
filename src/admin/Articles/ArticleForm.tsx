@@ -9,6 +9,7 @@ import { useCategories } from '@/components/admin-dashboard/useCategories';
 import { useAdminContext } from '@/hooks/use-admin-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LoadingBar } from '@/components/ui/loading-bar';
+import { compressImageFile } from '@/lib/compressImage';
 
 interface ArticleFormProps {
   initialValues?: any;
@@ -108,7 +109,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
   const onDropImage = async (acceptedFiles: File[]) => {
     if (!acceptedFiles[0]) return;
     setUploading(true);
-    const file = acceptedFiles[0];
+    const raw = acceptedFiles[0];
+    const file = await compressImageFile(raw);
     const { data, error } = await supabase.storage.from('article-images').upload(`public/${Date.now()}-${file.name}`, file, { upsert: true });
     if (error) {
       toast.error("Erreur upload image");
@@ -162,7 +164,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     }
     setUploading(true);
     const newUrls: string[] = [];
-    for (const file of acceptedFiles) {
+    for (const raw of acceptedFiles) {
+      const file = await compressImageFile(raw, { maxWidth: 1600, maxHeight: 1600 });
       const { data, error } = await supabase.storage.from('article-images').upload(`gallery/${Date.now()}-${file.name}`, file, { upsert: true });
       if (error) {
         toast.error('Erreur upload image galerie');
@@ -404,9 +407,9 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                     input.setAttribute('type', 'file');
                     input.setAttribute('accept', 'image/*');
                     input.onchange = async function () {
-                      const file = (input as HTMLInputElement).files?.[0];
-                      if (!file) return;
-                      // Upload to Supabase Storage
+                      const raw = (input as HTMLInputElement).files?.[0];
+                      if (!raw) return;
+                      const file = await compressImageFile(raw, { maxWidth: 1600, maxHeight: 1600 });
                       const filePath = `public/editor-${Date.now()}-${file.name}`;
                       const { data, error } = await supabase.storage.from('article-images').upload(filePath, file, { upsert: true });
                       if (error) {

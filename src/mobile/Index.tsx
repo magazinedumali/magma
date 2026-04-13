@@ -12,6 +12,7 @@ import Stories from './Stories';
 import MobileBottomNav from './MobileBottomNav';
 import MobileGlassPlayer from './MobileGlassPlayer';
 import MobileHomeThematicSections from './MobileHomeThematicSections';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 function buildMobileTabs(siteCategories: { name: string }[]) {
   const fallback = [
@@ -263,12 +264,15 @@ export default function MobileHome() {
             onClick={() => goArticle(heroArticle)}
           >
             <img
-              src={heroArticle.image_url || '/placeholder.svg'}
+              src={optimiseSupabaseImageUrl(heroArticle.image_url || '/placeholder.svg', 'hero')}
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
               onError={(e) => {
                 e.currentTarget.src = '/placeholder.svg';
               }}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 z-10 p-4">

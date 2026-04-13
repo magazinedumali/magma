@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { X, Edit2, Trash2, Plus, CheckCircle, Image as ImgIcon, Search, UploadCloud, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { Skeleton } from '@/components/ui/skeleton';
+import { compressImageFile } from '@/lib/compressImage';
 
 const BUCKET = 'stories';
 const PAGE_SIZE = 8;
@@ -54,9 +55,10 @@ const StoriesPage = () => {
     let imageUrl = story.image_url;
     try {
       if (file) {
-        const fileExt = file.name.split('.').pop();
+        const compressed = await compressImageFile(file, { maxWidth: 1200, maxHeight: 1200 });
+        const fileExt = compressed.name.split('.').pop() || 'webp';
         const fileName = `story-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, file, { upsert: true });
+        const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, compressed, { upsert: true });
         if (uploadError) throw uploadError;
         const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
         imageUrl = publicUrlData.publicUrl;

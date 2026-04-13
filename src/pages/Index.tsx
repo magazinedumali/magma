@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 import { motion } from 'framer-motion';
 import { useCategories } from '@/hooks/useCategories';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 const SECTION_TITLES = {
   selectedNews: 'Les choix de la rédaction',
@@ -318,7 +319,7 @@ const Index = () => {
                     <motion.div whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }} key={idx} className="flex gap-4 items-center cursor-pointer p-3 rounded-xl transition-colors glass-panel" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
                       <div className="relative min-w-[120px] w-[120px] h-[80px] rounded-lg overflow-hidden border border-white/10 shadow-lg">
                         <img 
-                          src={item.image_url || '/placeholder.svg'} 
+                          src={optimiseSupabaseImageUrl(item.image_url || '/placeholder.svg', 'thumb')} 
                           alt={item.titre} 
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           onError={(e) => {
@@ -348,7 +349,7 @@ const Index = () => {
                     <motion.div whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }} key={idx} className="flex gap-4 items-center cursor-pointer p-3 rounded-xl transition-colors glass-panel" onClick={() => window.location.href = `/article/${item.slug || item.id}`}>
                       <div className="relative min-w-[120px] w-[120px] h-[80px] rounded-lg overflow-hidden border border-white/10 shadow-lg">
                         <img 
-                          src={item.image_url || '/placeholder.svg'} 
+                          src={optimiseSupabaseImageUrl(item.image_url || '/placeholder.svg', 'thumb')} 
                           alt={item.titre} 
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                           onError={(e) => {

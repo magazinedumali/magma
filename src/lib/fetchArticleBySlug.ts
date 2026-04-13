@@ -1,5 +1,33 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+/** Variantes de statut « publié » encore présentes en base après d’anciennes saisies */
+const PUBLISHED_STATUT_VALUES = [
+  'publie',
+  'published',
+  'public',
+  'publié',
+  'Publié',
+  'PUBLIE',
+];
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const HEX32_ID = /^[0-9a-f]{32}$/i;
+
+function normalizeIdParam(segment: string): string | null {
+  const t = segment.trim();
+  if (UUID_RE.test(t)) return t.toLowerCase();
+  if (HEX32_ID.test(t)) {
+    const s = t.toLowerCase();
+    return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20, 32)}`;
+  }
+  return null;
+}
+
+function publishedArticlesQuery(client: SupabaseClient) {
+  return client.from('articles').select('*').in('statut', PUBLISHED_STATUT_VALUES);
+}
+
 /** Slug URL sans accents, minuscules — pour comparer à la BDD */
 function foldSlug(s: string) {
   return s
@@ -28,7 +56,7 @@ export async function fetchPublishedArticleBySlugParam(
   }
   slug = slug.trim();
 
-  const q = () => client.from('articles').select('*').eq('statut', 'publie');
+  const q = () => publishedArticlesQuery(client);
 
   let { data, error } = await q().eq('slug', slug).maybeSingle();
   if (data) return { data, error: null };
@@ -36,17 +64,15 @@ export async function fetchPublishedArticleBySlugParam(
   ({ data, error } = await q().ilike('slug', slug).maybeSingle());
   if (data) return { data, error: null };
 
-  if (slug.length === 36) {
-    ({ data, error } = await q().eq('id', slug).maybeSingle());
+  const idParam = normalizeIdParam(slug);
+  if (idParam) {
+    ({ data, error } = await q().eq('id', idParam).maybeSingle());
     if (data) return { data, error: null };
   }
 
   const foldedParam = foldSlug(slug);
 
-  const { data: containsRows } = await client
-    .from('articles')
-    .select('*')
-    .eq('statut', 'publie')
+  const { data: containsRows } = await publishedArticlesQuery(client)
     .ilike('slug', `%${slug}%`)
     .limit(25);
 
@@ -62,10 +88,7 @@ export async function fetchPublishedArticleBySlugParam(
   /* Slug BDD plus court que l’URL (suffixe en trop) : la BDD est préfixe de l’URL */
   if (segments.length >= 4) {
     const core = segments.slice(0, Math.min(8, segments.length)).join('-');
-    const { data: coreRows } = await client
-      .from('articles')
-      .select('*')
-      .eq('statut', 'publie')
+    const { data: coreRows } = await publishedArticlesQuery(client)
       .ilike('slug', `%${core}%`)
       .limit(40);
     if (coreRows?.length) {
@@ -92,10 +115,7 @@ export async function fetchPublishedArticleBySlugParam(
 
   for (let n = Math.min(segments.length, 14); n >= 4; n--) {
     const prefix = segments.slice(0, n).join('-');
-    const { data: prefRows, error: prefErr } = await client
-      .from('articles')
-      .select('*')
-      .eq('statut', 'publie')
+    const { data: prefRows, error: prefErr } = await publishedArticlesQuery(client)
       .ilike('slug', `${prefix}%`)
       .limit(25);
 

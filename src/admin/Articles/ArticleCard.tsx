@@ -1,5 +1,7 @@
 import React from 'react';
+import toast from 'react-hot-toast';
 import { PencilSquareIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { useAdminContext } from '@/hooks/use-admin-context';
 
 interface ArticleCardProps {
   id: string;
@@ -32,6 +34,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onShowDetail,
   slug,
 }) => {
+  const { getArticleEditPath } = useAdminContext();
   const normalizedStatut = String(statut ?? '')
     .toLowerCase()
     .normalize('NFD')
@@ -49,6 +52,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button,input')) return;
     if (onShowDetail) onShowDetail(id);
+  };
+
+  const handlePreview = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isPublished) {
+      toast.error('Les brouillons ne sont pas visibles sur le site public. Ouverture de l’édition.');
+      window.open(getArticleEditPath(id), '_blank');
+      return;
+    }
+    const segment = slug?.trim() ? encodeURIComponent(slug.trim()) : id;
+    window.open(`/article/${segment}`, '_blank');
   };
 
   return (
@@ -110,7 +124,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         
         <div className="flex gap-1.5 bg-black/20 p-1 rounded-md border border-white/5">
           <button
-            onClick={e => { e.stopPropagation(); window.open(`/article/${slug || id}`, '_blank'); }}
+            type="button"
+            onClick={handlePreview}
             className="p-1.5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
             title="Prévisualiser"
           >

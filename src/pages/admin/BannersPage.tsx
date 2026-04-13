@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Link as LinkIcon, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingBar } from '@/components/ui/loading-bar';
+import { compressImageFile } from '@/lib/compressImage';
 
 type Banner = {
   id: string;
@@ -75,12 +76,13 @@ const BannersPage = () => {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const raw = e.target.files?.[0];
+    if (raw) {
       setUploading(true);
       setError("");
       try {
-        const fileExt = file.name.split('.').pop();
+        const file = await compressImageFile(raw, { maxWidth: 1600, maxHeight: 600 });
+        const fileExt = file.name.split('.').pop() || 'webp';
         const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
         const { data, error: uploadError } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true });
         

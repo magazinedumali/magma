@@ -7,6 +7,7 @@ import { Icon } from '@iconify/react';
 import { getUserAvatar } from '@/lib/userHelper';
 import { LoadingBar } from '@/components/ui/loading-bar';
 import { motion } from 'framer-motion';
+import { compressImageFile } from '@/lib/compressImage';
 
 const Profile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -52,9 +53,15 @@ const Profile: React.FC = () => {
 
   const uploadAvatar = async () => {
     if (!avatarFile || !user) return null;
-    const fileExt = avatarFile.name.split('.').pop();
+    const file = await compressImageFile(avatarFile, {
+      maxWidth: 512,
+      maxHeight: 512,
+      quality: 0.85,
+      skipBelowBytes: 0,
+    });
+    const fileExt = file.name.split('.').pop() || 'webp';
     const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-    const { data, error } = await supabase.storage.from('avatars').upload(fileName, avatarFile, { upsert: true });
+    const { data, error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
     if (error) {
       setError("Erreur lors de l'upload de la photo de profil");
       return null;

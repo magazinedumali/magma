@@ -3,13 +3,20 @@
  * Gère les différences de noms de champs entre la base de données et les composants
  */
 
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+
 export interface MappedArticle {
   id: string;
   slug: string;
   title: string;
   excerpt: string;
   content: string;
+  /** Image optimisée (transformation Supabase) pour listes / cartes */
   image: string;
+  /** URL brute depuis la BDD (Open Graph, image pleine page) */
+  imageSource: string;
+  share_image_url?: string;
+  share_description?: string;
   category: string;
   date: string;
   author: string;
@@ -20,13 +27,17 @@ export interface MappedArticle {
 }
 
 export const mapArticleFromSupabase = (article: any): MappedArticle => {
+  const rawImage = article.image_url ?? article.image ?? '/placeholder.svg';
   return {
     id: article.id,
     slug: article.slug || article.id,
     title: article.titre ?? article.title ?? '',
     excerpt: article.meta_description ?? article.excerpt ?? '',
     content: article.contenu ?? article.content ?? '',
-    image: article.image_url ?? article.image ?? '/placeholder.svg',
+    image: optimiseSupabaseImageUrl(rawImage, 'card'),
+    imageSource: rawImage,
+    share_image_url: article.share_image_url,
+    share_description: article.share_description,
     category: article.categorie ?? article.category ?? '',
     date: article.date_publication ?? article.date ?? '',
     author: article.auteur ?? article.author ?? '',

@@ -14,7 +14,7 @@ import "./dashboard.css";
 
 const DashboardWidgets = () => {
   const { stats, loading, error } = useDashboardStats();
-  const { articles, loading: loadingArticles } = useRecentArticles(5);
+  const { articles, loading: loadingArticles } = useRecentArticles(15);
   const { locations, total, loading: loadingLocations } = useUsersByLocation();
 
   if (loading) return (

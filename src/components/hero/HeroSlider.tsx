@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 interface SlideProps {
   id: string;
@@ -107,7 +108,7 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
     >
       <Carousel setApi={setApi} className="relative h-full">
         <CarouselContent className="h-full ml-0">
-          {slides.map((slide) => (
+          {slides.map((slide, slideIndex) => (
             <CarouselItem key={slide.id} className="h-full pl-0">
               <div
                 className={
@@ -118,14 +119,17 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
               >
                 <motion.img
                   initial={{ scale: 1.1 }}
-                  animate={{ scale: current === slides.indexOf(slide) + 1 ? 1 : 1.1 }}
+                  animate={{ scale: current === slideIndex + 1 ? 1 : 1.1 }}
                   transition={{ duration: 6, ease: "easeOut" }}
-                  src={slide.image || '/placeholder.svg'}
+                  src={optimiseSupabaseImageUrl(slide.image || '/placeholder.svg', 'hero')}
                   alt={slide.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.src = '/placeholder.svg';
                   }}
+                  loading={slideIndex === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  fetchPriority={slideIndex === 0 ? 'high' : 'low'}
                 />
                 
                 {/* Gradient: lighter at top, heavier only at bottom */}
@@ -173,6 +177,8 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
                           alt={slide.author}
                           className="w-5 h-5 rounded-full border border-white/20"
                           onError={(e) => { e.currentTarget.src = '/logo.png'; }}
+                          loading="lazy"
+                          decoding="async"
                         />
                         <span className="text-xs font-semibold text-white/90" style={{ fontFamily: "'Inter', sans-serif" }}>{slide.author}</span>
                       </div>

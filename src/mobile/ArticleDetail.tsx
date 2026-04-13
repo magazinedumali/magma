@@ -8,6 +8,7 @@ import { Helmet } from 'react-helmet';
 import { supabase } from '@/lib/supabaseClient';
 import { fetchPublishedArticleBySlugParam } from '@/lib/fetchArticleBySlug';
 import { mapArticleFromSupabase } from '@/lib/articleMapper';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 
 const MobileArticleDetail = () => {
@@ -128,7 +129,9 @@ const MobileArticleDetail = () => {
     return (
       <div className="min-h-screen bg-[#0a0d14] px-4 py-12 text-center text-white">
         <div className="mb-4 text-xl text-[#ef4444]">Article introuvable</div>
-        <div className="mb-4 text-[#9ba5be]">L&apos;article avec le slug « {slug} » n&apos;a pas été trouvé.</div>
+        <div className="mb-4 text-[#9ba5be]">
+          L&apos;article avec le slug ou l&apos;identifiant « {slug} » est introuvable ou n&apos;est pas encore publié.
+        </div>
         <Link to="/mobile" className="font-semibold text-[#ff184e] hover:underline">
           Retour à l&apos;accueil
         </Link>
@@ -162,24 +165,26 @@ const MobileArticleDetail = () => {
         <meta property="og:type" content="article" />
         <meta property="og:title" content={article.title || article.titre} />
         <meta property="og:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta property="og:image" content={article.share_image_url || article.image_url || article.image} />
+        <meta property="og:image" content={article.share_image_url || article.imageSource || article.image} />
         <meta property="og:url" content={canonicalUrl} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title || article.titre} />
         <meta name="twitter:description" content={article.share_description || article.meta_description || article.excerpt || ''} />
-        <meta name="twitter:image" content={article.share_image_url || article.image_url || article.image} />
+        <meta name="twitter:image" content={article.share_image_url || article.imageSource || article.image} />
         <meta name="twitter:url" content={canonicalUrl} />
       </Helmet>
       {/* Hero — proche ArticleDetailScreen RN */}
       <div className="relative min-h-[50vh] w-full overflow-hidden md:min-h-[55vh]">
         <img
-          src={article.image || article.image_url}
+          src={optimiseSupabaseImageUrl(article.imageSource || article.image, 'hero')}
           alt={article.title || article.titre}
           className="absolute inset-0 h-full w-full object-cover"
           onError={(e) => {
             e.currentTarget.src = '/placeholder.svg';
           }}
-          loading="lazy"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
         <div
           className="absolute inset-0"

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Camera, Heart, Download, Globe, CreditCard, LogOut, ChevronRight, Settings } from 'lucide-react';
 import { getUserAvatar } from '@/lib/userHelper';
 import MobileBottomNav from './MobileBottomNav';
+import { compressImageFile } from '@/lib/compressImage';
 
 export default function MobileProfile() {
   const [user, setUser] = useState<any>(null);
@@ -38,9 +39,15 @@ export default function MobileProfile() {
 
   const uploadAvatar = async () => {
     if (!avatarFile || !user) return null;
-    const fileExt = avatarFile.name.split('.').pop();
+    const file = await compressImageFile(avatarFile, {
+      maxWidth: 512,
+      maxHeight: 512,
+      quality: 0.85,
+      skipBelowBytes: 0,
+    });
+    const fileExt = file.name.split('.').pop() || 'webp';
     const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-    const { data, error: upErr } = await supabase.storage.from('avatars').upload(fileName, avatarFile, { upsert: true });
+    const { data, error: upErr } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
     if (upErr) {
       setError("Erreur lors de l'upload de la photo de profil");
       return null;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bookmark } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import MobileBottomNav from './MobileBottomNav';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 export default function MobileSearch() {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export default function MobileSearch() {
             onClick={() => navigate(`/mobile/article/${article.slug || article.id}`)}
           >
             <img
-              src={article.image_url}
+              src={optimiseSupabaseImageUrl(article.image_url || '/placeholder.svg', 'thumb')}
               alt=""
               className="h-28 w-28 shrink-0 object-cover"
               onError={(e) => {

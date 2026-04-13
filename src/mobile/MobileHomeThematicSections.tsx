@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { ChevronRight } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
+import { optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
 type ArticleRow = {
   id: string;
@@ -78,10 +79,11 @@ function MiniArticleCard({ article, onClick }: { article: ArticleRow; onClick: (
     >
       <div className="relative h-[110px] w-full bg-[#0a0d14]">
         <img
-          src={article.image_url || '/placeholder.svg'}
+          src={optimiseSupabaseImageUrl(article.image_url || '/placeholder.svg', 'thumb')}
           alt=""
           className="h-full w-full object-cover"
           loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.currentTarget.src = '/placeholder.svg';
           }}
