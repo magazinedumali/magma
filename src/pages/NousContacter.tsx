@@ -111,8 +111,8 @@ export default function NousContacter() {
         >
           <div className="md:w-5/12 relative rounded-[2rem] overflow-hidden group">
             <img
-              src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&q=80&w=1200"
-              alt="Contact"
+              src="/contact-support-journalist.jpg"
+              alt={t("Journaliste professionnelle au micro — notre équipe à votre écoute")}
               className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-transparent to-transparent opacity-60" />

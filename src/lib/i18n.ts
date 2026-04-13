@@ -100,6 +100,8 @@ const resources = {
       'Téléphone': 'Téléphone',
       'Social': 'Social',
       'Support 24/7': 'Support 24/7',
+      'Journaliste professionnelle au micro — notre équipe à votre écoute':
+        'Journaliste professionnelle au micro — notre équipe à votre écoute',
       'Notre équipe technique est disponible pour répondre à toutes vos interrogations.': 'Notre équipe technique est disponible pour répondre à toutes vos interrogations.',
       'Nom Complet': 'Nom Complet',
       'John Doe': 'John Doe',
@@ -217,6 +219,8 @@ const resources = {
       'Téléphone': 'Phone',
       'Social': 'Social',
       'Support 24/7': '24/7 Support',
+      'Journaliste professionnelle au micro — notre équipe à votre écoute':
+        'Professional journalist with a microphone — our team is here for you',
       'Notre équipe technique est disponible pour répondre à toutes vos interrogations.': 'Our technical team is available to answer all your questions.',
       'Nom Complet': 'Full Name',
       'John Doe': 'John Doe',
