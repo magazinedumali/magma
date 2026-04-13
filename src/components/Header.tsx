@@ -28,6 +28,11 @@ import { useCategories } from '@/hooks/useCategories';
 import { useTheme } from '@/contexts/ThemeContext';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
+/** Échappe % et _ pour les motifs ILIKE PostgREST */
+function escapeForIlike(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 const Header = () => {
   const { categories } = useCategories();
   const { isDark, toggleTheme } = useTheme();
@@ -124,46 +129,66 @@ const Header = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    const searchArticles = async () => {
-      if (!searchQuery.trim()) {
-        setSearchResults([]);
-        setIsSearching(false);
-        return;
-      }
+    let cancelled = false;
+    const q = searchQuery.trim();
+    if (!q) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return () => {
+        cancelled = true;
+      };
+    }
 
-      setIsSearching(true);
+    setIsSearching(true);
+    const run = async () => {
       try {
+        const safe = escapeForIlike(q.replace(/,/g, ' '));
+        const pattern = `%${safe}%`;
+        const orFilter = [
+          `titre.ilike.${pattern}`,
+          `categorie.ilike.${pattern}`,
+          `meta_description.ilike.${pattern}`,
+          `auteur.ilike.${pattern}`,
+        ].join(',');
+
         const { data, error } = await supabase
           .from('articles')
           .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
           .eq('statut', 'publie')
-          .ilike('titre', `%${searchQuery}%`)
+          .or(orFilter)
           .order('date_publication', { ascending: false })
-          .limit(10);
+          .limit(15);
 
+        if (cancelled) return;
         if (error) throw error;
 
-        if (data) {
-          setSearchResults(data.map((a: any) => ({
+        setSearchResults(
+          (data ?? []).map((a: any) => ({
             id: a.id,
             slug: a.slug || a.id,
-            title: a.titre ?? a.title ?? '',
+            title: (a.titre ?? a.title ?? '').trim(),
             excerpt: a.meta_description ?? a.excerpt ?? '',
             image: a.image_url ?? a.image ?? '',
             category: a.categorie ?? a.category ?? '',
             date: a.date_publication ?? a.date ?? '',
             author: a.auteur ?? a.author ?? '',
-          })));
-        }
+          }))
+        );
       } catch (err) {
-        console.error("Search error:", err);
+        if (!cancelled) {
+          console.error('[Header] Search error:', err);
+          setSearchResults([]);
+        }
       } finally {
-        setIsSearching(false);
+        if (!cancelled) setIsSearching(false);
       }
     };
 
-    const timeoutId = setTimeout(searchArticles, 400);
-    return () => clearTimeout(timeoutId);
+    const timeoutId = setTimeout(run, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [searchQuery]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -424,86 +449,91 @@ const Header = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col items-center bg-black/80 backdrop-blur-sm" 
+            className="fixed inset-0 z-[100] flex flex-col items-start sm:items-center bg-black/80 backdrop-blur-sm overflow-y-auto overscroll-contain py-8 sm:py-12 px-3 sm:px-4" 
             onClick={toggleSearch}
           >
-            <motion.div 
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -50, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full max-w-3xl mx-4 mt-24 glass-panel border border-white/20 rounded-2xl flex items-center px-4 py-3 relative shadow-2xl" 
-              onClick={e => e.stopPropagation()}
+            <div
+              className="w-full max-w-3xl mx-auto flex flex-col gap-3 shrink-0"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Search className="text-gray-400 mr-3" size={24} />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Rechercher des articles..."
-                value={searchQuery}
-                onChange={handleSearch}
-                className="flex-1 bg-transparent border-none outline-none text-xl text-white placeholder-gray-500"
-              />
-              {isSearching && (
-                <div className="mr-3">
-                  <div className="w-5 h-5 border-2 border-[#ff184e]/20 border-t-[#ff184e] rounded-full animate-spin" />
-                </div>
-              )}
-              <button className="text-gray-400 hover:text-[#ff184e] transition-colors p-2 bg-white/5 rounded-full hover:bg-white/10" onClick={toggleSearch}>
-                <X size={20} />
-              </button>
-            </motion.div>
+              <motion.div 
+                initial={{ y: -24, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -24, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="glass-panel border border-white/20 rounded-2xl flex items-center px-4 py-3 relative shadow-2xl" 
+              >
+                <Search className="text-gray-400 mr-3 shrink-0" size={24} />
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder={t('Rechercher des articles…')}
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-xl text-white placeholder-gray-500"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                {isSearching && (
+                  <div className="mr-3 shrink-0">
+                    <div className="w-5 h-5 border-2 border-[#ff184e]/20 border-t-[#ff184e] rounded-full animate-spin" />
+                  </div>
+                )}
+                <button type="button" className="text-gray-400 hover:text-[#ff184e] transition-colors p-2 bg-white/5 rounded-full hover:bg-white/10 shrink-0" onClick={toggleSearch} aria-label={t('Fermer la recherche')}>
+                  <X size={20} />
+                </button>
+              </motion.div>
             
-            {/* Search results */}
-            <AnimatePresence>
-              {searchQuery && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="w-full max-w-3xl mx-4 mt-4 glass-panel border-white/10 rounded-xl shadow-2xl overflow-hidden" 
-                  style={{ maxHeight: '60vh', overflowY: 'auto' }} 
-                  onClick={e => e.stopPropagation()}
-                >
-                  {isSearching ? (
-                    <div className="py-16 text-center text-gray-400">
-                      <div className="w-12 h-12 border-4 border-[#ff184e]/20 border-t-[#ff184e] rounded-full animate-spin mx-auto mb-4" />
-                      <p className="animate-pulse">{t("On fouille dans les archives…")}</p>
-                    </div>
-                  ) : searchResults.length ? (
-                    <ul className="divide-y divide-white/10">
-                      {searchResults.map((article, idx) => (
-                        <motion.li
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05 }}
-                          key={article.id}
-                          className="flex items-center gap-4 py-3 px-4 cursor-pointer hover:bg-white/5 transition-colors"
-                          onClick={() => {
-                            toggleSearch();
-                            navigate(`/article/${article.id}`);
-                          }}
-                        >
-                          <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 bg-black/50">
-                            <img src={optimiseSupabaseImageUrl(article.image || '/placeholder.svg', 'thumb')} alt={article.title} className="w-full h-full object-cover" decoding="async" onError={(e) => applyStorageImageFallback(e.currentTarget)} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-bold text-gray-200 truncate">{article.title}</h3>
-                            <p className="text-xs text-gray-400 truncate mt-1">{article.excerpt || article.category}</p>
-                          </div>
-                          <ChevronDown className="text-gray-600 -rotate-90 hidden sm:block" size={16} />
-                        </motion.li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="py-12 text-center text-gray-400">
-                      <Search className="mx-auto mb-3 opacity-20" size={48} />
-                      <p>Aucun article ne correspond à "{searchQuery}". Essayez un autre mot-clé ou une orthographe différente.</p>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <AnimatePresence mode="wait">
+                {searchQuery.trim() ? (
+                  <motion.div 
+                    key="results"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.2 }}
+                    className="w-full rounded-xl border border-white/15 bg-[#0c0f16]/95 backdrop-blur-xl shadow-2xl overflow-hidden max-h-[min(65vh,32rem)] overflow-y-auto"
+                  >
+                    {isSearching ? (
+                      <div className="py-14 text-center text-gray-300 min-h-[140px] flex flex-col items-center justify-center">
+                        <div className="w-11 h-11 border-4 border-[#ff184e]/25 border-t-[#ff184e] rounded-full animate-spin mb-4" />
+                        <p className="animate-pulse text-sm">{t('On fouille dans les archives…')}</p>
+                      </div>
+                    ) : searchResults.length ? (
+                      <ul className="divide-y divide-white/10" role="listbox" aria-label={t('Résultats de recherche')}>
+                        {searchResults.map((article) => (
+                          <li
+                            key={article.id}
+                            role="option"
+                            className="flex items-center gap-4 py-3 px-4 cursor-pointer hover:bg-white/10 transition-colors text-left"
+                            onClick={() => {
+                              toggleSearch();
+                              navigate(`/article/${article.slug || article.id}`);
+                            }}
+                          >
+                            <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-neutral-900 ring-1 ring-white/10">
+                              <img src={optimiseSupabaseImageUrl(article.image || '/placeholder.svg', 'thumb')} alt="" className="w-full h-full object-cover" decoding="async" onError={(e) => applyStorageImageFallback(e.currentTarget)} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-bold text-white leading-snug line-clamp-2">{article.title}</h3>
+                              <p className="text-xs text-gray-400 truncate mt-1">{article.excerpt || article.category || '—'}</p>
+                            </div>
+                            <ChevronDown className="text-gray-500 -rotate-90 hidden sm:block shrink-0" size={16} aria-hidden />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="py-12 px-4 text-center text-gray-300 min-h-[140px] flex flex-col items-center justify-center">
+                        <Search className="mx-auto mb-3 opacity-25 text-white" size={44} />
+                        <p className="text-sm max-w-md">
+                          {t('Aucun article ne correspond à « {{query}} ». Essayez un autre mot-clé.', { query: searchQuery.trim() })}
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -5,6 +5,10 @@ import { supabase } from '@/lib/supabaseClient';
 import MobileBottomNav from './MobileBottomNav';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 
+function escapeForIlike(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 export default function MobileSearch() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -24,24 +28,45 @@ export default function MobileSearch() {
   };
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      if (!query.trim()) {
-        setArticles([]);
-        return;
-      }
-      setLoading(true);
-      const { data } = await supabase
+    let cancelled = false;
+    const q = query.trim();
+    if (!q) {
+      setArticles([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+    setLoading(true);
+    const run = async () => {
+      const safe = escapeForIlike(q.replace(/,/g, ' '));
+      const pattern = `%${safe}%`;
+      const orFilter = [
+        `titre.ilike.${pattern}`,
+        `categorie.ilike.${pattern}`,
+        `meta_description.ilike.${pattern}`,
+        `auteur.ilike.${pattern}`,
+      ].join(',');
+      const { data, error } = await supabase
         .from('articles')
         .select('id, titre, slug, image_url, categorie, auteur, date_publication')
         .eq('statut', 'publie')
-        .ilike('titre', `%${query}%`)
+        .or(orFilter)
         .order('date_publication', { ascending: false })
         .limit(20);
-      setArticles(data || []);
-      setLoading(false);
+      if (cancelled) return;
+      if (error) {
+        console.error('[MobileSearch]', error);
+        setArticles([]);
+      } else {
+        setArticles(data || []);
+      }
+      if (!cancelled) setLoading(false);
     };
-    const t = setTimeout(fetchArticles, 300);
-    return () => clearTimeout(t);
+    const t = setTimeout(run, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, [query]);
 
   return (
