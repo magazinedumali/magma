@@ -2,6 +2,8 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, PlayCircle, Bookmark, User } from 'lucide-react';
 import { mobileTheme as T } from './mobileTheme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 type Props = {
   user: unknown | null;
@@ -10,6 +12,7 @@ type Props = {
 export default function MobileBottomNav({ user }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { isDark } = useTheme();
 
   const isHome = pathname === '/mobile' || pathname === '/mobile/';
   const isSearch = pathname.startsWith('/mobile/search');
@@ -22,15 +25,19 @@ export default function MobileBottomNav({ user }: Props) {
     pathname.startsWith('/mobile/login') ||
     pathname.startsWith('/mobile/register');
 
-  const inactive = T.colors.textMuted;
+  const inactive = isDark ? T.colors.textMuted : '#6b7280';
   const active = T.colors.primary;
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-end justify-around border-t border-white/10 pb-[env(safe-area-inset-bottom)]"
+      className={cn(
+        'fixed bottom-0 left-0 right-0 z-50 flex items-end justify-around border-t pb-[env(safe-area-inset-bottom)]',
+        isDark ? 'border-white/10' : 'border-black/10'
+      )}
       style={{
         height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
-        backgroundColor: 'rgba(10, 13, 20, 0.95)',
+        backgroundColor: isDark ? 'rgba(10, 13, 20, 0.95)' : 'rgba(255, 255, 255, 0.96)',
+        boxShadow: isDark ? undefined : '0 -4px 24px rgba(0,0,0,0.06)',
       }}
     >
       <button

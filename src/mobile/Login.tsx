@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getOAuthRedirectUrl } from '@/lib/authHelpers';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 export default function MobileLogin() {
+  const { isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -54,33 +57,64 @@ export default function MobileLogin() {
     }
   };
 
+  const fieldClass = cn(
+    'w-full rounded-2xl border px-4 py-3.5 text-base outline-none focus:border-[#ff184e]/50',
+    isDark
+      ? 'border-white/10 bg-[#161b26] text-[#ffffff] placeholder:text-[#9ba5be]'
+      : 'border-black/10 bg-white text-[#111827] placeholder:text-[#6b7280] shadow-sm',
+  );
+
+  const labelClass = cn('mb-2 block text-[13px] font-bold', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]');
+
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0d14] text-white">
-      <header className="flex items-center justify-between border-b border-white/10 px-4 pb-2 pt-[calc(env(safe-area-inset-top)+12px)]">
+    <div
+      className={cn(
+        'flex min-h-screen flex-col transition-colors duration-300',
+        isDark ? 'bg-[#0a0d14] text-[#ffffff]' : 'bg-[#f3f4f6] text-[#111827]',
+      )}
+    >
+      <header
+        className={cn(
+          'flex items-center justify-between border-b px-4 pb-2 pt-[calc(env(safe-area-inset-top)+12px)]',
+          isDark ? 'border-white/10' : 'border-black/10 bg-white',
+        )}
+      >
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full"
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-full',
+            !isDark && 'hover:bg-black/5',
+          )}
           onClick={() => navigate(-1)}
           aria-label="Retour"
         >
-          <ChevronLeft size={28} className="text-white" />
+          <ChevronLeft size={28} className={isDark ? 'text-[#ffffff]' : 'text-[#111827]'} />
         </button>
-        <h1 className="text-lg font-extrabold">Connexion</h1>
+        <h1 className={cn('text-lg font-extrabold', isDark ? 'text-[#ffffff]' : 'text-[#111827]')}>Connexion</h1>
         <span className="w-11" />
       </header>
 
       <div className="flex flex-1 flex-col px-6 pb-10 pt-8">
         <div className="mb-10 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-[90px] w-[90px] items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-[#161b26]">
+          <div
+            className={cn(
+              'mb-4 flex h-[90px] w-[90px] items-center justify-center overflow-hidden rounded-3xl border',
+              isDark ? 'border-white/10 bg-[#161b26]' : 'border-black/10 bg-white shadow-sm',
+            )}
+          >
             <img src="/logo.png" alt="Magma" className="h-[82%] w-[82%] object-contain" loading="lazy" />
           </div>
-          <p className="text-[22px] font-extrabold">Bienvenue sur Magma</p>
-          <p className="mt-1 text-sm text-[#9ba5be]">Connectez-vous pour accéder à votre compte</p>
+          <p className={cn('text-[22px] font-extrabold', isDark ? 'text-[#ffffff]' : 'text-[#111827]')}>
+            Bienvenue sur Magma
+          </p>
+          <p className={cn('mt-1 text-sm', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
+            Connectez-vous pour accéder à votre compte
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div>
-            <label className="mb-2 block text-[13px] font-bold text-[#9ba5be]" htmlFor="email">
+            <label className={labelClass} htmlFor="email">
               Email
             </label>
             <input
@@ -91,11 +125,11 @@ export default function MobileLogin() {
               autoComplete="email"
               required
               placeholder="votre@email.com"
-              className="w-full rounded-2xl border border-white/10 bg-[#161b26] px-4 py-3.5 text-base text-white outline-none placeholder:text-[#9ba5be] focus:border-[#ff184e]/50"
+              className={fieldClass}
             />
           </div>
           <div>
-            <label className="mb-2 block text-[13px] font-bold text-[#9ba5be]" htmlFor="password">
+            <label className={labelClass} htmlFor="password">
               Mot de passe
             </label>
             <input
@@ -106,7 +140,7 @@ export default function MobileLogin() {
               autoComplete="current-password"
               required
               placeholder="••••••••"
-              className="w-full rounded-2xl border border-white/10 bg-[#161b26] px-4 py-3.5 text-base text-white outline-none placeholder:text-[#9ba5be] focus:border-[#ff184e]/50"
+              className={fieldClass}
             />
           </div>
 
@@ -115,23 +149,30 @@ export default function MobileLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 rounded-[20px] bg-[#ff184e] py-4 text-center text-base font-extrabold text-white disabled:opacity-70"
+            className="mt-2 rounded-[20px] bg-[#ff184e] py-4 text-center text-base font-extrabold text-[#ffffff] disabled:opacity-70"
           >
             {loading ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
 
         <div className="my-6 flex items-center gap-2">
-          <div className="h-px flex-1 bg-white/10" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#9ba5be]">ou</span>
-          <div className="h-px flex-1 bg-white/10" />
+          <div className={cn('h-px flex-1', isDark ? 'bg-white/10' : 'bg-black/10')} />
+          <span className={cn('text-xs font-semibold uppercase tracking-wider', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
+            ou
+          </span>
+          <div className={cn('h-px flex-1', isDark ? 'bg-white/10' : 'bg-black/10')} />
         </div>
 
         <button
           type="button"
           disabled={oauthLoading}
           onClick={handleGoogleLogin}
-          className="flex items-center justify-center gap-2 rounded-[20px] border border-white/10 bg-[#161b26] py-3.5 text-[15px] font-bold text-white disabled:opacity-70"
+          className={cn(
+            'flex items-center justify-center gap-2 rounded-[20px] border py-3.5 text-[15px] font-bold disabled:opacity-70',
+            isDark
+              ? 'border-white/10 bg-[#161b26] text-[#ffffff]'
+              : 'border-black/10 bg-white text-[#111827] shadow-sm',
+          )}
         >
           <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden>
             <path
@@ -162,7 +203,7 @@ export default function MobileLogin() {
           Mot de passe oublié ?
         </button>
 
-        <p className="mt-10 text-center text-sm text-[#9ba5be]">
+        <p className={cn('mt-10 text-center text-sm', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
           Pas encore de compte ?{' '}
           <button type="button" className="font-extrabold text-[#ff184e]" onClick={() => navigate('/mobile/register')}>
             Créer un compte

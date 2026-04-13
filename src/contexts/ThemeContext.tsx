@@ -9,16 +9,23 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {},
-  isDark: true,
+  isDark: false,
 });
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
+function readStoredTheme(): Theme {
+  try {
     const stored = localStorage.getItem('magma-theme');
-    return (stored as Theme) || 'dark';
-  });
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {
+    /* ignore */
+  }
+  return 'light';
+}
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<Theme>(() => readStoredTheme());
 
   useEffect(() => {
     const root = document.documentElement;

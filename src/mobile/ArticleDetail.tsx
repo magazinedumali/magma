@@ -11,9 +11,12 @@ import { mapArticleFromSupabase } from '@/lib/articleMapper';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
 import { getUserAvatar, getUserDisplayName, getCommentUserInfo } from '@/lib/userHelper';
 import { getStaffArticleEditPath } from '@/lib/adminUser';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 const MobileArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { isDark } = useTheme();
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -124,16 +127,26 @@ const MobileArticleDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0d14] text-[#9ba5be]">
+      <div
+        className={cn(
+          'flex min-h-screen items-center justify-center',
+          isDark ? 'bg-[#0a0d14] text-[#9ba5be]' : 'bg-[#f3f4f6] text-[#6b7280]'
+        )}
+      >
         Chargement…
       </div>
     );
   }
   if (!article) {
     return (
-      <div className="min-h-screen bg-[#0a0d14] px-4 py-12 text-center text-white">
+      <div
+        className={cn(
+          'min-h-screen px-4 py-12 text-center',
+          isDark ? 'bg-[#0a0d14] text-[#ffffff]' : 'bg-[#f3f4f6] text-[#111827]'
+        )}
+      >
         <div className="mb-4 text-xl text-[#ef4444]">Article introuvable</div>
-        <div className="mb-4 text-[#9ba5be]">
+        <div className={cn('mb-4', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
           L&apos;article avec le slug ou l&apos;identifiant « {slug} » est introuvable ou n&apos;est pas encore publié.
         </div>
         <Link to="/mobile" className="font-semibold text-[#ff184e] hover:underline">
@@ -166,7 +179,12 @@ const MobileArticleDetail = () => {
     article?.id && user ? getStaffArticleEditPath(user, String(article.id)) : null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0d14] transition-colors duration-300">
+    <div
+      className={cn(
+        'flex min-h-screen flex-col transition-colors duration-300',
+        isDark ? 'bg-[#0a0d14]' : 'bg-[#f3f4f6]'
+      )}
+    >
       <Helmet>
         <title>{article.title || article.titre}</title>
         <meta property="og:type" content="article" />
@@ -189,13 +207,14 @@ const MobileArticleDetail = () => {
           onError={(e) => applyStorageImageFallback(e.currentTarget)}
           loading="eager"
           decoding="async"
-          fetchPriority="high"
+          fetchpriority="high"
         />
         <div
           className="absolute inset-0"
           style={{
-            background:
-              'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 35%, rgba(10,13,20,0.95) 100%)',
+            background: isDark
+              ? 'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 35%, rgba(10,13,20,0.95) 100%)'
+              : 'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(248,250,252,0.92) 100%)',
           }}
         />
         <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)]">
@@ -216,7 +235,7 @@ const MobileArticleDetail = () => {
                 className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"
                 aria-label="Modifier l'article"
               >
-                <Pencil size={22} className="text-white" />
+                <Pencil size={22} className="text-[#ffffff]" />
               </Link>
             )}
             <button
@@ -224,7 +243,7 @@ const MobileArticleDetail = () => {
               className="flex h-11 w-11 items-center justify-center rounded-full bg-black/35 backdrop-blur-sm"
               aria-label="Favori"
             >
-              <Bookmark size={22} className="text-white" />
+              <Bookmark size={22} className="text-[#ffffff]" />
             </button>
             <button
               type="button"
@@ -232,28 +251,54 @@ const MobileArticleDetail = () => {
               aria-label="Partager"
               onClick={() => setShowShareModal(true)}
             >
-              <Share2 size={22} className="text-white" />
+              <Share2 size={22} className="text-[#ffffff]" />
             </button>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-24">
           <div className="mb-3 flex flex-wrap items-center gap-3">
-            <span className="rounded bg-[#ff184e] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
+            <span className="rounded bg-[#ff184e] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#ffffff]">
               {article.category || article.categorie}
             </span>
-            <span className="text-xs text-white/80">
+            <span
+              className={cn(
+                'text-xs',
+                isDark ? 'text-[rgba(255,255,255,0.85)]' : 'text-[rgba(17,24,39,0.75)]'
+              )}
+            >
               {article.date_publication ? new Date(article.date_publication).toLocaleDateString() : ''}
             </span>
           </div>
-          <h1 className="mb-4 text-2xl font-bold leading-tight text-white drop-shadow-md">
+          <h1
+            className={cn(
+              'mb-4 text-2xl font-bold leading-tight drop-shadow-md',
+              isDark ? 'text-[#ffffff]' : 'text-[#111827]'
+            )}
+          >
             {article.title || article.titre}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-5">
             <div className="flex items-center gap-2">
-              <User size={16} className="shrink-0 text-[#9ba5be]" aria-hidden />
-              <span className="text-sm font-semibold text-white">{article.author || article.auteur}</span>
+              <User
+                size={16}
+                className={cn('shrink-0', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}
+                aria-hidden
+              />
+              <span
+                className={cn(
+                  'text-sm font-semibold',
+                  isDark ? 'text-[#ffffff]' : 'text-[#111827]'
+                )}
+              >
+                {article.author || article.auteur}
+              </span>
             </div>
-            <div className="flex items-center gap-2 text-[#9ba5be]">
+            <div
+              className={cn(
+                'flex items-center gap-2',
+                isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+              )}
+            >
               <Clock size={16} className="shrink-0" aria-hidden />
               <span className="text-sm">
                 {readMinutes} min de lecture
@@ -262,17 +307,34 @@ const MobileArticleDetail = () => {
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10 bg-[#0a0d14] px-4 pt-4">
+      <div
+        className={cn(
+          'border-t px-4 pt-4',
+          isDark ? 'border-white/10 bg-[#0a0d14]' : 'border-black/10 bg-white'
+        )}
+      >
         <AudioPlayer src={article.audio_url || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'} noCard />
       </div>
       <div className="px-4 mb-6 mt-4">
         <Banner position="sous-article" width={600} height={120} />
       </div>
-      <div className="bg-[#0a0d14] px-4 py-8 text-[#cbd5e1] [&_a]:text-[#ff184e] [&_blockquote]:border-white/20 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-white [&_li]:text-[#cbd5e1] [&_p]:text-[#cbd5e1] [&_strong]:text-white">
+      <div
+        className={cn(
+          'px-4 py-8 [&_a]:text-[#ff184e]',
+          isDark
+            ? 'bg-[#0a0d14] text-[#cbd5e1] [&_blockquote]:border-white/20 [&_h1]:text-[#ffffff] [&_h2]:text-[#ffffff] [&_h3]:text-[#ffffff] [&_li]:text-[#cbd5e1] [&_p]:text-[#cbd5e1] [&_strong]:text-[#ffffff]'
+            : 'bg-white text-[#374151] [&_blockquote]:border-black/10 [&_h1]:text-[#111827] [&_h2]:text-[#111827] [&_h3]:text-[#111827] [&_li]:text-[#374151] [&_p]:text-[#374151] [&_strong]:text-[#111827]'
+        )}
+      >
         {article.content ? (
           <div className="article-mobile-content" dangerouslySetInnerHTML={{ __html: article.content }} />
         ) : (
-          <div className="py-8 text-center italic text-[#9ba5be]">
+          <div
+            className={cn(
+              'py-8 text-center italic',
+              isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+            )}
+          >
             <p>Le contenu de cet article n&apos;est pas disponible.</p>
             <p className="mt-2 text-sm">Veuillez contacter l&apos;administrateur si ce problème persiste.</p>
           </div>
@@ -283,7 +345,12 @@ const MobileArticleDetail = () => {
           {safeTags.map((tag: string, idx: number) => (
             <span
               key={idx}
-              className="rounded-full border border-white/10 bg-[#161b26] px-4 py-2 text-sm font-medium text-[#9ba5be]"
+              className={cn(
+                'rounded-full border px-4 py-2 text-sm font-medium',
+                isDark
+                  ? 'border-white/10 bg-[#161b26] text-[#9ba5be]'
+                  : 'border-black/10 bg-gray-100 text-[#6b7280]'
+              )}
             >
               #{tag}
             </span>
@@ -293,7 +360,10 @@ const MobileArticleDetail = () => {
       {/* Formulaire de commentaire moderne type app mobile */}
       <div className="mb-8 px-4">
         <form
-          className="flex items-center rounded-2xl border border-white/10 bg-[#161b26] px-3 py-2.5"
+          className={cn(
+            'flex items-center rounded-2xl border px-3 py-2.5',
+            isDark ? 'border-white/10 bg-[#161b26]' : 'border-black/10 bg-white shadow-sm'
+          )}
           onSubmit={(e) => {
             e.preventDefault();
             if (inputValue.trim()) {
@@ -307,14 +377,22 @@ const MobileArticleDetail = () => {
               <img
                 src={getUserAvatar(user)}
                 alt={getUserDisplayName(user)}
-                className="mr-3 h-9 w-9 rounded-full border-2 border-white/10 object-cover"
+                className={cn(
+                  'mr-3 h-9 w-9 rounded-full border-2 object-cover',
+                  isDark ? 'border-white/10' : 'border-black/10'
+                )}
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
               <input
                 type="text"
-                className="flex-1 border-none bg-transparent text-base text-white outline-none placeholder:text-[#9ba5be]"
+                className={cn(
+                  'flex-1 border-none bg-transparent text-base outline-none',
+                  isDark
+                    ? 'text-[#ffffff] placeholder:text-[#9ba5be]'
+                    : 'text-[#111827] placeholder:text-[#6b7280]'
+                )}
                 placeholder="Partagez votre avis…"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -322,7 +400,7 @@ const MobileArticleDetail = () => {
               />
               <button
                 type="submit"
-                className="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#ff184e] text-white shadow transition hover:bg-red-600"
+                className="ml-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#ff184e] text-[#ffffff] shadow transition hover:bg-red-600"
                 aria-label="Envoyer"
               >
                 <Send size={22} />
@@ -330,17 +408,29 @@ const MobileArticleDetail = () => {
             </>
           ) : (
             <div className="flex w-full flex-col items-center gap-3 px-2 py-1">
-              <div className="text-center text-sm text-[#9ba5be]">Connectez-vous pour rejoindre la discussion</div>
+              <div
+                className={cn(
+                  'text-center text-sm',
+                  isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+                )}
+              >
+                Connectez-vous pour rejoindre la discussion
+              </div>
               <div className="flex w-full gap-2">
                 <a
                   href="/mobile/login"
-                  className="flex-1 rounded-full bg-[#161b26] px-3 py-2.5 text-center text-sm font-bold text-white ring-1 ring-white/15 transition hover:bg-white/10"
+                  className={cn(
+                    'flex-1 rounded-full px-3 py-2.5 text-center text-sm font-bold transition',
+                    isDark
+                      ? 'bg-[#161b26] text-[#ffffff] ring-1 ring-white/15 hover:bg-white/10'
+                      : 'bg-gray-100 text-[#111827] ring-1 ring-black/10 hover:bg-gray-200'
+                  )}
                 >
                   Se connecter
                 </a>
                 <a
                   href="/mobile/register"
-                  className="flex-1 rounded-full bg-[#ff184e] px-3 py-2.5 text-center text-sm font-bold text-white shadow transition hover:bg-red-600"
+                  className="flex-1 rounded-full bg-[#ff184e] px-3 py-2.5 text-center text-sm font-bold text-[#ffffff] shadow transition hover:bg-red-600"
                 >
                   Créer un compte
                 </a>
@@ -356,13 +446,23 @@ const MobileArticleDetail = () => {
           onClick={() => setShowShareModal(false)}
         >
           <div
-            className="w-full max-w-md rounded-t-3xl border-t border-white/10 bg-[#161b26] p-6 pb-6 text-white shadow-2xl"
+            className={cn(
+              'w-full max-w-md rounded-t-3xl border-t p-6 pb-6 shadow-2xl',
+              isDark
+                ? 'border-white/10 bg-[#161b26] text-[#ffffff]'
+                : 'border-black/10 bg-white text-[#111827]'
+            )}
             style={{ borderTopLeftRadius: 32, borderTopRightRadius: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
               <span className="text-lg font-bold">Partager l&apos;article</span>
-              <button type="button" className="text-[#9ba5be]" onClick={() => setShowShareModal(false)} aria-label="Fermer">
+              <button
+                type="button"
+                className={isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'}
+                onClick={() => setShowShareModal(false)}
+                aria-label="Fermer"
+              >
                 <X size={28} />
               </button>
             </div>
@@ -464,7 +564,7 @@ const MobileArticleDetail = () => {
         onClick={() => navigate(`/mobile/article/${article.slug}/comments`, { state: { comments } })}
         aria-label="Commentaires"
       >
-        <MessageCircle size={32} className="text-white" />
+        <MessageCircle size={32} className="text-[#ffffff]" />
       </button>
     </div>
   );

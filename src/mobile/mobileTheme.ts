@@ -1,4 +1,4 @@
-/** Palette et espacements pour les écrans `/mobile` (thème sombre). */
+/** Palette et espacements pour les écrans `/mobile`. Typographie : Plus Jakarta Sans (classe `mobile-news-typography` sur `<html>`). */
 export const mobileTheme = {
   colors: {
     primary: '#ff184e',

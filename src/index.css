@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
+/* Appliquée uniquement sous /mobile (voir MobileRouteThemeLock) — style apps d’actu */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -112,6 +114,50 @@
     line-height: 1.6;
     font-weight: 400;
   }
+}
+
+/* Typographie mobile « news » : neutral sans lisible (remplace Syne sur /mobile uniquement) */
+html.mobile-news-typography body,
+html.mobile-news-typography h1,
+html.mobile-news-typography h2,
+html.mobile-news-typography h3,
+html.mobile-news-typography h4,
+html.mobile-news-typography h5,
+html.mobile-news-typography h6,
+html.mobile-news-typography p,
+html.mobile-news-typography li,
+html.mobile-news-typography span,
+html.mobile-news-typography a,
+html.mobile-news-typography div,
+html.mobile-news-typography button,
+html.mobile-news-typography input,
+html.mobile-news-typography textarea,
+html.mobile-news-typography select,
+html.mobile-news-typography label {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+html.mobile-news-typography body {
+  letter-spacing: -0.01em;
+}
+
+html.mobile-news-typography h1,
+html.mobile-news-typography h2,
+html.mobile-news-typography h3,
+html.mobile-news-typography h4,
+html.mobile-news-typography h5,
+html.mobile-news-typography h6 {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+html.mobile-news-typography p,
+html.mobile-news-typography li,
+html.mobile-news-typography span,
+html.mobile-news-typography a {
+  line-height: 1.55;
 }
 
 @layer components {
@@ -413,6 +459,78 @@ html.light-mode .article-body td {
 
 /* Si @tailwindcss/typography est activé : prose-invert force du texte clair */
 html.light-mode .article-body.prose-invert {
+  --tw-prose-body: #2d3450;
+  --tw-prose-headings: #121620;
+  --tw-prose-lead: #3a4060;
+  --tw-prose-links: #ff184e;
+  --tw-prose-bold: #121620;
+  --tw-prose-counters: #6b7290;
+  --tw-prose-bullets: #6b7290;
+  --tw-prose-hr: rgba(0, 0, 0, 0.12);
+  --tw-prose-quotes: #4a5070;
+  --tw-prose-quote-borders: #ff184e;
+  --tw-prose-captions: #6b7290;
+  --tw-prose-code: #1a1e2e;
+  --tw-prose-pre-code: #1a1e2e;
+  --tw-prose-pre-bg: rgba(0, 0, 0, 0.06);
+  --tw-prose-th-borders: rgba(0, 0, 0, 0.12);
+  --tw-prose-td-borders: rgba(0, 0, 0, 0.1);
+}
+
+/* Détail article mobile : même problème que .article-body (HTML éditeur souvent « sombre ») */
+html.light-mode .article-mobile-content {
+  color: #2d3450 !important;
+}
+
+html.light-mode .article-mobile-content h1,
+html.light-mode .article-mobile-content h2,
+html.light-mode .article-mobile-content h3,
+html.light-mode .article-mobile-content h4,
+html.light-mode .article-mobile-content h5,
+html.light-mode .article-mobile-content h6 {
+  color: #121620 !important;
+}
+
+html.light-mode .article-mobile-content blockquote {
+  color: #4a5070 !important;
+}
+
+html.light-mode .article-mobile-content a {
+  color: #ff184e !important;
+}
+
+html.light-mode .article-mobile-content a:hover {
+  color: #c4123d !important;
+}
+
+html.light-mode .article-mobile-content strong,
+html.light-mode .article-mobile-content b {
+  color: #121620 !important;
+}
+
+html.light-mode .article-mobile-content code {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1a1e2e !important;
+}
+
+html.light-mode .article-mobile-content pre {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1a1e2e !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+html.light-mode .article-mobile-content hr {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+html.light-mode .article-mobile-content th,
+html.light-mode .article-mobile-content td {
+  color: inherit;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+html.light-mode .article-mobile-content.prose-invert,
+html.light-mode .article-mobile-content .prose-invert {
   --tw-prose-body: #2d3450;
   --tw-prose-headings: #121620;
   --tw-prose-lead: #3a4060;

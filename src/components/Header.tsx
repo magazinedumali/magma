@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from '@/lib/utils';
+import { cn, escapeForIlike } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/lib/supabaseClient';
 import { useTranslation } from 'react-i18next';
@@ -27,11 +27,6 @@ import HeaderLogo from './header/HeaderLogo';
 import { useCategories } from '@/hooks/useCategories';
 import { useTheme } from '@/contexts/ThemeContext';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
-
-/** Échappe % et _ pour les motifs ILIKE PostgREST */
-function escapeForIlike(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
 
 const Header = () => {
   const { categories } = useCategories();

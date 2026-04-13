@@ -42,7 +42,9 @@ const ArticleDetail = () => {
       setLoadingRecent(true);
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category, contenu, content, share_description, share_image_url')
+        .select(
+          'id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, contenu, share_description, share_image_url',
+        )
         .eq('statut', 'publie')
         .order('date_publication', { ascending: false })
         .limit(6);

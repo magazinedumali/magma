@@ -6,6 +6,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Échappe `%`, `_` et `\` pour les filtres PostgREST `.ilike()`. */
+export function escapeForIlike(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+/** Filtre `.or()` : articles considérés publiés (statuts variantes en base). */
+export const ARTICLES_PUBLISHED_OR_FILTER =
+  'statut.eq.publie,statut.eq.publié,statut.eq.published,statut.ilike.%publ%';
+
 export function formatDate(date: string): string {
   if (!date) return '';
   

@@ -27,6 +27,22 @@
       name="twitter:image"
       content=""
     />
+    <!-- Thème par défaut : clair (évite un flash avant React ; localStorage magma-theme prime) -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('magma-theme');
+          var root = document.documentElement;
+          if (t === 'dark') {
+            root.classList.add('dark-mode');
+            root.classList.remove('light-mode');
+          } else {
+            root.classList.add('light-mode');
+            root.classList.remove('dark-mode');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

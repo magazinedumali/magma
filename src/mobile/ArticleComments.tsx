@@ -176,7 +176,7 @@ const ArticleCommentsMobile = () => {
             />
             <button
               type="submit"
-              className="ml-3 px-5 py-2 rounded-full bg-[#4f8cff] text-white font-bold shadow hover:bg-[#2563eb] transition"
+              className="ml-3 px-5 py-2 rounded-full bg-[#4f8cff] text-[#ffffff] font-bold shadow hover:bg-[#2563eb] transition"
               disabled={sending || !inputValue.trim()}
             >
               Envoyer
@@ -186,8 +186,8 @@ const ArticleCommentsMobile = () => {
           <div className="flex-1 flex flex-col items-center gap-2">
             <div className="text-gray-500 text-sm mb-2">Connectez-vous ou créez un compte pour commenter</div>
             <div className="flex gap-2 w-full">
-              <a href="/mobile/login" className="flex-1 px-4 py-2 rounded-full bg-[#4f8cff] text-white font-bold text-center shadow hover:bg-[#2563eb] transition">Se connecter</a>
-              <a href="/mobile/register" className="flex-1 px-4 py-2 rounded-full bg-[#ff184e] text-white font-bold text-center shadow hover:bg-red-600 transition">Créer un compte</a>
+              <a href="/mobile/login" className="flex-1 px-4 py-2 rounded-full bg-[#4f8cff] text-[#ffffff] font-bold text-center shadow hover:bg-[#2563eb] transition">Se connecter</a>
+              <a href="/mobile/register" className="flex-1 px-4 py-2 rounded-full bg-[#ff184e] text-[#ffffff] font-bold text-center shadow hover:bg-red-600 transition">Créer un compte</a>
             </div>
           </div>
         )}

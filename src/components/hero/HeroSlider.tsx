@@ -129,7 +129,7 @@ const HeroSlider = ({ articleBasePath = '/article', compact = false }: HeroSlide
                   onError={(e) => applyStorageImageFallback(e.currentTarget)}
                   loading={slideIndex === 0 ? 'eager' : 'lazy'}
                   decoding="async"
-                  fetchPriority={slideIndex === 0 ? 'high' : 'low'}
+                  fetchpriority={slideIndex === 0 ? 'high' : 'low'}
                 />
                 
                 {/* Gradient: lighter at top, heavier only at bottom */}

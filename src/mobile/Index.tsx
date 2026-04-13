@@ -1,11 +1,12 @@
 import React, { useState, useEffect, memo, useRef, useMemo } from 'react';
-import { Bell, Bookmark, Search, TrendingUp } from 'lucide-react';
+import { Bell, Bookmark, Moon, Search, Sun, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
 import { useCategories } from '@/hooks/useCategories';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn, escapeForIlike, ARTICLES_PUBLISHED_OR_FILTER } from '@/lib/utils';
 import Banner from '@/components/Banner';
-import Poll from '@/components/Poll';
 import HeroSlider from '@/components/hero/HeroSlider';
 import PublishedVideoSection from '@/components/PublishedVideoSection';
 import Stories from './Stories';
@@ -45,12 +46,14 @@ const ArticleCard = memo(function ArticleCard({
   author,
   category,
   onClick,
+  isDark = true,
 }: {
   title: string;
   image: string;
   author: string;
   category: string;
   onClick: () => void;
+  isDark?: boolean;
 }) {
   return (
     <div
@@ -63,7 +66,10 @@ const ArticleCard = memo(function ArticleCard({
       <img
         src={image}
         alt=""
-        className="h-[100px] w-[100px] shrink-0 rounded-[20px] bg-[#161b26] object-cover"
+        className={cn(
+          'h-[100px] w-[100px] shrink-0 rounded-[20px] object-cover',
+          isDark ? 'bg-[#161b26]' : 'bg-gray-200'
+        )}
         loading="lazy"
         onError={(e) => {
           e.currentTarget.src = '/placeholder.svg';
@@ -74,11 +80,22 @@ const ArticleCard = memo(function ArticleCard({
           <span className="mb-1 block text-[11px] font-extrabold uppercase tracking-wider text-[#ff184e]">
             {category}
           </span>
-          <h3 className="line-clamp-2 text-[16px] font-bold leading-[22px] text-white">{title}</h3>
+          <h3
+            className={cn(
+              'line-clamp-2 text-[16px] font-bold leading-[22px]',
+              isDark ? 'text-white' : 'text-[#111827]'
+            )}
+          >
+            {title}
+          </h3>
         </div>
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-[12px] font-medium text-[#9ba5be]">{author} • 2h</span>
-          <span className="text-[#9ba5be]">
+          <span
+            className={cn('text-[12px] font-medium', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}
+          >
+            {author} • 2h
+          </span>
+          <span className={isDark ? 'text-[#9ba5be]' : 'text-[#9ca3af]'}>
             <Bookmark size={18} />
           </span>
         </div>
@@ -92,6 +109,7 @@ const batchSize = 10;
 export default function MobileHome() {
   const { categories: siteCategories } = useCategories();
   const mobileTabs = useMemo(() => buildMobileTabs(siteCategories), [siteCategories]);
+  const { isDark, toggleTheme } = useTheme();
 
   const [tab, setTab] = useState('latest');
   const [user, setUser] = useState<any>(null);
@@ -116,10 +134,13 @@ export default function MobileHome() {
   const articleQuery = (t: string) => {
     let q = supabase
       .from('articles')
-      .select('id, slug, titre, image_url, categorie, auteur, date_publication, excerpt, statut')
-      .eq('statut', 'publie')
+      .select('id, slug, titre, image_url, categorie, auteur, date_publication, statut')
+      .or(ARTICLES_PUBLISHED_OR_FILTER)
       .order('date_publication', { ascending: false });
-    if (t !== 'latest') q = q.eq('categorie', t);
+    if (t !== 'latest') {
+      const safe = escapeForIlike(t.trim());
+      if (safe.length) q = q.ilike('categorie', `%${safe}%`);
+    }
     return q;
   };
 
@@ -203,30 +224,74 @@ export default function MobileHome() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0d14] transition-colors duration-300">
-      <header className="z-10 flex items-center justify-between bg-[#0a0d14] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+10px)]">
-        <div>
-          <p className="text-sm text-[#9ba5be]">Bonjour,</p>
-          <h1 className="mt-0.5 text-[20px] font-extrabold tracking-tight text-white">
+    <div
+      className={cn(
+        'flex min-h-screen flex-col transition-colors duration-300',
+        isDark ? 'bg-[#0a0d14]' : 'bg-[#f3f4f6]'
+      )}
+    >
+      <header
+        className={cn(
+          'z-10 flex items-center justify-between px-4 pb-4 pt-[calc(env(safe-area-inset-top)+10px)]',
+          isDark ? 'bg-[#0a0d14]' : 'bg-[#f3f4f6]'
+        )}
+      >
+        <div className="min-w-0 pr-2">
+          <p className={cn('text-xs', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>Bonjour,</p>
+          <h1
+            className={cn(
+              'mt-0.5 text-[15px] font-bold leading-snug tracking-tight sm:text-[16px]',
+              isDark ? 'text-white' : 'text-[#111827]'
+            )}
+          >
             Le Magazine du Mali
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#161b26]"
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-full border transition-colors',
+              isDark
+                ? 'border-white/10 bg-[#161b26] text-white'
+                : 'border-black/10 bg-white text-[#111827] shadow-sm'
+            )}
             aria-label="Rechercher"
             onClick={() => navigate('/mobile/search')}
           >
-            <Search size={20} className="text-white" />
+            <Search size={20} />
           </button>
           <button
             type="button"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#161b26]"
+            onClick={toggleTheme}
+            title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-full border transition-colors',
+              isDark
+                ? 'border-white/10 bg-[#161b26] text-amber-300'
+                : 'border-black/10 bg-white text-slate-600 shadow-sm'
+            )}
+            aria-label={isDark ? 'Activer le thème clair' : 'Activer le thème sombre'}
+          >
+            {isDark ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
+          </button>
+          <button
+            type="button"
+            className={cn(
+              'relative flex h-10 w-10 items-center justify-center rounded-full border transition-colors',
+              isDark
+                ? 'border-white/10 bg-[#161b26] text-white'
+                : 'border-black/10 bg-white text-[#111827] shadow-sm'
+            )}
             aria-label="Notifications"
           >
-            <Bell size={20} className="text-white" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 border-[#161b26] bg-[#ff184e]" />
+            <Bell size={20} />
+            <span
+              className={cn(
+                'absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 bg-[#ff184e]',
+                isDark ? 'border-[#161b26]' : 'border-white'
+              )}
+            />
           </button>
         </div>
       </header>
@@ -238,11 +303,14 @@ export default function MobileHome() {
             key={t.value}
             type="button"
             onClick={() => setTab(t.value)}
-            className={`whitespace-nowrap rounded-[25px] border px-5 py-2.5 text-[14px] font-bold transition-all ${
+            className={cn(
+              'whitespace-nowrap rounded-[25px] border px-5 py-2.5 text-[14px] font-bold transition-all',
               tab === t.value
                 ? 'border-[#ff184e] bg-[#ff184e] text-white'
-                : 'border-white/10 bg-[#161b26] text-[#9ba5be]'
-            }`}
+                : isDark
+                  ? 'border-white/10 bg-[#161b26] text-[#9ba5be]'
+                  : 'border-black/10 bg-white text-[#6b7280] shadow-sm'
+            )}
           >
             {t.label}
           </button>
@@ -254,13 +322,23 @@ export default function MobileHome() {
         {tab === 'latest' ? (
           <HeroSlider articleBasePath="/mobile/article" compact />
         ) : loadingInitial && !heroArticle ? (
-          <div className="flex h-[220px] items-center justify-center rounded-3xl border border-white/10 bg-[#161b26]">
-            <p className="text-sm text-[#9ba5be]">Chargement de l’actualité…</p>
+          <div
+            className={cn(
+              'flex h-[220px] items-center justify-center rounded-3xl border',
+              isDark ? 'border-white/10 bg-[#161b26]' : 'border-black/10 bg-white shadow-sm'
+            )}
+          >
+            <p className={cn('text-sm', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
+              Chargement de l’actualité…
+            </p>
           </div>
         ) : heroArticle ? (
           <button
             type="button"
-            className="relative block h-[220px] w-full overflow-hidden rounded-3xl bg-[#161b26] text-left"
+            className={cn(
+              'relative block h-[220px] w-full overflow-hidden rounded-3xl text-left',
+              isDark ? 'bg-[#161b26]' : 'bg-gray-200'
+            )}
             onClick={() => goArticle(heroArticle)}
           >
             <img
@@ -270,7 +348,7 @@ export default function MobileHome() {
               onError={(e) => applyStorageImageFallback(e.currentTarget)}
               loading="eager"
               decoding="async"
-              fetchPriority="high"
+              fetchpriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
@@ -289,11 +367,33 @@ export default function MobileHome() {
             </div>
           </button>
         ) : (
-          <div className="flex h-[140px] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-[#161b26]/50 px-4 text-center text-sm text-[#9ba5be]">
+          <div
+            className={cn(
+              'flex h-[140px] items-center justify-center rounded-3xl border border-dashed px-4 text-center text-sm',
+              isDark
+                ? 'border-white/15 bg-[#161b26]/50 text-[#9ba5be]'
+                : 'border-black/15 bg-white/80 text-[#6b7280]'
+            )}
+          >
             Aucun article dans cette rubrique pour le moment.
           </div>
         )}
       </div>
+
+      {/* Stories / sujets brûlants — sous le carrousel « à la une », avant les rubriques horizontales */}
+      <section className="mb-2 mt-8 px-0 pb-2 pt-2">
+        <div className="mb-4 flex items-center justify-between px-4">
+          <h2
+            className={cn(
+              'text-[20px] font-extrabold tracking-tight',
+              isDark ? 'text-white' : 'text-[#111827]'
+            )}
+          >
+            Sujets brûlants
+          </h2>
+        </div>
+        <Stories />
+      </section>
 
       {/* Sections thématiques (alignées sur la page d’accueil web) */}
       {tab === 'latest' && (
@@ -308,30 +408,15 @@ export default function MobileHome() {
         </div>
       )}
 
-      {/* Stories / sujets brûlants — visible même si vide */}
-      <section className="mb-2 mt-10 px-0 pb-2 pt-2">
-        <div className="mb-4 flex items-center justify-between px-4">
-          <h2 className="text-[20px] font-extrabold tracking-tight text-white">Sujets brûlants</h2>
-        </div>
-        <Stories />
-      </section>
-
       <div className="px-4 mb-5 mt-6">
         <Banner position="accueil" width={400} height={80} />
       </div>
 
-      {tab === 'latest' && (
-        <section className="mb-8 px-4">
-          <div className="rounded-2xl border border-white/10 bg-[#161b26] p-4">
-            <h2 className="mb-3 text-base font-bold text-white">Votre avis nous intéresse</h2>
-            <Poll compact />
-          </div>
-        </section>
-      )}
-
       {/* Actualités récentes = suite du même flux que la une */}
       <div className="mb-[15px] mt-2 flex items-center justify-between px-4">
-        <h2 className="text-[18px] font-bold text-white">Actualités récentes</h2>
+        <h2 className={cn('text-[18px] font-bold', isDark ? 'text-white' : 'text-[#111827]')}>
+          Actualités récentes
+        </h2>
         <button
           type="button"
           className="text-sm font-semibold text-[#ff184e]"
@@ -344,7 +429,11 @@ export default function MobileHome() {
       <div className="flex-1 pb-[calc(200px+env(safe-area-inset-bottom,0px))]">
         {!loadingInitial && articles.length === 0 && !heroArticle ? (
           <div className="flex flex-col items-center justify-center py-10 opacity-60">
-            <span className="text-[16px] text-[#9ba5be]">Aucun article pour le moment</span>
+            <span
+              className={cn('text-[16px]', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}
+            >
+              Aucun article pour le moment
+            </span>
           </div>
         ) : (
           <>
@@ -355,6 +444,7 @@ export default function MobileHome() {
                 image={article.image_url}
                 author={article.auteur}
                 category={article.categorie}
+                isDark={isDark}
                 onClick={() => goArticle(article)}
               />
             ))}

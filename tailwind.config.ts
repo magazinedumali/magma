@@ -87,6 +87,19 @@ export default {
         poppins:  ["Inter", "sans-serif"],
         roboto:   ["Inter", "sans-serif"],
         playfair: ["Syne", "sans-serif"],
+        /** Routes /mobile : aligné sur index.css `.mobile-news-typography` */
+        mobileNews: [
+          '"Plus Jakarta Sans"',
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"Segoe UI"',
+          "Roboto",
+          '"Helvetica Neue"',
+          "Arial",
+          "sans-serif",
+        ],
       },
       borderRadius: {
         lg: "var(--radius)",

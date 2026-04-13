@@ -4,13 +4,12 @@ import { ArrowLeft, Bookmark } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import MobileBottomNav from './MobileBottomNav';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
-
-function escapeForIlike(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
-}
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn, escapeForIlike } from '@/lib/utils';
 
 export default function MobileSearch() {
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const [query, setQuery] = useState('');
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,15 +69,30 @@ export default function MobileSearch() {
   }, [query]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0a0d14] pb-[calc(80px+env(safe-area-inset-bottom,0px))] text-white">
-      <header className="flex items-center gap-2 border-b border-white/10 px-4 pb-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+    <div
+      className={cn(
+        'flex min-h-screen flex-col pb-[calc(80px+env(safe-area-inset-bottom,0px))]',
+        isDark ? 'bg-[#0a0d14] text-white' : 'bg-[#f3f4f6] text-[#111827]'
+      )}
+    >
+      <header
+        className={cn(
+          'flex items-center gap-2 border-b px-4 pb-4 pt-[calc(env(safe-area-inset-top)+12px)]',
+          isDark ? 'border-white/10 bg-[#0a0d14]' : 'border-black/10 bg-white'
+        )}
+      >
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#161b26]"
+          className={cn(
+            '-ml-1 flex shrink-0 items-center justify-center rounded-xl p-2.5 transition-colors',
+            isDark
+              ? 'text-[#ffffff] hover:bg-white/10 active:bg-white/[0.15]'
+              : 'text-[#111827] hover:bg-black/[0.06] active:bg-black/[0.1]'
+          )}
           aria-label="Retour"
         >
-          <ArrowLeft size={22} className="text-white" />
+          <ArrowLeft size={24} strokeWidth={2.25} />
         </button>
         <input
           autoFocus
@@ -86,20 +100,46 @@ export default function MobileSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Rechercher un article…"
-          className="flex-1 rounded-full border border-white/10 bg-[#161b26] px-4 py-2.5 text-base text-white outline-none placeholder:text-[#9ba5be] focus:border-[#ff184e]/40"
+          className={cn(
+            'min-w-0 flex-1 rounded-full border px-4 py-2.5 text-base outline-none transition-colors',
+            isDark
+              ? 'border-white/10 bg-[#161b26] text-[#ffffff] placeholder:text-[#9ba5be] focus:border-[#ff184e]/40'
+              : 'border-black/10 bg-gray-100 text-[#111827] placeholder:text-[#6b7280] focus:border-[#ff184e]/60'
+          )}
         />
       </header>
 
       <div className="flex-1 space-y-3 px-4 py-4">
-        {loading && <p className="mt-10 text-center text-sm text-[#9ba5be]">Chargement…</p>}
+        {loading && (
+          <p
+            className={cn(
+              'mt-10 text-center text-sm',
+              isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+            )}
+          >
+            Chargement…
+          </p>
+        )}
         {query.trim() && !loading && articles.length === 0 && (
-          <p className="mt-10 text-center text-sm text-[#9ba5be]">Aucun résultat</p>
+          <p
+            className={cn(
+              'mt-10 text-center text-sm',
+              isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+            )}
+          >
+            Aucun résultat
+          </p>
         )}
         {articles.map((article) => (
           <button
             key={article.id}
             type="button"
-            className="flex w-full overflow-hidden rounded-2xl border border-white/10 bg-[#161b26] text-left"
+            className={cn(
+              'flex w-full overflow-hidden rounded-2xl border text-left transition-colors',
+              isDark
+                ? 'border-white/10 bg-[#161b26] hover:bg-white/[0.04]'
+                : 'border-black/10 bg-white shadow-sm hover:bg-gray-50'
+            )}
             onClick={() => navigate(`/mobile/article/${article.slug || article.id}`)}
           >
             <img
@@ -111,7 +151,14 @@ export default function MobileSearch() {
             />
             <div className="flex min-w-0 flex-1 flex-col justify-between p-3">
               <div>
-                <h3 className="mb-1 line-clamp-2 text-base font-bold leading-tight text-white">{article.titre}</h3>
+                <h3
+                  className={cn(
+                    'mb-1 line-clamp-2 text-base font-bold leading-tight',
+                    isDark ? 'text-[#ffffff]' : 'text-[#111827]'
+                  )}
+                >
+                  {article.titre}
+                </h3>
                 <div className="flex flex-wrap items-center gap-2">
                   <img
                     src={getAuthorAvatar(article.auteur)}
@@ -121,14 +168,24 @@ export default function MobileSearch() {
                       e.currentTarget.src = '/logo.png';
                     }}
                   />
-                  <span className="text-xs font-medium text-[#9ba5be]">{article.auteur}</span>
+                  <span
+                    className={cn(
+                      'text-xs font-medium',
+                      isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+                    )}
+                  >
+                    {article.auteur}
+                  </span>
                   <span className="rounded-full border border-[#ff184e]/40 px-2 py-0.5 text-xs font-semibold text-[#ff184e]">
                     {article.categorie}
                   </span>
                 </div>
               </div>
               <div className="mt-2 flex justify-end">
-                <Bookmark size={18} className="text-[#9ba5be]" />
+                <Bookmark
+                  size={18}
+                  className={isDark ? 'text-[#9ba5be]' : 'text-[#9ca3af]'}
+                />
               </div>
             </div>
           </button>

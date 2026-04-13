@@ -124,12 +124,12 @@ const StoryViewer = ({ stories, currentIndex, onClose }) => {
         {story.author_avatar ? (
           <img src={story.author_avatar} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
         ) : (
-          <span className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-xs text-white font-bold">
+          <span className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-xs font-bold text-[#ffffff]">
             {story.author ? story.author[0].toUpperCase() : "?"}
           </span>
         )}
         <div className="flex flex-col">
-          <span className="text-white text-xs font-semibold">{story.author || 'Auteur inconnu'}</span>
+          <span className="text-xs font-semibold text-[#ffffff]">{story.author || 'Auteur inconnu'}</span>
           <span className="text-gray-300 text-[10px] font-normal">
             {story.created_at ? formatStoryDate(story.created_at) : ''}
           </span>
@@ -138,14 +138,14 @@ const StoryViewer = ({ stories, currentIndex, onClose }) => {
       {/* Boutons navigation */}
       {index > 0 && (
         <button
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/60 text-white text-3xl rounded-full p-2 z-10"
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/30 p-2 text-3xl text-[#ffffff] hover:bg-white/60"
           onClick={handlePrev}
           aria-label="Précédent"
         >&#8592;</button>
       )}
       {index < stories.length - 1 && (
         <button
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/60 text-white text-3xl rounded-full p-2 z-10"
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/30 p-2 text-3xl text-[#ffffff] hover:bg-white/60"
           onClick={handleNext}
           aria-label="Suivant"
         >&#8594;</button>
@@ -173,18 +173,18 @@ const StoryViewer = ({ stories, currentIndex, onClose }) => {
         )}
         {/* Titre en overlay centré */}
         <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 px-6 py-4 bg-black/40 z-40 flex justify-center items-center">
-          <h2 className="text-white text-2xl font-bold drop-shadow-lg text-center" style={{textShadow:'0 2px 8px #0008'}}>{story.title}</h2>
+          <h2 className="text-center text-2xl font-bold text-[#ffffff] drop-shadow-lg" style={{textShadow:'0 2px 8px #0008'}}>{story.title}</h2>
         </div>
         {/* Badge si présent */}
         {story.badge && (
-          <span className="story-badge absolute top-12 left-3 bg-[#ff184e] text-white text-xs font-bold px-3 py-1 rounded-full shadow z-50">
+          <span className="story-badge absolute left-3 top-12 z-50 rounded-full bg-[#ff184e] px-3 py-1 text-xs font-bold text-[#ffffff] shadow">
             {story.badge}
           </span>
         )}
       </div>
       {/* Fermer au clic */}
       <button
-        className="absolute top-4 right-4 text-white text-2xl"
+        className="absolute right-4 top-4 text-2xl text-[#ffffff]"
         onClick={onClose}
         aria-label="Fermer"
         style={{ cursor: 'pointer' }}
@@ -292,17 +292,22 @@ const Stories = () => {
             {/* Overlay gradient for readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             {/* Badge en haut à gauche */}
-            <span className="absolute top-3 left-3 bg-[#ff184e] text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+            <span className="absolute left-3 top-3 rounded-full bg-[#ff184e] px-3 py-1 text-xs font-bold text-[#ffffff] shadow">
               {story.badge || 'Nouveau'}
             </span>
             {/* Nombre de vues en haut à droite */}
-            <span className="absolute top-3 right-4 text-white/80 text-sm font-semibold flex items-center gap-1 bg-black/50 px-2 py-0.5 rounded-full">
+            <span className="absolute right-4 top-3 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-sm font-semibold text-[rgba(255,255,255,0.92)]">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#fff" strokeWidth="2"/><circle cx="12" cy="12" r="3" stroke="#fff" strokeWidth="2"/></svg>
               {typeof story.views !== 'undefined' && story.views !== null ? story.views : 0}
             </span>
             {/* Titre sur l'image */}
             <div className="absolute left-0 right-0 bottom-8 px-4">
-              <h3 className="text-white font-extrabold text-base leading-tight drop-shadow-lg" style={{textShadow:'0 2px 8px #0008'}}>{story.title}</h3>
+              <h3
+                className="text-base font-extrabold leading-tight text-[#ffffff] drop-shadow-lg"
+                style={{ textShadow: '0 2px 8px #0008' }}
+              >
+                {story.title}
+              </h3>
             </div>
           </div>
         ))}

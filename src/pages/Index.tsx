@@ -15,6 +15,11 @@ import { mapArticlesFromSupabase } from '@/lib/articleMapper';
 import { motion } from 'framer-motion';
 import { useCategories } from '@/hooks/useCategories';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { ARTICLES_PUBLISHED_OR_FILTER, escapeForIlike } from '@/lib/utils';
+
+/** Colonnes réellement présentes sur `articles` (éviter excerpt, title, image, etc. alias inexistants). */
+const ARTICLES_HOME_SELECT =
+  'id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut';
 
 const SECTION_TITLES = {
   selectedNews: 'Les choix de la rédaction',
@@ -35,8 +40,6 @@ const CATEGORY_NAMES: Record<keyof typeof SECTION_TITLES, string[]> = {
   sport: ['Sport'],
   entertainment: ['Culture', 'Divertissement'],
 };
-
-const PUBLISHED_STATUS_FILTER = 'statut.eq.publie,statut.eq.publié,statut.eq.published,statut.ilike.%publ%';
 
 function normalize(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
@@ -82,11 +85,17 @@ const Index = () => {
     const fetchBusinessArticles = async () => {
       setLoadingBusiness(true);
       setErrorBusiness(null);
+      const cat = mappedCategories.business?.trim();
+      if (!cat) {
+        setBusinessArticles([]);
+        setLoadingBusiness(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, category, title, excerpt, image, date, author')
-        .or(PUBLISHED_STATUS_FILTER)
-        .eq('categorie', mappedCategories.business || '')
+        .select(ARTICLES_HOME_SELECT)
+        .or(ARTICLES_PUBLISHED_OR_FILTER)
+        .ilike('categorie', `%${escapeForIlike(cat)}%`)
         .order('date_publication', { ascending: false })
         .limit(3);
       if (error) {
@@ -115,12 +124,17 @@ const Index = () => {
     const fetchTechArticles = async () => {
       setLoadingTech(true);
       setErrorTech(null);
-
+      const cat = mappedCategories.technology?.trim();
+      if (!cat) {
+        setTechnologyArticles([]);
+        setLoadingTech(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
-        .or(PUBLISHED_STATUS_FILTER)
-        .eq('categorie', mappedCategories.technology || '')
+        .select(ARTICLES_HOME_SELECT)
+        .or(ARTICLES_PUBLISHED_OR_FILTER)
+        .ilike('categorie', `%${escapeForIlike(cat)}%`)
         .order('date_publication', { ascending: false })
         .limit(2);
 
@@ -154,12 +168,17 @@ const Index = () => {
     const fetchSportsArticles = async () => {
       setLoadingSports(true);
       setErrorSports(null);
-
+      const cat = mappedCategories.sport?.trim();
+      if (!cat) {
+        setSportsArticles([]);
+        setLoadingSports(false);
+        return;
+      }
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
-        .or(PUBLISHED_STATUS_FILTER)
-        .eq('categorie', mappedCategories.sport || '')
+        .select(ARTICLES_HOME_SELECT)
+        .or(ARTICLES_PUBLISHED_OR_FILTER)
+        .ilike('categorie', `%${escapeForIlike(cat)}%`)
         .order('date_publication', { ascending: false })
         .limit(1);
 
@@ -198,8 +217,8 @@ const Index = () => {
       setErrorRecent(null);
       const { data, error } = await supabase
         .from('articles')
-        .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut, title, excerpt, image, date, author, category')
-        .or(PUBLISHED_STATUS_FILTER)
+        .select(ARTICLES_HOME_SELECT)
+        .or(ARTICLES_PUBLISHED_OR_FILTER)
         .order('date_publication', { ascending: false })
         .limit(6);
       if (error) {
@@ -225,40 +244,24 @@ const Index = () => {
   useEffect(() => {
     const fetchAdditional = async () => {
       setLoadingAdditional(true);
-      
-      const queries = [];
-      
-      queries.push(
-        supabase
+
+      const byCategory = (cat: string | null, limit: number) => {
+        const c = cat?.trim();
+        if (!c) return Promise.resolve({ data: [] as any[], error: null });
+        return supabase
           .from('articles')
-          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
-          .or(PUBLISHED_STATUS_FILTER)
-          .eq('categorie', mappedCategories.news || '')
+          .select(ARTICLES_HOME_SELECT)
+          .or(ARTICLES_PUBLISHED_OR_FILTER)
+          .ilike('categorie', `%${escapeForIlike(c)}%`)
           .order('date_publication', { ascending: false })
-          .limit(3)
-      );
-      
-      queries.push(
-        supabase
-          .from('articles')
-          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
-          .or(PUBLISHED_STATUS_FILTER)
-          .eq('categorie', mappedCategories.travel || '')
-          .order('date_publication', { ascending: false })
-          .limit(3)
-      );
-      
-      queries.push(
-        supabase
-          .from('articles')
-          .select('id, slug, titre, meta_description, image_url, categorie, date_publication, auteur, statut')
-          .or(PUBLISHED_STATUS_FILTER)
-          .eq('categorie', mappedCategories.entertainment || '')
-          .order('date_publication', { ascending: false })
-          .limit(1)
-      );
-      
-      const [resNews, resTravel, resEnt] = await Promise.all(queries);
+          .limit(limit);
+      };
+
+      const [resNews, resTravel, resEnt] = await Promise.all([
+        byCategory(mappedCategories.news, 3),
+        byCategory(mappedCategories.travel, 3),
+        byCategory(mappedCategories.entertainment, 1),
+      ]);
       
       setAdditionalData({
         selectedNews: resNews.data || [],

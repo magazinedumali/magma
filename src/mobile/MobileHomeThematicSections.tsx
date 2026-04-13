@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { ChevronRight } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { applyStorageImageFallback, optimiseSupabaseImageUrl } from '@/lib/supabaseImageUrl';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn, escapeForIlike, ARTICLES_PUBLISHED_OR_FILTER } from '@/lib/utils';
 
 type ArticleRow = {
   id: string;
@@ -47,37 +49,64 @@ type SectionItem = {
 };
 
 function createSections(dbCategories: { name: string }[]): SectionItem[] {
-  return SECTION_KEYWORDS.map(section => {
+  return SECTION_KEYWORDS.map((section) => {
     const categoryName = findMatchingCategory(dbCategories, section.keywords);
     return {
       key: section.key,
       title: section.title,
       categoryName,
       load: async () => {
-        if (!categoryName) {
-          return { data: [], error: null };
-        }
-        const result = await supabase
+        let q = supabase
           .from('articles')
           .select('id, slug, titre, image_url, categorie, date_publication')
-          .eq('statut', 'publie')
-          .ilike('categorie', `%${categoryName}%`)
+          .or(ARTICLES_PUBLISHED_OR_FILTER)
           .order('date_publication', { ascending: false })
           .limit(8);
+
+        if (categoryName) {
+          const safe = escapeForIlike(categoryName);
+          q = q.ilike('categorie', `%${safe}%`);
+        } else {
+          const orParts = section.keywords.map((kw) => {
+            const safe = escapeForIlike(kw);
+            return `categorie.ilike.%${safe}%`;
+          });
+          q = q.or(orParts.join(','));
+        }
+
+        const result = await q;
         return { data: result.data, error: result.error };
       },
     };
-  }).filter((s): s is SectionItem => s.categoryName !== null);
+  });
 }
 
-function MiniArticleCard({ article, onClick }: { article: ArticleRow; onClick: () => void }) {
+function MiniArticleCard({
+  article,
+  onClick,
+  isDark,
+}: {
+  article: ArticleRow;
+  onClick: () => void;
+  isDark: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-[200px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#161b26] text-left transition active:scale-[0.98]"
+      className={cn(
+        'w-[200px] shrink-0 overflow-hidden rounded-2xl text-left shadow-sm transition active:scale-[0.98]',
+        isDark
+          ? 'border border-white/10 bg-[#161b26]'
+          : 'border border-black/10 bg-white'
+      )}
     >
-      <div className="relative h-[110px] w-full bg-[#0a0d14]">
+      <div
+        className={cn(
+          'relative h-[110px] w-full',
+          isDark ? 'bg-[#0a0d14]' : 'bg-gray-100'
+        )}
+      >
         <img
           src={optimiseSupabaseImageUrl(article.image_url || '/placeholder.svg', 'thumb')}
           alt=""
@@ -87,15 +116,27 @@ function MiniArticleCard({ article, onClick }: { article: ArticleRow; onClick: (
           onError={(e) => applyStorageImageFallback(e.currentTarget)}
         />
         {article.categorie && (
-          <span className="absolute left-2 top-2 max-w-[90%] truncate rounded bg-[#ff184e]/95 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+          <span className="absolute left-2 top-2 max-w-[90%] truncate rounded bg-[#ff184e]/95 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-[#ffffff]">
             {article.categorie}
           </span>
         )}
       </div>
       <div className="p-3">
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white">{article.titre}</h3>
+        <h3
+          className={cn(
+            'line-clamp-2 text-sm font-bold leading-snug',
+            isDark ? 'text-white' : 'text-[#111827]'
+          )}
+        >
+          {article.titre}
+        </h3>
         {article.date_publication && (
-          <p className="mt-1.5 text-[11px] text-[#9ba5be]">
+          <p
+            className={cn(
+              'mt-1.5 text-[11px]',
+              isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+            )}
+          >
             {new Date(article.date_publication).toLocaleDateString('fr-FR')}
           </p>
         )}
@@ -107,13 +148,13 @@ function MiniArticleCard({ article, onClick }: { article: ArticleRow; onClick: (
 export default function MobileHomeThematicSections() {
   const navigate = useNavigate();
   const { categories: dbCategories } = useCategories();
+  const { isDark } = useTheme();
   const [data, setData] = useState<Record<string, ArticleRow[]>>({});
   const [loading, setLoading] = useState(true);
 
   const sections = useMemo(() => createSections(dbCategories), [dbCategories]);
 
   useEffect(() => {
-    if (!dbCategories.length) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -138,15 +179,27 @@ export default function MobileHomeThematicSections() {
     };
   }, [sections]);
 
-  if (loading || !dbCategories.length) {
+  if (loading) {
     return (
       <div className="space-y-6 px-4 py-2">
         {[1, 2, 3].map((i) => (
           <div key={i} className="animate-pulse space-y-3">
-            <div className="h-6 w-40 rounded bg-white/10" />
+            <div
+              className={cn('h-6 w-40 rounded', isDark ? 'bg-white/10' : 'bg-black/10')}
+            />
             <div className="flex gap-3 overflow-hidden">
-              <div className="h-40 w-[200px] shrink-0 rounded-2xl bg-white/5" />
-              <div className="h-40 w-[200px] shrink-0 rounded-2xl bg-white/5" />
+              <div
+                className={cn(
+                  'h-40 w-[200px] shrink-0 rounded-2xl',
+                  isDark ? 'bg-white/5' : 'bg-black/[0.06]'
+                )}
+              />
+              <div
+                className={cn(
+                  'h-40 w-[200px] shrink-0 rounded-2xl',
+                  isDark ? 'bg-white/5' : 'bg-black/[0.06]'
+                )}
+              />
             </div>
           </div>
         ))}
@@ -162,14 +215,26 @@ export default function MobileHomeThematicSections() {
         return (
           <section key={s.key} className="min-w-0">
             <div className="mb-3 flex items-center justify-between px-4">
-              <h2 className="text-lg font-bold tracking-tight text-white">{s.title}</h2>
-              <ChevronRight className="shrink-0 text-[#9ba5be]" size={20} aria-hidden />
+              <h2
+                className={cn(
+                  'text-lg font-bold tracking-tight',
+                  isDark ? 'text-white' : 'text-[#111827]'
+                )}
+              >
+                {s.title}
+              </h2>
+              <ChevronRight
+                className={cn('shrink-0', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}
+                size={20}
+                aria-hidden
+              />
             </div>
             <div className="flex touch-pan-x gap-3 overflow-x-auto overflow-y-hidden px-4 pb-1 [-webkit-overflow-scrolling:touch] scrollbar-hide">
               {rows.map((article) => (
                 <MiniArticleCard
                   key={article.id}
                   article={article}
+                  isDark={isDark}
                   onClick={() => navigate(`/mobile/article/${article.slug || article.id}`)}
                 />
               ))}
