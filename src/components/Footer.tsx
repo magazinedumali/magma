@@ -10,7 +10,7 @@ const Footer = () => {
   const { categories, loading } = useCategories();
 
   return (
-    <footer className="relative bg-[#0B0F19] border-t border-white/10 text-white pt-16 pb-8 overflow-hidden z-20">
+    <footer className="relative z-20 overflow-hidden border-t border-white/10 bg-[#0B0F19] pb-8 pt-16 text-[#ffffff]">
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#ff184e]/50 to-transparent"></div>
       
       {/* Background decorations */}
@@ -26,26 +26,45 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-[#ff184e] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,24,78,0.5)]">
-                <span className="font-bold text-xl text-white">M</span>
-              </div>
-              <h3 className="text-2xl font-bold">MagezNews</h3>
-            </div>
+            <Link to="/" className="group mb-6 flex items-center gap-2 sm:gap-2.5">
+              <img
+                src="/logo.png"
+                alt="Le Magazine du Mali"
+                className="h-8 w-auto shrink-0 object-contain drop-shadow-[0_0_12px_rgba(255,24,78,0.35)] sm:h-9"
+              />
+              <span
+                className="text-[0.9375rem] font-semibold leading-snug tracking-tight text-[#ffffff] whitespace-nowrap sm:text-base group-hover:text-[#ffffff]/90"
+                style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.03em' }}
+              >
+                Le Magazine du Mali
+              </span>
+            </Link>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               {t('Le Magazine du Mali vous propose les dernières actualités, météo, économie, divertissement, politique, et plus encore. Restez informé avec des informations fiables et de qualité.')}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#ff184e] transition-all hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]">
+              <a
+                href="#"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gray-400 transition-all hover:bg-[#ff184e] hover:text-[#ffffff] hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]"
+              >
                 <Facebook size={16} />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#ff184e] transition-all hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]">
+              <a
+                href="#"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gray-400 transition-all hover:bg-[#ff184e] hover:text-[#ffffff] hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]"
+              >
                 <Twitter size={16} />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#ff184e] transition-all hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]">
+              <a
+                href="#"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gray-400 transition-all hover:bg-[#ff184e] hover:text-[#ffffff] hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]"
+              >
                 <Instagram size={16} />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#ff184e] transition-all hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]">
+              <a
+                href="#"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gray-400 transition-all hover:bg-[#ff184e] hover:text-[#ffffff] hover:shadow-[0_0_10px_rgba(255,24,78,0.5)]"
+              >
                 <Youtube size={16} />
               </a>
             </div>
@@ -58,9 +77,9 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-3 inline-block relative">
+            <h3 className="relative mb-6 inline-block border-b border-white/10 pb-3 text-xl font-bold text-[#ffffff]">
               {t('Liens rapides')}
-              <div className="absolute -bottom-[1px] left-0 w-1/2 h-[2px] bg-[#ff184e]"></div>
+              <div className="absolute -bottom-[1px] left-0 h-[2px] w-1/2 bg-[#ff184e]" />
             </h3>
             <ul className="space-y-3 text-sm text-gray-400 font-medium">
               {[
@@ -72,7 +91,7 @@ const Footer = () => {
               ].map((link) => (
                 <li key={link.label}>
                   <Link to={link.path} className="hover:text-[#ff184e] transition-colors flex items-center group">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mr-2 group-hover:bg-[#ff184e] transition-colors"></span>
+                    <span className="mr-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#ffffff] transition-colors group-hover:bg-[#ff184e]" />
                     {t(link.label)}
                   </Link>
                 </li>
@@ -87,9 +106,9 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-3 inline-block relative">
+            <h3 className="relative mb-6 inline-block border-b border-white/10 pb-3 text-xl font-bold text-[#ffffff]">
               {t('Catégories')}
-              <div className="absolute -bottom-[1px] left-0 w-1/2 h-[2px] bg-[#ff184e]"></div>
+              <div className="absolute -bottom-[1px] left-0 h-[2px] w-1/2 bg-[#ff184e]" />
             </h3>
             {loading ? (
               <p className="text-sm text-gray-500">{t('Chargement des catégories...')}</p>
@@ -98,7 +117,7 @@ const Footer = () => {
                 {categories.slice(0, 8).map((category) => (
                   <li key={category.id}>
                     <Link to={category.path} className="hover:text-[#ff184e] transition-colors flex items-center group">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-600 mr-2 group-hover:bg-[#ff184e] transition-colors"></span>
+                      <span className="mr-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#ffffff] transition-colors group-hover:bg-[#ff184e]" />
                       {category.name}
                     </Link>
                   </li>
@@ -116,9 +135,9 @@ const Footer = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <h3 className="text-xl font-bold mb-6 border-b border-white/10 pb-3 inline-block relative">
+            <h3 className="relative mb-6 inline-block border-b border-white/10 pb-3 text-xl font-bold text-[#ffffff]">
               {t('Contact')}
-              <div className="absolute -bottom-[1px] left-0 w-1/2 h-[2px] bg-[#ff184e]"></div>
+              <div className="absolute -bottom-[1px] left-0 h-[2px] w-1/2 bg-[#ff184e]" />
             </h3>
             <ul className="space-y-4 text-sm text-gray-400">
               <li className="flex items-start">
@@ -131,7 +150,9 @@ const Footer = () => {
               </li>
               <li className="flex items-center">
                 <Mail className="text-[#ff184e] mr-3 shrink-0" size={18} />
-                <a href="mailto:magazinedumali@gmail.com" className="hover:text-white transition-colors">magazinedumali@gmail.com</a>
+                <a href="mailto:magazinedumali@gmail.com" className="transition-colors hover:text-[#ffffff]">
+                  magazinedumali@gmail.com
+                </a>
               </li>
             </ul>
             
@@ -139,9 +160,9 @@ const Footer = () => {
               <input 
                 type="email" 
                 placeholder={t('Votre adresse e-mail')} 
-                className="py-2 px-4 rounded-l-lg text-sm w-full bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-1 focus:ring-[#ff184e] focus:border-[#ff184e]"
+                className="w-full rounded-l-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-[#ffffff] focus:border-[#ff184e] focus:outline-none focus:ring-1 focus:ring-[#ff184e]"
               />
-              <button className="bg-[#ff184e] hover:bg-[#ff184e]/80 transition-colors text-white py-2 px-4 rounded-r-lg text-sm font-bold shadow-[0_0_10px_rgba(255,24,78,0.3)]">
+              <button className="rounded-r-lg bg-[#ff184e] px-4 py-2 text-sm font-bold text-[#ffffff] shadow-[0_0_10px_rgba(255,24,78,0.3)] transition-colors hover:bg-[#ff184e]/80">
                 {t('Go')}
               </button>
             </div>
@@ -150,10 +171,14 @@ const Footer = () => {
 
         {/* Footer bottom */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between text-gray-500 text-sm">
-          <p>&copy; {new Date().getFullYear()} MagezNews. {t('Tous droits réservés.')}</p>
+          <p>&copy; {new Date().getFullYear()} Le Magazine du Mali. {t('Tous droits réservés.')}</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/privacy" className="hover:text-white transition-colors">Politique de confidentialité</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Conditions d'utilisation</Link>
+            <Link to="/privacy" className="transition-colors hover:text-[#ffffff]">
+              Politique de confidentialité
+            </Link>
+            <Link to="/terms" className="transition-colors hover:text-[#ffffff]">
+              Conditions d&apos;utilisation
+            </Link>
           </div>
         </div>
       </div>

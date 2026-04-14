@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useRef, useMemo } from 'react';
-import { Bell, Bookmark, Moon, Search, Sun, TrendingUp } from 'lucide-react';
+import { Bookmark, Moon, Search, Sun, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 
 import { useCategories } from '@/hooks/useCategories';
@@ -83,7 +83,7 @@ const ArticleCard = memo(function ArticleCard({
           <h3
             className={cn(
               'line-clamp-2 text-[16px] font-bold leading-[22px]',
-              isDark ? 'text-white' : 'text-[#111827]'
+              isDark ? 'text-[#ffffff]' : 'text-[#111827]'
             )}
           >
             {title}
@@ -105,6 +105,9 @@ const ArticleCard = memo(function ArticleCard({
 });
 
 const batchSize = 10;
+
+/** Nombre max d’articles dans « Actualités récentes » (après le carrousel) sur l’onglet Dernières. */
+const MAX_RECENT_ARTICLES = 20;
 
 export default function MobileHome() {
   const { categories: siteCategories } = useCategories();
@@ -171,16 +174,22 @@ export default function MobileHome() {
       if (rows.length > 0) {
         if (tab === 'latest') {
           setHeroArticle(null);
-          setArticles(rows.length > 3 ? rows.slice(3) : []);
+          const listRaw = rows.length > 3 ? rows.slice(3) : [];
+          const capped = listRaw.slice(0, MAX_RECENT_ARTICLES);
+          setArticles(capped);
+          setHasMore(
+            rows.length === batchSize && capped.length < MAX_RECENT_ARTICLES
+          );
         } else {
           setHeroArticle(rows[0]);
           setArticles(rows.slice(1));
+          setHasMore(rows.length === batchSize);
         }
       } else {
         setHeroArticle(null);
         setArticles([]);
+        setHasMore(false);
       }
-      setHasMore(rows.length === batchSize);
       setLoadingInitial(false);
     })();
     return () => {
@@ -203,9 +212,22 @@ export default function MobileHome() {
           if (res.error) {
             console.error('[mobile/Index] load more:', res.error);
           } else if (rows.length) {
-            setArticles((prev) => [...prev, ...rows]);
+            let merged: any[] = [];
+            setArticles((prev) => {
+              merged =
+                tab === 'latest'
+                  ? [...prev, ...rows].slice(0, MAX_RECENT_ARTICLES)
+                  : [...prev, ...rows];
+              return merged;
+            });
             nextOffsetRef.current = from + rows.length;
-            setHasMore(rows.length === batchSize);
+            if (tab === 'latest') {
+              setHasMore(
+                merged.length < MAX_RECENT_ARTICLES && rows.length === batchSize
+              );
+            } else {
+              setHasMore(rows.length === batchSize);
+            }
           } else {
             setHasMore(false);
           }
@@ -275,24 +297,6 @@ export default function MobileHome() {
           >
             {isDark ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
           </button>
-          <button
-            type="button"
-            className={cn(
-              'relative flex h-10 w-10 items-center justify-center rounded-full border transition-colors',
-              isDark
-                ? 'border-white/10 bg-[#161b26] text-white'
-                : 'border-black/10 bg-white text-[#111827] shadow-sm'
-            )}
-            aria-label="Notifications"
-          >
-            <Bell size={20} />
-            <span
-              className={cn(
-                'absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-2 bg-[#ff184e]',
-                isDark ? 'border-[#161b26]' : 'border-white'
-              )}
-            />
-          </button>
         </div>
       </header>
 
@@ -306,7 +310,7 @@ export default function MobileHome() {
             className={cn(
               'whitespace-nowrap rounded-[25px] border px-5 py-2.5 text-[14px] font-bold transition-all',
               tab === t.value
-                ? 'border-[#ff184e] bg-[#ff184e] text-white'
+                ? 'border-[#ff184e] bg-[#ff184e] text-[#ffffff]'
                 : isDark
                   ? 'border-white/10 bg-[#161b26] text-[#9ba5be]'
                   : 'border-black/10 bg-white text-[#6b7280] shadow-sm'
@@ -350,16 +354,16 @@ export default function MobileHome() {
               decoding="async"
               fetchpriority="high"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/20" />
             <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
               <div className="mb-2 inline-flex items-center gap-1 rounded bg-[#ff184e] px-2 py-1">
-                <TrendingUp size={12} className="text-white" />
-                <span className="text-[10px] font-extrabold tracking-wide text-white">À LA UNE</span>
+                <TrendingUp size={12} className="text-[#ffffff]" />
+                <span className="text-[10px] font-extrabold tracking-wide text-[#ffffff]">À LA UNE</span>
               </div>
-              <h2 className="line-clamp-2 text-[22px] font-bold leading-7 text-white">
+              <h2 className="line-clamp-2 text-[22px] font-bold leading-7 text-[#ffffff] drop-shadow-sm">
                 {heroArticle.titre}
               </h2>
-              <div className="mt-2 flex items-center gap-2 text-xs text-white/80">
+              <div className="mt-2 flex items-center gap-2 text-xs text-[rgba(255,255,255,0.88)]">
                 <span className="font-semibold">{heroArticle.auteur}</span>
                 <span>•</span>
                 <span>5 min de lecture</span>
@@ -380,20 +384,69 @@ export default function MobileHome() {
         )}
       </div>
 
-      {/* Stories / sujets brûlants — sous le carrousel « à la une », avant les rubriques horizontales */}
-      <section className="mb-2 mt-8 px-0 pb-2 pt-2">
-        <div className="mb-4 flex items-center justify-between px-4">
-          <h2
-            className={cn(
-              'text-[20px] font-extrabold tracking-tight',
-              isDark ? 'text-white' : 'text-[#111827]'
-            )}
-          >
-            Sujets brûlants
-          </h2>
-        </div>
-        <Stories />
-      </section>
+      {/* Rubrique : liste compacte directement sous le premier article (pas après Stories / bannière) */}
+      {tab !== 'latest' && heroArticle && (
+        <section className="mt-5 px-0 pb-2">
+          <div className="mb-3 px-4">
+            <h2
+              className={cn(
+                'text-[18px] font-bold tracking-tight',
+                isDark ? 'text-[#ffffff]' : 'text-[#111827]'
+              )}
+            >
+              Suite dans cette rubrique
+            </h2>
+          </div>
+          {loadingInitial && articles.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-[#ff184e]">Chargement…</div>
+          ) : articles.length === 0 ? (
+            <p
+              className={cn(
+                'px-4 py-4 text-center text-sm',
+                isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]'
+              )}
+            >
+              Aucun autre article pour le moment.
+            </p>
+          ) : (
+            <>
+              {articles.map((article) => (
+                <ArticleCard
+                  key={article.id}
+                  title={article.titre}
+                  image={optimiseSupabaseImageUrl(article.image_url || '/placeholder.svg', 'thumb')}
+                  author={article.auteur}
+                  category={article.categorie}
+                  isDark={isDark}
+                  onClick={() => goArticle(article)}
+                />
+              ))}
+              {(loadingMore || (loadingInitial && articles.length > 0)) && (
+                <div className="flex justify-center py-4">
+                  <span className="text-sm text-[#ff184e]">Chargement…</span>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
+      {/* Sujets brûlants : uniquement accueil « Dernières », pas sur les onglets rubrique */}
+      {tab === 'latest' && (
+        <section className="mb-2 mt-8 px-0 pb-2 pt-2">
+          <div className="mb-4 flex items-center justify-between px-4">
+            <h2
+              className={cn(
+                'text-[20px] font-extrabold tracking-tight',
+                isDark ? 'text-[#ffffff]' : 'text-[#111827]'
+              )}
+            >
+              Sujets brûlants
+            </h2>
+          </div>
+          <Stories />
+        </section>
+      )}
 
       {/* Sections thématiques (alignées sur la page d’accueil web) */}
       {tab === 'latest' && (
@@ -412,50 +465,58 @@ export default function MobileHome() {
         <Banner position="accueil" width={400} height={80} />
       </div>
 
-      {/* Actualités récentes = suite du même flux que la une */}
-      <div className="mb-[15px] mt-2 flex items-center justify-between px-4">
-        <h2 className={cn('text-[18px] font-bold', isDark ? 'text-white' : 'text-[#111827]')}>
-          Actualités récentes
-        </h2>
-        <button
-          type="button"
-          className="text-sm font-semibold text-[#ff184e]"
-          onClick={() => navigate('/mobile/search')}
-        >
-          Voir tout
-        </button>
-      </div>
-
-      <div className="flex-1 pb-[calc(200px+env(safe-area-inset-bottom,0px))]">
-        {!loadingInitial && articles.length === 0 && !heroArticle ? (
-          <div className="flex flex-col items-center justify-center py-10 opacity-60">
-            <span
-              className={cn('text-[16px]', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}
+      {/* Actualités récentes = flux « Dernières » uniquement (les rubriques listent au-dessus) */}
+      {tab === 'latest' && (
+        <>
+          <div className="mb-[15px] mt-2 flex items-center justify-between px-4">
+            <h2 className={cn('text-[18px] font-bold', isDark ? 'text-[#ffffff]' : 'text-[#111827]')}>
+              Actualités récentes
+            </h2>
+            <button
+              type="button"
+              className="text-sm font-semibold text-[#ff184e]"
+              onClick={() => navigate('/mobile/search')}
             >
-              Aucun article pour le moment
-            </span>
+              Voir tout
+            </button>
           </div>
-        ) : (
-          <>
-            {articles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                title={article.titre}
-                image={article.image_url}
-                author={article.auteur}
-                category={article.categorie}
-                isDark={isDark}
-                onClick={() => goArticle(article)}
-              />
-            ))}
-            {(loadingMore || (loadingInitial && articles.length > 0)) && (
-              <div className="flex justify-center py-4">
-                <span className="text-sm text-[#ff184e]">Chargement…</span>
+
+          <div className="flex-1 pb-[calc(200px+env(safe-area-inset-bottom,0px))]">
+            {!loadingInitial && articles.length === 0 && !heroArticle ? (
+              <div className="flex flex-col items-center justify-center py-10 opacity-60">
+                <span
+                  className={cn('text-[16px]', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}
+                >
+                  Aucun article pour le moment
+                </span>
               </div>
+            ) : (
+              <>
+                {articles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    title={article.titre}
+                    image={optimiseSupabaseImageUrl(article.image_url || '/placeholder.svg', 'thumb')}
+                    author={article.auteur}
+                    category={article.categorie}
+                    isDark={isDark}
+                    onClick={() => goArticle(article)}
+                  />
+                ))}
+                {(loadingMore || (loadingInitial && articles.length > 0)) && (
+                  <div className="flex justify-center py-4">
+                    <span className="text-sm text-[#ff184e]">Chargement…</span>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
+
+      {tab !== 'latest' && (
+        <div className="flex-1 pb-[calc(200px+env(safe-area-inset-bottom,0px))]" aria-hidden />
+      )}
 
       <MobileGlassPlayer />
       <MobileBottomNav user={user} />

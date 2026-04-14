@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import MobileBottomNav from './MobileBottomNav';
 import { mobileTheme as T } from './mobileTheme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 /** Flux démo tant qu’aucune URL live n’est branchée côté config */
 const RADIO_STREAM_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
@@ -32,6 +34,7 @@ function useAlbums() {
 }
 
 export default function AudioStreamingPage() {
+  const { isDark } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [livePlaying, setLivePlaying] = useState(false);
   const liveRef = useRef<HTMLAudioElement>(null);
@@ -66,20 +69,41 @@ export default function AudioStreamingPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col pb-[calc(88px+env(safe-area-inset-bottom,0px))] text-white">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1a1e2e] to-[#0a0d14]" aria-hidden />
+    <div
+      className={cn(
+        'relative flex min-h-screen flex-col pb-[calc(88px+env(safe-area-inset-bottom,0px))] transition-colors duration-300',
+        isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+      )}
+    >
+      <div
+        className={cn(
+          'absolute inset-0 bg-gradient-to-b',
+          isDark ? 'from-[#1a1e2e] to-[#0a0d14]' : 'from-[#f8fafc] to-[#e2e8f0]',
+        )}
+        aria-hidden
+      />
 
       <div className="relative z-10 flex flex-1 flex-col">
         <header className="relative flex items-center justify-center px-4 pb-2 pt-[calc(env(safe-area-inset-top)+12px)]">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="absolute left-4 top-[calc(env(safe-area-inset-top)+12px)] flex rounded-full border border-white/10 bg-[#161b26]/80 p-2 backdrop-blur-sm"
+            className={cn(
+              'absolute left-4 top-[calc(env(safe-area-inset-top)+12px)] flex rounded-full border p-2 backdrop-blur-sm',
+              isDark
+                ? 'border-white/10 bg-[#161b26]/80'
+                : 'border-black/10 bg-white/90 shadow-sm',
+            )}
             aria-label="Retour"
           >
-            <ArrowLeft size={22} className="text-white" />
+            <ArrowLeft size={22} className={isDark ? 'text-[#ffffff]' : 'text-[#111827]'} />
           </button>
-          <h1 className="text-center text-lg font-extrabold uppercase tracking-[0.2em] text-white">
+          <h1
+            className={cn(
+              'text-center text-lg font-extrabold uppercase tracking-[0.2em]',
+              isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+            )}
+          >
             Streaming Direct
           </h1>
         </header>
@@ -90,10 +114,19 @@ export default function AudioStreamingPage() {
               src={RADIO_COVER}
               alt=""
               className="aspect-square w-[min(100%,280px)] rounded-[20px] object-cover shadow-2xl"
-              style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+              style={{
+                boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 16px 40px rgba(15,23,42,0.12)',
+              }}
               loading="lazy"
             />
-            <p className="mt-8 text-center text-2xl font-extrabold text-white">Radio Magma Mali</p>
+            <p
+              className={cn(
+                'mt-8 text-center text-2xl font-extrabold',
+                isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+              )}
+            >
+              Radio Magma Mali
+            </p>
             <p className="mt-1 text-center text-base font-semibold" style={{ color: T.colors.primary }}>
               En direct de Bamako
             </p>
@@ -106,7 +139,7 @@ export default function AudioStreamingPage() {
               aria-label="Reculer"
               onClick={() => skipLive(-15)}
             >
-              <SkipBack size={32} className="text-white" />
+              <SkipBack size={32} className={isDark ? 'text-[#ffffff]' : 'text-[#475569]'} />
             </button>
             <button
               type="button"
@@ -119,9 +152,9 @@ export default function AudioStreamingPage() {
               onClick={toggleLive}
             >
               {livePlaying ? (
-                <Pause size={40} className="text-white" fill="currentColor" />
+                <Pause size={40} className="text-[#ffffff]" fill="currentColor" />
               ) : (
-                <Play size={40} className="ml-1 text-white" fill="currentColor" />
+                <Play size={40} className="ml-1 text-[#ffffff]" fill="currentColor" />
               )}
             </button>
             <button
@@ -130,32 +163,60 @@ export default function AudioStreamingPage() {
               aria-label="Avancer"
               onClick={() => skipLive(15)}
             >
-              <SkipForward size={32} className="text-white" />
+              <SkipForward size={32} className={isDark ? 'text-[#ffffff]' : 'text-[#475569]'} />
             </button>
           </div>
 
           <section className="mt-10 w-full max-w-lg">
-            <h2 className="mb-5 text-lg font-bold text-white">Émissions récentes</h2>
+            <h2
+              className={cn(
+                'mb-5 text-lg font-bold',
+                isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+              )}
+            >
+              Émissions récentes
+            </h2>
             <ul className="space-y-3">
               {RECENT_EPISODES.map((ep) => (
                 <li
                   key={ep.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-4 backdrop-blur-md"
+                  className={cn(
+                    'flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 backdrop-blur-md',
+                    isDark
+                      ? 'border-white/10 bg-white/[0.06]'
+                      : 'border-black/10 bg-white shadow-sm',
+                  )}
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-4">
                     <Music size={24} className="shrink-0" style={{ color: T.colors.primary }} />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{ep.title}</p>
-                      <p className="mt-0.5 text-xs text-[#9ba5be]">{ep.meta}</p>
+                      <p
+                        className={cn(
+                          'truncate text-sm font-semibold',
+                          isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+                        )}
+                      >
+                        {ep.title}
+                      </p>
+                      <p className={cn('mt-0.5 text-xs', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
+                        {ep.meta}
+                      </p>
                     </div>
                   </div>
                   <button
                     type="button"
-                    className="shrink-0 rounded-full p-2 opacity-90 hover:opacity-100"
+                    className={cn(
+                      'shrink-0 rounded-full p-2 opacity-90 hover:opacity-100',
+                      !isDark && 'bg-gray-100',
+                    )}
                     aria-label={`Écouter ${ep.title}`}
                     onClick={toggleLive}
                   >
-                    <Play size={20} className="text-white" fill="currentColor" />
+                    <Play
+                      size={20}
+                      className={isDark ? 'text-[#ffffff]' : 'text-[#111827]'}
+                      fill="currentColor"
+                    />
                   </button>
                 </li>
               ))}
@@ -163,27 +224,51 @@ export default function AudioStreamingPage() {
           </section>
 
           <section className="mt-10 w-full max-w-lg pb-4">
-            <h2 className="mb-4 text-lg font-bold text-white">Nos albums</h2>
+            <h2
+              className={cn(
+                'mb-4 text-lg font-bold',
+                isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+              )}
+            >
+              Nos albums
+            </h2>
             {loading ? (
-              <p className="text-sm text-[#9ba5be]">Chargement…</p>
+              <p className={cn('text-sm', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>Chargement…</p>
             ) : (
               <div className="grid grid-cols-2 gap-4">
                 {albums.slice(0, 4).map((album) => (
                   <button
                     type="button"
                     key={album.id}
-                    className="cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#161b26] text-left shadow-lg transition active:scale-[0.98]"
+                    className={cn(
+                      'cursor-pointer overflow-hidden rounded-2xl border text-left shadow-lg transition active:scale-[0.98]',
+                      isDark
+                        ? 'border-white/10 bg-[#161b26]'
+                        : 'border-black/10 bg-white',
+                    )}
                     onClick={() => navigate(`/mobile/album/${album.id}`)}
                   >
                     <img src={album.cover} alt="" className="h-36 w-full object-cover" />
                     <div className="p-3">
-                      <div className="mb-1 text-base font-bold text-white">{album.title}</div>
+                      <div
+                        className={cn(
+                          'mb-1 text-base font-bold',
+                          isDark ? 'text-[#ffffff]' : 'text-[#111827]',
+                        )}
+                      >
+                        {album.title}
+                      </div>
                       {album.category && (
-                        <div className="mb-1 inline-block rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-[#9ba5be]">
+                        <div
+                          className={cn(
+                            'mb-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold',
+                            isDark ? 'bg-white/10 text-[#9ba5be]' : 'bg-gray-100 text-[#6b7280]',
+                          )}
+                        >
                           {album.category}
                         </div>
                       )}
-                      <div className="flex items-center gap-1 text-xs text-[#9ba5be]">
+                      <div className={cn('flex items-center gap-1 text-xs', isDark ? 'text-[#9ba5be]' : 'text-[#6b7280]')}>
                         {album.songs?.length || 0} pistes
                       </div>
                     </div>
@@ -219,6 +304,8 @@ function formatTime(sec: number) {
 
 // AlbumDetailMobile dynamique
 export function AlbumDetailMobile() {
+  const { isDark } = useTheme();
+
   function useAlbums() {
     const [albums, setAlbums] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -258,13 +345,37 @@ export function AlbumDetailMobile() {
     }
   }, [current, playing]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement…</div>;
-  if (!album) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#18122B] text-white">
-      <div className="text-2xl font-bold mb-4">Album not found</div>
-      <button onClick={() => navigate(-1)} className="bg-[#ff184e] text-white px-6 py-2 rounded-full font-bold">Go Back</button>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div
+        className={cn(
+          'flex min-h-screen items-center justify-center transition-colors',
+          isDark ? 'bg-[#0a0d14] text-[#9ba5be]' : 'bg-[#f3f4f6] text-[#6b7280]',
+        )}
+      >
+        Chargement…
+      </div>
+    );
+  }
+  if (!album) {
+    return (
+      <div
+        className={cn(
+          'flex min-h-screen flex-col items-center justify-center px-4 transition-colors',
+          isDark ? 'bg-[#0a0d14] text-[#ffffff]' : 'bg-[#f3f4f6] text-[#111827]',
+        )}
+      >
+        <div className="mb-4 text-2xl font-bold">Album introuvable</div>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="rounded-full bg-[#ff184e] px-6 py-2 font-bold text-[#ffffff]"
+        >
+          Retour
+        </button>
+      </div>
+    );
+  }
   const songs = album.songs || [];
   const currentSong = songs[current || 0];
   // Gestion play/pause/next/prev
@@ -281,41 +392,74 @@ export function AlbumDetailMobile() {
     }
   };
   return (
-    <div className="min-h-screen bg-[#f9f7fc] flex flex-col pb-40">
-      <div className="relative overflow-hidden" style={{background:'#18122B'}}>
+    <div
+      className={cn(
+        'flex min-h-screen flex-col pb-40 transition-colors',
+        isDark ? 'bg-[#0a0d14]' : 'bg-[#f9f7fc]',
+      )}
+    >
+      <div className="relative overflow-hidden" style={{ background: '#18122B' }}>
         <img src={album.cover} alt={album.title} className="w-full h-64 object-cover" />
         {/* Dégradé noir progressif en bas */}
         <div className="absolute left-0 right-0 bottom-0 h-32" style={{background: 'linear-gradient(0deg,rgba(0,0,0,0.92) 55%,rgba(0,0,0,0.7) 75%,rgba(0,0,0,0.3) 90%,rgba(0,0,0,0) 100%)'}} />
         {/* Texte sur le dégradé, aligné à gauche */}
-        <div className="absolute left-6 right-0 bottom-8 flex flex-col items-start z-10">
-          <h1 className="text-white text-2xl font-bold mb-1 drop-shadow-lg">{album.title}</h1>
+        <div className="absolute bottom-8 left-6 right-0 z-10 flex flex-col items-start">
+          <h1 className="mb-1 text-2xl font-bold text-[#ffffff] drop-shadow-lg">{album.title}</h1>
           {album.category && (
-            <div className="text-white text-xs font-semibold mb-1 bg-[#ff184e]/80 px-2 py-0.5 rounded-full drop-shadow">{album.category}</div>
+            <div className="mb-1 rounded-full bg-[#ff184e]/80 px-2 py-0.5 text-xs font-semibold text-[#ffffff] drop-shadow">
+              {album.category}
+            </div>
           )}
-          <div className="text-white text-base font-medium drop-shadow mb-1">{album.year} &nbsp;•&nbsp; {songs.length} morceaux</div>
+          <div className="mb-1 text-base font-medium text-[#ffffff] drop-shadow">
+            {album.year} &nbsp;•&nbsp; {songs.length} morceaux
+          </div>
         </div>
         <button onClick={() => navigate(-1)} className="absolute top-4 left-4 bg-white/80 rounded-full p-2"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke="#18122B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
       </div>
       <div className="flex-1 px-0 pt-0 pb-0">
-        <div className="bg-white rounded-3xl mx-2 px-2 py-2 shadow-lg">
+        <div
+          className={cn(
+            'mx-2 rounded-3xl px-2 py-2 shadow-lg',
+            isDark ? 'border border-white/10 bg-[#161b26]' : 'bg-white',
+          )}
+        >
           {songs.map((song: any, idx: number) => (
             <div
               key={idx}
-              className={`flex items-center py-3 px-4 mb-1 transition-all duration-200 bg-white relative group ${idx === current && playing ? 'shadow-md' : ''}`}
+              className={cn(
+                'group relative mb-1 flex items-center px-4 py-3 transition-all duration-200',
+                isDark ? 'bg-[#161b26]' : 'bg-white',
+                idx === current && playing && 'shadow-md',
+              )}
               style={{ borderLeft: idx === current && playing ? '4px solid #ff184e' : '4px solid transparent', borderRadius: 8 }}
             >
               {/* Avatar pochette */}
               <img src={album.cover} alt={song.title} className="w-10 h-10 object-cover mr-4" />
               {/* Infos */}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-base text-[#181818] truncate">{song.title}</div>
-                <div className="text-xs text-gray-400 truncate">{song.subtitle}</div>
+              <div className="min-w-0 flex-1">
+                <div
+                  className={cn(
+                    'truncate text-base font-semibold',
+                    isDark ? 'text-[#ffffff]' : 'text-[#181818]',
+                  )}
+                >
+                  {song.title}
+                </div>
+                <div className={cn('truncate text-xs', isDark ? 'text-[#9ba5be]' : 'text-gray-400')}>
+                  {song.subtitle}
+                </div>
               </div>
               {/* Durée */}
-              <div className="text-xs text-gray-400 ml-2 mr-2">{song.duration}</div>
+              <div className={cn('ml-2 mr-2 text-xs', isDark ? 'text-[#9ba5be]' : 'text-gray-400')}>{song.duration}</div>
               {/* Bouton play/pause à droite */}
               <button
-                className={`ml-2 w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white shadow hover:bg-[#ff184e]/10 transition ${idx === current && playing ? 'border-[#ff184e]' : ''}`}
+                className={cn(
+                  'ml-2 flex h-9 w-9 items-center justify-center rounded-full border shadow transition hover:bg-[#ff184e]/10',
+                  isDark
+                    ? 'border-white/10 bg-[#0a0d14]'
+                    : 'border-gray-200 bg-white',
+                  idx === current && playing && 'border-[#ff184e]',
+                )}
                 onClick={e => {
                   e.stopPropagation();
                   if (idx === current) {
@@ -341,17 +485,34 @@ export function AlbumDetailMobile() {
       </div>
       {/* Mini-player flottant en bas */}
       {current !== null && currentSong && currentSong.audio_url && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t z-50 flex flex-col items-center px-4 py-4 max-w-md mx-auto" style={{minHeight:120}}>
-          <div className="flex items-center w-full gap-4 justify-center">
+        <div
+          className={cn(
+            'fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-md flex-col items-center rounded-t-3xl border-t px-4 py-4 shadow-2xl',
+            isDark ? 'border-white/10 bg-[#161b26]' : 'border-black/10 bg-white',
+          )}
+          style={{ minHeight: 120 }}
+        >
+          <div className="flex w-full items-center justify-center gap-4">
             {/* Pochette */}
-            <img src={album.cover} alt={currentSong.title} className="w-16 h-16 object-cover shadow mr-4" />
+            <img src={album.cover} alt={currentSong.title} className="mr-4 h-16 w-16 object-cover shadow" />
             {/* Infos et contrôles */}
-            <div className="flex-1 min-w-0 flex flex-col items-start justify-center">
-              <div className="font-bold text-base text-[#181818] truncate mb-1">{currentSong.title}</div>
-              <div className="text-[#a09db1] text-xs truncate mb-2">{currentSong.subtitle || album.title}</div>
+            <div className="flex min-w-0 flex-1 flex-col items-start justify-center">
+              <div
+                className={cn(
+                  'mb-1 truncate text-base font-bold',
+                  isDark ? 'text-[#ffffff]' : 'text-[#181818]',
+                )}
+              >
+                {currentSong.title}
+              </div>
+              <div className={cn('mb-2 truncate text-xs', isDark ? 'text-[#9ba5be]' : 'text-[#a09db1]')}>
+                {currentSong.subtitle || album.title}
+              </div>
               {/* Barre de progression */}
-              <div className="w-full flex items-center gap-2">
-                <span className="text-xs text-gray-400">{audioRef.current ? formatTime(audioRef.current.currentTime) : '0:00'}</span>
+              <div className="flex w-full items-center gap-2">
+                <span className={cn('text-xs', isDark ? 'text-[#9ba5be]' : 'text-gray-400')}>
+                  {audioRef.current ? formatTime(audioRef.current.currentTime) : '0:00'}
+                </span>
                 <div className="flex-1 flex items-center">
                   <input
                     type="range"
@@ -368,21 +529,47 @@ export function AlbumDetailMobile() {
                     style={{ background: `linear-gradient(to right, #ff184e ${(audioRef.current && audioRef.current.duration ? (audioRef.current.currentTime / audioRef.current.duration) * 100 : 0)}%, #e5e7eb ${(audioRef.current && audioRef.current.duration ? (audioRef.current.currentTime / audioRef.current.duration) * 100 : 0)}%)` }}
                   />
                 </div>
-                <span className="text-xs text-gray-400">{audioRef.current ? formatTime(audioRef.current.duration) : '0:00'}</span>
+                <span className={cn('text-xs', isDark ? 'text-[#9ba5be]' : 'text-gray-400')}>
+                  {audioRef.current ? formatTime(audioRef.current.duration) : '0:00'}
+                </span>
               </div>
               {/* Contrôles */}
               <div className="flex items-center gap-4 mt-2">
-                <button onClick={() => { setCurrent(current > 0 ? current - 1 : songs.length - 1); setPlaying(true); }} className="p-2 rounded-full hover:bg-gray-100 transition"><SkipBack size={28} className="text-gray-400" /></button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrent(current > 0 ? current - 1 : songs.length - 1);
+                    setPlaying(true);
+                  }}
+                  className={cn(
+                    'rounded-full p-2 transition',
+                    isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100',
+                  )}
+                >
+                  <SkipBack size={28} className={isDark ? 'text-[#9ba5be]' : 'text-gray-400'} />
+                </button>
                 <button onClick={() => setPlaying(p => { if (audioRef.current) { if (p) { audioRef.current.pause(); } else { audioRef.current.play(); } } return !p; })} className="p-2 rounded-full bg-[#ff184e] hover:bg-[#ff184e]/80 transition" style={{width:48,height:48,display:'flex',alignItems:'center',justifyContent:'center'}}>
                   {playing ? (
-                    <Pause size={28} className="text-white" />
+                    <Pause size={28} className="text-[#ffffff]" />
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 32 32" className="text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 32 32" className="text-[#ffffff]">
                       <path fill="currentColor" d="M12.225 4.462C9.89 3.142 7 4.827 7 7.508V24.5c0 2.682 2.892 4.368 5.226 3.045l14.997-8.498c2.367-1.341 2.366-4.751 0-6.091z" />
                     </svg>
                   )}
                 </button>
-                <button onClick={() => { setCurrent(current < songs.length - 1 ? current + 1 : 0); setPlaying(true); }} className="p-2 rounded-full hover:bg-gray-100 transition"><SkipForward size={28} className="text-gray-400" /></button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrent(current < songs.length - 1 ? current + 1 : 0);
+                    setPlaying(true);
+                  }}
+                  className={cn(
+                    'rounded-full p-2 transition',
+                    isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100',
+                  )}
+                >
+                  <SkipForward size={28} className={isDark ? 'text-[#9ba5be]' : 'text-gray-400'} />
+                </button>
               </div>
             </div>
           </div>

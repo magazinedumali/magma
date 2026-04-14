@@ -14,6 +14,7 @@ const ThemeContext = createContext<ThemeContextType>({
   isDark: false,
 });
 
+/** Thème par défaut du site : clair (valeur absente ou inconnue → light). */
 function readStoredTheme(): Theme {
   try {
     const stored = localStorage.getItem('magma-theme');
@@ -30,9 +31,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'light') {
+      root.classList.remove('dark');
       root.classList.add('light-mode');
       root.classList.remove('dark-mode');
     } else {
+      root.classList.add('dark');
       root.classList.add('dark-mode');
       root.classList.remove('light-mode');
     }

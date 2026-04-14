@@ -53,13 +53,9 @@ const RightSection = () => {
         Connexion
       </Button>
       
-      <Button
-        variant="ghost" 
-        size="icon"
-        className="relative"
-      >
+      <Button variant="ghost" size="icon" className="relative hidden" aria-hidden tabIndex={-1}>
         <Bell size={20} />
-        <span className="absolute -top-1 -right-1 bg-[#ff184e] text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff184e] text-xs text-white">
           2
         </span>
       </Button>

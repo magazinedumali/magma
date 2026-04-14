@@ -290,9 +290,11 @@ const Header = () => {
             )}
             
             <Button
-              variant="ghost" 
+              variant="ghost"
               size="icon"
-              className="relative hover:bg-white/10 text-gray-300 hover:text-white"
+              className="relative hidden hover:bg-white/10 text-gray-300 hover:text-white"
+              aria-hidden
+              tabIndex={-1}
             >
               <Bell size={20} />
               <span className="absolute top-1 right-1 sm:top-0 sm:right-0 bg-[#ff184e] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full shadow-[0_0_8px_rgba(255,24,78,0.8)]">
