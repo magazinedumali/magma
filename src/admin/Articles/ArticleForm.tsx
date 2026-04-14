@@ -430,7 +430,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 },
               }}
               onEditorChange={onChange}
-              apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
+              apiKey={
+                import.meta.env.VITE_TINYMCE_API_KEY ||
+                import.meta.env.TINYMCE_API_KEY ||
+                ''
+              }
               disabled={uploading || loadingArticle}
             />
           )}

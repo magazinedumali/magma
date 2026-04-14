@@ -6,6 +6,8 @@ import { tempo } from "tempo-devtools/dist/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  /** Permet aussi TINYMCE_API_KEY dans .env (sans préfixe VITE_) pour l’éditeur cloud. */
+  envPrefix: ["VITE_", "TINYMCE_"],
   server: {
     host: "::",
     port: 8080,
