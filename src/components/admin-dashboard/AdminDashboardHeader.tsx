@@ -47,7 +47,7 @@ const AdminDashboardHeader = () => {
             transition: 'all 0.2s',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}
-          className="hover:bg-white/10 dark:hover:bg-black/20"
+          className="dashboard-theme-toggle"
           title={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
         >
           {isDark ? <SunIcon className="w-5 h-5 text-amber-400" /> : <MoonIcon className="w-5 h-5 text-slate-700" />}

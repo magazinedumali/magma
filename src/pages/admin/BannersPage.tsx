@@ -156,7 +156,7 @@ const BannersPage = () => {
   return (
     <div className="font-jost text-[var(--text-primary)]">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Publicité & Bannières</h2>
+        <h2 className="text-3xl font-bold admin-dashboard-title">Publicité & Bannières</h2>
         <p className="text-[var(--text-muted)] text-sm mt-1">Gérez les emplacements publicitaires sur tout le site</p>
       </div>
 

@@ -59,7 +59,7 @@ const AddAlbumPage = () => {
 
   return (
     <div className="text-[var(--text-primary)] max-w-2xl mx-auto py-8">
-      <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-8">Ajouter un album</h2>
+      <h2 className="text-2xl font-bold admin-dashboard-title mb-8">Ajouter un album</h2>
       
       {error && (
         <div className="text-center text-red-400 bg-red-400/10 p-4 rounded-xl border border-red-400/20 mb-8 animate-fadeIn">

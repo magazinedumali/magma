@@ -142,7 +142,7 @@ const StoriesPage = () => {
       <div className="mb-8">
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Gestion des Stories</h2>
+            <h2 className="text-2xl font-bold admin-dashboard-title">Gestion des Stories</h2>
             <p className="text-sm text-[var(--text-muted)] mt-1">Gérez les visual stories de votre site</p>
           </div>
           <div className="flex flex-wrap gap-3 items-center w-full xl:w-auto">
@@ -462,7 +462,7 @@ const StoryModal = ({ open, onClose, onSave, initialData, dragActive, setDragAct
         <button type="button" onClick={onClose} className="absolute top-4 right-4 text-[var(--text-muted)] p-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
           <X className="w-5 h-5" />
         </button>
-        <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-2">
+        <h3 className="text-2xl font-bold admin-dashboard-title mb-2">
           {initialData ? 'Éditer la story' : 'Nouvelle story'}
         </h3>
         

@@ -128,7 +128,7 @@ const EditStoryPage = () => {
   return (
     <div className="font-jost text-[var(--text-primary)] max-w-3xl mx-auto py-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Modifier la story</h2>
+        <h2 className="text-3xl font-bold admin-dashboard-title">Modifier la story</h2>
         <p className="text-[var(--text-muted)] mt-2">Mettez à jour le titre ou l'image de votre story.</p>
       </div>
       

@@ -45,23 +45,25 @@ const AdminDashboardSidebar = () => {
 
   return (
     <aside className="dashboard-sidebar">
-      {/* Logo */}
+      {/* Logo (même asset que le site public) */}
       <div className="dashboard-logo-row">
-        <div
-          style={{
-            width: 38, height: 38, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #ff184e, #ff6b8a)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: 15, color: '#fff', flexShrink: 0,
-            boxShadow: '0 0 16px rgba(255,24,78,0.45)'
-          }}
+        <NavLink
+          to={getDashboardPath()}
+          end
+          className="dashboard-brand-link"
+          title={t('Dashboard')}
         >
-          LM
-        </div>
-        <div className="dashboard-logo">
-          Le Magazine<br />
-          <span>du Mali</span>
-        </div>
+          <img
+            src="/logo.png"
+            alt="Le Magazine du Mali"
+            className="dashboard-sidebar-brand-logo"
+            loading="eager"
+            fetchpriority="high"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg';
+            }}
+          />
+        </NavLink>
       </div>
 
       {/* Search */}

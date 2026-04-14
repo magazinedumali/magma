@@ -21,18 +21,23 @@
   --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.4);
   --shadow-sidebar: 2px 0 32px rgba(0, 0, 0, 0.5);
   --font:           'Inter', sans-serif;
+  --dashboard-header-bg: rgba(10, 12, 22, 0.88);
 }
 
 html.light-mode {
   --bg-main:        #f5f6f8;
   --bg-sidebar:     #ffffff;
-  --bg-card:        rgba(255, 255, 255, 0.85);
-  --bg-card-hover:  rgba(255, 255, 255, 0.95);
-  --bg-input:       rgba(0, 0, 0, 0.04);
-  --border:         rgba(0, 0, 0, 0.12);
+  --bg-card:        rgba(255, 255, 255, 0.92);
+  --bg-card-hover:  #ffffff;
+  --bg-input:       rgba(0, 0, 0, 0.05);
+  --border:         rgba(0, 0, 0, 0.1);
   --text-primary:   #1a1e2e;
   --text-secondary: #3a4060;
   --text-muted:     #6b7290;
+  --shadow-card:    0 4px 20px rgba(15, 23, 42, 0.06);
+  --shadow-sidebar: 2px 0 24px rgba(15, 23, 42, 0.06);
+  /* Bandeau sous le header : même base que la sidebar pour un alignement visuel */
+  --dashboard-header-bg: rgba(255, 255, 255, 0.92);
 }
 
 /* ─── Global ───────────────────────────────────────── */
@@ -67,9 +72,34 @@ html.light-mode {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 28px 24px 22px 24px;
+  padding: 22px 20px 18px 20px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 16px;
+}
+
+.dashboard-brand-link {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  outline-offset: 2px;
+}
+
+.dashboard-brand-link:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.dashboard-sidebar-brand-logo {
+  display: block;
+  height: 44px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+  flex-shrink: 0;
 }
 
 .dashboard-logo {
@@ -136,6 +166,10 @@ html.light-mode {
 .sidebar-scroll::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,0.1);
   border-radius: 4px;
+}
+
+html.light-mode .sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12);
 }
 
 .sidebar-section-title {
@@ -250,12 +284,16 @@ html.light-mode {
   justify-content: space-between;
   align-items: center;
   padding: 20px 40px;
-  background: rgba(10, 12, 22, 0.85);
+  background: var(--dashboard-header-bg);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 50;
+}
+
+.dashboard-theme-toggle:hover {
+  background: var(--bg-card-hover);
 }
 
 /* ─── Widgets ──────────────────────────────────────── */
@@ -286,6 +324,12 @@ html.light-mode {
   color: var(--text-primary);
   margin-bottom: 18px;
   letter-spacing: -0.2px;
+}
+
+/* Titres de page admin (remplace l’ancien dégradé blanc → gris, illisible en thème clair) */
+.admin-dashboard-title {
+  color: var(--text-primary);
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 /* ─── Legacy widget (compat) ───────────────────────── */
@@ -321,41 +365,11 @@ html.light-mode {
   border-radius: 6px;
 }
 
-/* ====== FORCE BLACK THEME FOR SIDEBAR AND DASHBOARD CARDS ====== */
-html.light-mode .dashboard-sidebar {
-  background: #0a0c16 !important;
-  color: #e2e8f0 !important;
-  border-right-color: rgba(255, 255, 255, 0.08) !important;
-}
-html.light-mode .dashboard-sidebar .dashboard-logo {
-  color: #e2e8f0 !important;
-}
-html.light-mode .dashboard-sidebar .dashboard-user-info div {
-  color: #e2e8f0 !important;
-}
-html.light-mode .sidebar-section-title {
-  color: #94a3b8 !important;
-}
-html.light-mode .dashboard-search {
-  background: rgba(255, 255, 255, 0.07) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-html.light-mode .dashboard-search input {
-  color: #e2e8f0 !important;
-}
-html.light-mode .dashboard-search input::placeholder {
-  color: #94a3b8 !important;
-}
-html.light-mode .dashboard-sidebar nav ul li a {
-  color: #e2e8f0 !important;
-}
-html.light-mode .dashboard-sidebar nav ul li a:hover,
-html.light-mode .dashboard-sidebar nav ul li a.active {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
+html.light-mode .main-content::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12);
 }
 
-/* Force specific Dashboard widgets to remain dark */
+/* Widgets explicitement « charts » sombres (optionnel) */
 html.light-mode .always-dark-widget {
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;

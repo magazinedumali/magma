@@ -127,7 +127,7 @@ const CategoriesPage = () => {
   return (
     <div className="max-w-4xl mx-auto py-6 font-jost text-[var(--text-primary)]">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Gestion des catégories</h2>
+        <h2 className="text-3xl font-bold admin-dashboard-title">Gestion des catégories</h2>
         <p className="text-[var(--text-muted)] text-sm mt-2">Créez et gérez les catégories pour organiser vos articles</p>
       </div>
 

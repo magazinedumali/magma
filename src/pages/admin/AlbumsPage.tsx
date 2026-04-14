@@ -85,7 +85,7 @@ const AlbumsPage = () => {
     <div className="text-[var(--text-primary)]">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Gestion des albums</h2>
+          <h2 className="text-2xl font-bold admin-dashboard-title">Gestion des albums</h2>
           <p className="text-sm text-[var(--text-muted)] mt-1">Organisez vos médias en galeries (Non supporté complètement en mode clair avant, maintenant unifié).</p>
         </div>
         

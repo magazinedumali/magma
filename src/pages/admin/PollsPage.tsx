@@ -162,7 +162,7 @@ const PollsPage = () => {
     <div className="text-[var(--text-primary)]">
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 flex items-center gap-2">
+          <h2 className="text-2xl font-bold admin-dashboard-title flex items-center gap-2">
             🗳️ Sondages
           </h2>
           <div className="flex flex-wrap gap-4 text-sm text-[var(--text-muted)] mt-2">
@@ -416,7 +416,7 @@ const PollModal = ({ open, onClose, onSave, initialData, dragActive, setDragActi
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
       <form onSubmit={handleSubmit} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-2xl p-8 w-full max-w-lg flex flex-col gap-6 relative animate-modalIn max-h-[90vh] overflow-y-auto custom-scrollbar">
         <button type="button" onClick={onClose} className="absolute top-4 right-4 text-[var(--text-muted)] p-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors"><X className="w-6 h-6" /></button>
-        <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 mb-2">
+        <h3 className="text-2xl font-bold admin-dashboard-title mb-2">
           {initialData ? 'Éditer le sondage' : 'Nouveau sondage'}
         </h3>
         
