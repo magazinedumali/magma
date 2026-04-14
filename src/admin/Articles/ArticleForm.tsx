@@ -344,6 +344,13 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
     }
   }, [articleId, reset]);
 
+  const tinyCloudKey = (
+    import.meta.env.VITE_TINYMCE_API_KEY ||
+    import.meta.env.TINYMCE_API_KEY ||
+    ''
+  ).trim();
+  const useTinyCloud = tinyCloudKey.length > 0;
+
   return (
     <form className="flex w-full min-h-screen" onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* Loader central lors du chargement de l'article */}
@@ -389,7 +396,13 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
           render={({ field: { onChange, value } }) => (
             <Editor
               value={value}
+              {...(useTinyCloud
+                ? { apiKey: tinyCloudKey }
+                : {
+                    tinymceScriptSrc: `${import.meta.env.BASE_URL}tinymce/tinymce.min.js`,
+                  })}
               init={{
+                ...(!useTinyCloud ? { license_key: 'gpl' } : {}),
                 height: 400,
                 menubar: false,
                 plugins: [
@@ -430,11 +443,6 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ initialValues = {}, articleId
                 },
               }}
               onEditorChange={onChange}
-              apiKey={
-                import.meta.env.VITE_TINYMCE_API_KEY ||
-                import.meta.env.TINYMCE_API_KEY ||
-                ''
-              }
               disabled={uploading || loadingArticle}
             />
           )}

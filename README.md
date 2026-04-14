@@ -150,10 +150,17 @@ This project uses:
 
 1. Push your code to GitHub
 2. Import your repository in Vercel
-3. Add environment variables in Vercel dashboard
+3. Add environment variables in Vercel dashboard (**Project → Settings → Environment Variables**)
 4. Deploy
 
 The project includes a `vercel.json` configuration file for Vercel deployment.
+
+**TinyMCE (admin article editor)** — API keys are read **at build time** (`vite build`), not at runtime. Set on Vercel for **Production** (and **Preview** if needed) at least one of:
+
+- `VITE_TINYMCE_API_KEY`, or
+- `TINYMCE_API_KEY` (also supported via `envPrefix` in `vite.config.ts`)
+
+Then **redeploy** so a new build picks them up. Without this, the editor works locally (`.env`) but not on the deployed site. In [Tiny Cloud](https://www.tiny.cloud/) → **Approved domains**, add your **production hostname** (and optionally `*.vercel.app` for previews); otherwise the key may be rejected even when present in the bundle.
 
 **If pushes to GitHub do not trigger deploys:** In Vercel → your project → **Settings → Git**, confirm the repo and **Production Branch** are `main`. Reconnect the repository or reinstall the Vercel GitHub app if needed. On GitHub → repo **Settings → Webhooks**, check that `vercel.com` deliveries are not failing.
 
@@ -175,7 +182,7 @@ The project can be deployed to any platform that supports Node.js and static sit
 |----------|-------------|----------|
 | `VITE_SUPABASE_URL` | Supabase project URL | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `VITE_TINYMCE_API_KEY` | TinyMCE API key for rich text editor | No |
+| `VITE_TINYMCE_API_KEY` (ou `TINYMCE_API_KEY`) | TinyMCE cloud API key; for a working editor in production, set on the host **before build** (e.g. Vercel env vars) | Optional locally |
 | `VITE_TEMPO` | Enable Tempo development tools | No |
 
 ### Supabase Configuration
@@ -221,6 +228,10 @@ Key tables:
    - Verify Supabase Auth is enabled
    - Check RLS policies are correctly configured
    - Verify email provider is configured in Supabase
+
+4. **TinyMCE asks for an API key in production but works locally**
+   - Vite inlines env at **build** time: add `VITE_TINYMCE_API_KEY` or `TINYMCE_API_KEY` to your host (e.g. Vercel → Environment Variables for Production/Preview), then trigger a **new deployment** (rebuild).
+   - In [Tiny Cloud](https://www.tiny.cloud/) → **Approved domains**, add your production hostname (and `*.vercel.app` if you use preview URLs).
 
 ## 📚 Technologies Used
 
